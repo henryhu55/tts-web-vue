@@ -1,0 +1,40 @@
+{
+  "name": "tts-vue-web",
+  "version": "2.0.0",
+  "description": "🎤 微软语音合成工具，Web版本，使用 Vue + ElementPlus + Vite 构建。",
+  "author": "Anger <3302029635@qq.com>",
+  "license": "MIT",
+  "private": true,
+  "scripts": {
+    "dev": "vite",
+    "build": "vue-tsc --noEmit && vite build",
+    "preview": "vite preview"
+  },
+  "engines": {
+    "node": ">=14.17.0"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-vue": "2.3.3",
+    "typescript": "4.7.4",
+    "vite": "2.9.13",
+    "vue": "3.2.37",
+    "vue-tsc": "0.38.3"
+  },
+  "env": {
+    "VITE_DEV_SERVER_HOST": "127.0.0.1",
+    "VITE_DEV_SERVER_PORT": "3344"
+  },
+  "keywords": [
+    "vite",
+    "vue3",
+    "vue"
+  ],
+  "dependencies": {
+    "axios": "0.27.2",
+    "element-plus": "2.2.9",
+    "openai": "^4.0.0",
+    "pinia": "2.0.17",
+    "uuid": "8.3.2",
+    "vue-i18n": "9.6.5"
+  }
+}
