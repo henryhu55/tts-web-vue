@@ -2,6 +2,11 @@
 
 🎤 微软语音合成工具，Web版本，使用 `Vue` + `ElementPlus` + `Vite` 构建。
 
+## 网站示例
+https://web.tts88.top  
+
+![image](https://github.com/user-attachments/assets/67cafd2c-7b0f-4b0d-b14b-bf402aaff0cd)
+
 ## 功能特点
 
 - 🌐 完全Web化，无需安装桌面应用
