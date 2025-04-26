@@ -201,10 +201,10 @@
           class="full-width"
         >
           <el-option value="default" :label="t('options.default') || '默认'"></el-option>
-          <el-option value="0.5" :label="t('options.weak') || '弱 (0.5)'"></el-option>
-          <el-option value="1" :label="t('options.normal') || '正常 (1)'"></el-option>
-          <el-option value="1.5" :label="t('options.strong') || '强 (1.5)'"></el-option>
-          <el-option value="2" :label="t('options.extraStrong') || '超强 (2)'"></el-option>
+          <el-option value="0.5" :label="t('options.weak') || '弱'"></el-option>
+          <el-option value="1" :label="t('options.normal') || '正常'"></el-option>
+          <el-option value="1.5" :label="t('options.strong') || '强'"></el-option>
+          <el-option value="2" :label="t('options.extraStrong') || '超强'"></el-option>
         </el-select>
       </div>
       
