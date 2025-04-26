@@ -210,25 +210,59 @@ const handleDelete = (index: any, row: any) => {
 };
 
 const fileChange = (uploadFile: any, uploadFiles: any) => {
-  tableData.value = uploadFiles.map((item: any) => {
-    return {
-      fileName: item.name,
-      filePath: item.raw.path,
-      fileSize: item.size,
-      status: item.status,
-      file: item,
-    };
+  // 处理每个上传的文件
+  Promise.all(uploadFiles.map(async (item: any) => {
+    // 读取文件内容
+    const reader = new FileReader();
+    return new Promise((resolve) => {
+      reader.onload = (e) => {
+        resolve({
+          fileName: item.name,
+          filePath: item.raw.path,
+          fileSize: item.size,
+          status: "ready",
+          file: item,
+          content: e.target?.result as string
+        });
+      };
+      reader.readAsText(item.raw);
+    });
+  })).then((results) => {
+    tableData.value = results;
   });
 };
+
 const fileRemove = (uploadFile: any, uploadFiles: any) => {
-  tableData.value = uploadFiles.map((item: any) => {
-    return {
-      fileName: item.name,
-      filePath: item.raw.path,
-      fileSize: item.size,
-      status: item.status,
-      file: item,
-    };
+  // 处理每个剩余的文件
+  Promise.all(uploadFiles.map(async (item: any) => {
+    // 如果文件已经有内容，直接使用
+    if (item.content) {
+      return {
+        fileName: item.name,
+        filePath: item.raw.path,
+        fileSize: item.size,
+        status: "ready",
+        file: item,
+        content: item.content
+      };
+    }
+    // 否则重新读取文件内容
+    const reader = new FileReader();
+    return new Promise((resolve) => {
+      reader.onload = (e) => {
+        resolve({
+          fileName: item.name,
+          filePath: item.raw.path,
+          fileSize: item.size,
+          status: "ready",
+          file: item,
+          content: e.target?.result as string
+        });
+      };
+      reader.readAsText(item.raw);
+    });
+  })).then((results) => {
+    tableData.value = results;
   });
 };
 

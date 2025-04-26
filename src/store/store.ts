@@ -1,7 +1,7 @@
 // @/store/firstStore.js
 
 import { defineStore } from "pinia";
-import { getTTSData, getDataGPT } from "./play";
+import { getTTSData, getDataGPT, createBatchTask, getBatchTaskStatus } from "./play";
 import { ElMessage } from "element-plus";
 import WebStore from "./web-store";
 
@@ -54,6 +54,9 @@ export const useTtsStore = defineStore("ttsStore", {
       currMp3Buffer: null,
       currMp3Url: "",
       audioPlayer: null as HTMLAudioElement | null,
+      batchTaskId: "",
+      batchTaskStatus: "",
+      batchProgress: 0,
     };
   },
   // 定义getters，类似于computed，具有缓存g功能
@@ -230,7 +233,8 @@ export const useTtsStore = defineStore("ttsStore", {
       let resFlag = true;
       this.currMp3Buffer = null;
       this.currMp3Url = "";
-      // this.page.asideIndex == "1"单文本转换
+      
+      // 单文本转换
       if (this.page.asideIndex == "1") {
         this.currMp3Url = "";
         const value = {
@@ -285,6 +289,245 @@ export const useTtsStore = defineStore("ttsStore", {
           });
           resFlag = false;
         } finally {
+          this.isLoading = false;
+        }
+      } 
+      // 批量转换
+      else if (this.page.asideIndex == "2") {
+        this.isLoading = true;
+        try {
+          // 检查API配置
+          if (!this.config.thirdPartyApi || !this.config.tts88Key) {
+            throw new Error("请先配置TTS88 API地址和密钥");
+          }
+
+          // 获取待转换的文件列表
+          const pendingFiles = this.tableData.filter((item: any) => item.status !== "done");
+          
+          if (pendingFiles.length === 0) {
+            ElMessage({
+              message: "没有需要转换的文件",
+              type: "warning",
+              duration: 2000,
+            });
+            this.isLoading = false;
+            return true;
+          }
+
+          // 验证并准备SSML内容
+          const inputs = await Promise.all(pendingFiles.map(async (file: any) => {
+            try {
+              // 设置文件状态为处理中
+              file.status = "processing";
+              
+              // 读取文件内容作为纯文本
+              const plainText = file.content;
+              if (!plainText || plainText.trim() === '') {
+                throw new Error("文件内容为空");
+              }
+
+              // 使用当前配置生成SSML
+              const voice = this.formConfig.voiceSelect;
+              const express = this.formConfig.voiceStyleSelect;
+              const role = this.formConfig.role;
+              const rate = (this.formConfig.speed - 1) * 100;
+              const pitch = (this.formConfig.pitch - 1) * 50;
+              
+              // 准备强度和音量属性
+              let intensityAttr = "";
+              if (this.formConfig.intensity && this.formConfig.intensity !== "default") {
+                let intensityValue = "";
+                if (this.formConfig.intensity === "weak") intensityValue = "0.5";
+                else if (this.formConfig.intensity === "strong") intensityValue = "1.5";
+                else if (this.formConfig.intensity === "extraStrong") intensityValue = "2";
+                else intensityValue = this.formConfig.intensity;
+                
+                intensityAttr = ` styledegree="${intensityValue}"`;
+              }
+              
+              // 准备音量属性
+              let volumeAttr = "";
+              if (this.formConfig.volume && this.formConfig.volume !== "default") {
+                const volumeMapping: {[key: string]: string} = {
+                  "extraWeak": "x-soft",
+                  "weak": "soft", 
+                  "strong": "loud",
+                  "extraStrong": "x-loud"
+                };
+                
+                volumeAttr = ` volume="${volumeMapping[this.formConfig.volume] || this.formConfig.volume}"`;
+              }
+
+              // 生成SSML
+              const ssml = `<speak xmlns="http://www.w3.org/2001/10/synthesis" xmlns:mstts="https://www.w3.org/2001/mstts" xmlns:emo="http://www.w3.org/2009/10/emotionml" version="1.0" xml:lang="en-US">
+                <voice name="${voice}">
+                    <mstts:express-as ${express != "General" ? 'style="' + express + '"' : ""}${role != "Default" ? ' role="' + role + '"' : ""}${intensityAttr}>
+                        <prosody rate="${rate}%" pitch="${pitch}%"${volumeAttr}>
+                        ${plainText}
+                        </prosody>
+                    </mstts:express-as>
+                </voice>
+              </speak>`;
+              
+              return {
+                content: ssml
+              };
+            } catch (err: any) {
+              file.status = "error";
+              file.error = `SSML生成失败: ${err.message || String(err)}`;
+              throw err;
+            }
+          }));
+
+          // 验证任务数据结构
+          const task = {
+            inputKind: "SSML",
+            inputs: inputs.filter(input => input !== null),
+            properties: {
+              wordBoundaryEnabled: true,
+              outputFormat: "audio-16khz-128kbitrate-mono-mp3",
+              concatenateResult: false,
+              decompressOutputFiles: false
+            }
+          };
+
+          if (task.inputs.length === 0) {
+            throw new Error("没有有效的SSML内容可以转换");
+          }
+
+          // 发送批量任务请求
+          this.batchTaskId = await createBatchTask(
+            this.config.thirdPartyApi,
+            this.config.tts88Key,
+            task
+          );
+
+          if (!this.batchTaskId) {
+            throw new Error("创建批量任务失败：未获取到有效的任务ID");
+          }
+
+          // 定义最大重试次数和检查间隔
+          const MAX_STATUS_CHECKS = 1200;  // 1小时内最多检查1200次（3秒一次）
+          const CHECK_INTERVAL = 3000;     // 3秒检查一次
+          let checkCount = 0;
+
+          // 定期检查任务状态
+          const checkStatus = async () => {
+            if (!this.batchTaskId) {
+              this.isLoading = false;
+              throw new Error("无效的任务ID");
+            }
+
+            if (checkCount >= MAX_STATUS_CHECKS) {
+              throw new Error("任务执行超时");
+            }
+
+            try {
+              const status = await getBatchTaskStatus(
+                this.config.thirdPartyApi,
+                this.config.tts88Key,
+                this.batchTaskId
+              );
+
+              // 更新状态
+              this.batchTaskStatus = status.status;
+              checkCount++;
+              
+              // 计算进度
+              if (status.properties) {
+                const total = status.properties.succeededAudioCount + status.properties.failedAudioCount;
+                const completed = status.properties.succeededAudioCount;
+                this.batchProgress = total > 0 ? Math.round((completed / total) * 100) : 0;
+
+                // 更新界面显示
+                if (this.batchProgress > 0) {
+                  ElMessage({
+                    message: `批量转换进度: ${this.batchProgress}%`,
+                    type: "success",
+                    duration: 2000,
+                  });
+                }
+
+                // 记录失败的文件信息
+                if (status.properties.failedAudioCount > 0) {
+                  console.warn(`当前有 ${status.properties.failedAudioCount} 个文件转换失败`);
+                }
+              }
+
+              // 处理不同的任务状态
+              switch (status.status) {
+                case "NotStarted":
+                case "Running":
+                  // 继续检查
+                  setTimeout(checkStatus, CHECK_INTERVAL);
+                  break;
+
+                case "Succeeded":
+                  if (status.outputs?.result) {
+                    // 更新所有文件状态
+                    for (const file of pendingFiles) {
+                      if (file.status === "processing") {
+                        file.status = "done";
+                        file.audioUrl = status.outputs.result;
+                      }
+                    }
+
+                    ElMessage({
+                      message: `批量转换完成，成功: ${status.properties?.succeededAudioCount || 0} 个，失败: ${status.properties?.failedAudioCount || 0} 个`,
+                      type: "success",
+                      duration: 3000,
+                    });
+                  } else {
+                    throw new Error("转换成功但未获取到下载链接");
+                  }
+                  this.isLoading = false;
+                  break;
+
+                case "Failed":
+                  throw new Error(`批量转换失败: ${status.properties?.failedAudioCount || 0} 个文件失败`);
+
+                case "Canceled":
+                  throw new Error("任务已被取消");
+
+                default:
+                  throw new Error(`未知的任务状态: ${status.status}`);
+              }
+            } catch (err) {
+              console.error("检查任务状态失败:", err);
+              // 更新失败文件的状态
+              for (const file of pendingFiles) {
+                if (file.status === "processing") {
+                  file.status = "error";
+                  file.error = String(err);
+                }
+              }
+              ElMessage({
+                message: "检查任务状态失败: " + String(err),
+                type: "error",
+                duration: 3000,
+              });
+              this.isLoading = false;
+            }
+          };
+
+          // 开始检查任务状态
+          await checkStatus();
+
+        } catch (err) {
+          console.error("批量转换失败:", err);
+          // 更新所有处理中文件的状态为错误
+          for (const file of this.tableData) {
+            if (file.status === "processing") {
+              file.status = "error";
+              file.error = String(err);
+            }
+          }
+          ElMessage({
+            message: "批量转换失败: " + String(err),
+            type: "error",
+            duration: 3000,
+          });
+          resFlag = false;
           this.isLoading = false;
         }
       }

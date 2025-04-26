@@ -1,5 +1,6 @@
 import axios from 'axios';
 import { PromptGPT } from "@/types/prompGPT";
+import { createBatchTask, getBatchTaskStatus, deleteBatchTask } from '@/api/tts';
 // 移除SDK导入，改用REST API
 // import * as SpeechSDK from 'microsoft-cognitiveservices-speech-sdk';
 
@@ -330,4 +331,4 @@ async function getDataGPT(options: PromptGPT): Promise<string> {
   throw lastError || new Error("未知错误");
 }
 
-export { getTTSData, getDataGPT };
+export { getTTSData, getDataGPT, createBatchTask, getBatchTaskStatus, deleteBatchTask };
