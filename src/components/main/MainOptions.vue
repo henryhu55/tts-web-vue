@@ -388,6 +388,7 @@ import {
   Aim, Timer, Headset, DArrowRight, TrendCharts, Star,
   DocumentChecked, Reading, Collection, Lightning, Cloudy
 } from '@element-plus/icons-vue';
+import { getTTSData } from "@/api/tts";
 
 const { t } = useI18n();  
 
@@ -580,8 +581,71 @@ const apiChange = (res:number) => {
   }
 };
 
-const audition = (value: string) => {
-  ttsStore.audition(value);
+const audition = async (value: string) => {
+  // 创建临时的SSML用于试听
+  const tempInput = inputs.value.inputValue;
+  const tempSSML = inputs.value.ssmlValue;
+  
+  try {
+    // 使用试听文本生成SSML
+    inputs.value.inputValue = store.get("audition") || "你好，这是一段试听文本。";
+    formConfig.value.voiceSelect = value;
+    ttsStore.setSSMLValue();
+    
+    // 开始转换并播放
+    const voiceData = {
+      activeIndex: page.value.tabIndex,
+      ssmlContent: inputs.value.ssmlValue,
+      inputContent: inputs.value.inputValue,
+      retryCount: config.value.retryCount,
+      retryInterval: config.value.retryInterval,
+    };
+    
+    // 检查API URL是否为空
+    if (!config.value.thirdPartyApi) {
+      ElMessage({
+        message: "请先在设置中配置TTS88 API地址",
+        type: "error",
+        duration: 3000,
+      });
+      return;
+    }
+    
+    // 获取TTS数据
+    const res = await getTTSData({
+      api: formConfig.value.api,
+      voiceData,
+      speechKey: config.value.speechKey,
+      region: config.value.serviceRegion,
+      thirdPartyApi: config.value.thirdPartyApi,
+      tts88Key: config.value.tts88Key,
+    });
+    
+    if (res) {
+      if (res.buffer) {
+        const audioBlob = new Blob([res.buffer], { type: 'audio/mpeg' });
+        const audioUrl = URL.createObjectURL(audioBlob);
+        ttsStore.audition(audioUrl);
+      } else if (res.audibleUrl) {
+        ttsStore.audition(res.audibleUrl);
+      } else if (res.audioContent) {
+        const audioBlob = new Blob([Buffer.from(res.audioContent, 'base64')], { type: 'audio/mpeg' });
+        const audioUrl = URL.createObjectURL(audioBlob);
+        ttsStore.audition(audioUrl);
+      }
+    }
+  } catch (err) {
+    console.error('试听失败:', err);
+    ElMessage({
+      message: "试听失败: " + (err instanceof Error ? err.message : String(err)),
+      type: "error",
+      duration: 2000,
+    });
+  } finally {
+    // 恢复原始输入
+    inputs.value.inputValue = tempInput;
+    inputs.value.ssmlValue = tempSSML;
+  }
 };
 
 // 更新SSML内容的函数
