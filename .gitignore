@@ -7,6 +7,9 @@ dist
 dist-ssr
 *.local
 
+# 文档
+src/docs/
+
 # 日志
 logs
 *.log
