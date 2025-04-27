@@ -213,6 +213,17 @@ const messages = {
       presetExcited: "Excited",
       presetSad: "Sad",
       presetApplied: "Preset Configuration Applied",
+      voiceSettings: "Voice Settings",
+      advancedSettings: "Advanced Settings",
+      saveAsPreset: "Save as Preset",
+      resetToDefault: "Reset to Default",
+      xSoft: "Extra Soft",
+      soft: "Soft",
+      medium: "Medium",
+      loud: "Loud",
+      xLoud: "Extra Loud",
+      readyToConvert: "Ready to convert?",
+      converting: "Converting...",
     },
     lang: {
       AF_ZA: "Afrikaans (South Africa)",
@@ -587,10 +598,10 @@ const messages = {
       AS_IN: "Asamés (India)",
       AZ_AZ: "Azerbaiyán (Azerbaiyán)",
       BG_BG: "búlgaro (Bulgaria)",
-      BN_BD: "bengalí (bengalí)",
-      BN_IN: "bengalí (India)",
-      BS_BA: "bosnio (Bosnia y Herzegovina)",
-      CA_ES: "Catalán (España)",
+      BN_BD: "孟加拉语(孟加拉)",
+      BN_IN: "孟加拉语(印度)",
+      BS_BA: "波斯尼亚语(波斯尼亚和黑塞哥维那)",
+      CA_ES: "加泰罗尼亚语(西班牙)",
       CS_CZ: "Checo(Checo)",
       CY_GB: "Galés (Reino Unido)",
       DA_DK: "danés (Dinamarca)",
@@ -667,7 +678,7 @@ const messages = {
       LT_LT: "lituano (Lituania)",
       LV_LV: "Letón (letón)",
       MK_MK: "Macedonio (Macedonia del Norte)",
-      ML_IN: "Malayalam (India)",
+      ML_IN: "马拉雅拉姆语(印度)",
       MN_MN: "mongol (mongol)",
       MR_IN: "maratí (India)",
       MS_MY: "Malayo (Malasia)",
@@ -936,6 +947,17 @@ const messages = {
       presetExcited: "兴奋活力",
       presetSad: "悲伤情绪",
       presetApplied: "已应用预设配置",
+      voiceSettings: "语音设置",
+      advancedSettings: "高级设置",
+      saveAsPreset: "保存为预设",
+      resetToDefault: "恢复默认",
+      xSoft: "极轻",
+      soft: "轻",
+      medium: "中等",
+      loud: "响",
+      xLoud: "极响",
+      readyToConvert: "准备好了吗？",
+      converting: "正在转换中...",
     },
     lang: {
       AF_ZA: "南非荷兰语(南非)",
@@ -1113,107 +1135,57 @@ const messages = {
   // Otros idiomas...
 };
 
-// 浏览器环境中获取语言
+// 根据浏览器语言或用户设置确定默认语言
 const getDefaultLanguage = () => {
-  console.log('正在检测语言设置...');
-  
-  // 首先尝试从localStorage获取
+  // 从本地存储中读取用户设置的语言
   try {
     const savedLanguage = localStorage.getItem('language');
-    console.log('localStorage.language:', savedLanguage);
-    
     if (savedLanguage) {
-      try {
-        const parsedLanguage = JSON.parse(savedLanguage);
-        if (parsedLanguage && Object.keys(messages).includes(parsedLanguage)) {
-          console.log('从localStorage.language获取到语言设置:', parsedLanguage);
-          return parsedLanguage;
-        }
-      } catch (e) {
-        console.error('解析language失败:', e);
+      const parsedLanguage = JSON.parse(savedLanguage);
+      if (parsedLanguage === 'zh' || parsedLanguage === 'en') {
+        return parsedLanguage;
       }
     }
-  } catch (e) {
-    console.error('获取language出错:', e);
-  }
-  
-  // 然后尝试从config.language获取
-  try {
-    const configLanguage = localStorage.getItem('config.language');
-    console.log('localStorage.config.language:', configLanguage);
     
+    // 从config中读取
+    const configLanguage = localStorage.getItem('config.language');
     if (configLanguage) {
-      try {
-        const parsedConfig = JSON.parse(configLanguage);
-        if (parsedConfig && Object.keys(messages).includes(parsedConfig)) {
-          console.log('从localStorage.config.language获取到语言设置:', parsedConfig);
-          return parsedConfig;
-        }
-      } catch (e) {
-        console.error('解析config.language失败:', e);
+      const parsedLanguage = JSON.parse(configLanguage);
+      if (parsedLanguage === 'zh' || parsedLanguage === 'en') {
+        return parsedLanguage;
       }
     }
   } catch (e) {
-    console.error('获取config.language出错:', e);
+    console.error('读取语言设置失败:', e);
   }
   
-  // 清除本地存储中可能存在的错误数据
-  try {
-    const itemsToCheck = ['language', 'config.language'];
-    for (const item of itemsToCheck) {
-      const value = localStorage.getItem(item);
-      if (value && (value === 'undefined' || value === 'null')) {
-        console.log(`清除无效的${item}值:`, value);
-        localStorage.removeItem(item);
-      }
-    }
-  } catch (e) {
-    console.error('清理localStorage出错:', e);
+  // 如果没有用户设置，则根据浏览器语言确定
+  const browserLanguage = navigator.language.toLowerCase();
+  if (browserLanguage.startsWith('zh')) {
+    return 'zh';
   }
   
-  // 强制设置为中文
-  console.log('未找到有效的语言设置，使用默认值: zh');
-  
-  // 将默认语言写入localStorage
-  try {
-    localStorage.setItem('language', JSON.stringify('zh'));
-    localStorage.setItem('config.language', JSON.stringify('zh'));
-  } catch (e) {
-    console.error('保存默认语言设置失败:', e);
-  }
-  
+  // 默认使用中文
   return 'zh';
 };
 
 const defaultLanguage = getDefaultLanguage();
-console.log('最终应用的默认语言:', defaultLanguage);
 
 const i18n = createI18n({
-  legacy: false,
+  legacy: false, // 使用 Composition API 模式
   locale: defaultLanguage,
-  fallbackLocale: 'zh',
+  fallbackLocale: 'zh', // 如果当前语言没有对应的翻译，则使用中文
   messages,
-  silentTranslationWarn: false, // 启用翻译警告，以便发现问题
-  missingWarn: true, // 启用缺失翻译警告
+  silentTranslationWarn: process.env.NODE_ENV === 'production', // 在生产环境中关闭翻译警告
+  missingWarn: process.env.NODE_ENV !== 'production', // 在开发环境中启用缺失翻译警告
 });
 
 // 确保语言设置被正确应用
 document.addEventListener('DOMContentLoaded', () => {
   console.log('当前应用的i18n语言:', i18n.global.locale.value);
   
-  // 如果当前语言不是zh，但页面需要显示中文，则强制切换到中文
-  if (i18n.global.locale.value !== 'zh') {
-    console.log('强制切换到中文');
-    i18n.global.locale.value = 'zh';
-    
-    // 更新localStorage
-    try {
-      localStorage.setItem('language', JSON.stringify('zh'));
-      localStorage.setItem('config.language', JSON.stringify('zh'));
-    } catch (e) {
-      console.error('保存语言设置到localStorage失败:', e);
-    }
-  }
+  // 设置HTML lang属性
+  document.documentElement.setAttribute('lang', i18n.global.locale.value);
 });
 
 export default i18n;

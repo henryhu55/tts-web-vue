@@ -1,14 +1,8 @@
-<template>  <div>
-    <div class="button">
-      <div class="box" :class="{ 'winStyle-1': winStyle }">T</div>
-      <div class="box">T</div>
-      <div class="box">S</div>
-      <div class="box">8</div>
-      <div class="box">8</div>
-      <div class="box">A</div>
-      <div class="box" :class="{ 'winStyle-7': !winStyle }">P</div>
-      <div class="box" :class="{ 'winStyle-8': !winStyle }">I</div>
-    </div>
+<template>
+  <div class="api-logo">
+    <span class="tts-text">TTS</span>
+    <span class="num-text">88</span>
+    <span class="api-text">API</span>
   </div>
 </template>
 
@@ -17,87 +11,37 @@ const { winStyle } = defineProps(["winStyle"]);
 </script>
 
 <style scoped>
-/* From uiverse.io by @mrhyddenn */
-.button {
-  -webkit-app-region: no-drag;
+.api-logo {
   display: flex;
-  border-radius: 10px;
+  align-items: center;
+  background-color: #4886FF;
+  border-radius: 4px;
+  padding: 2px 5px;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.08);
+  transition: all 0.3s ease;
 }
 
-.box {
-  width: 20px;
-  height: 30px;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  font-size: 15px;
+.tts-text {
   font-weight: 700;
-  color: #fff;
-  transition: all 0.8s;
-  cursor: pointer;
-  position: relative;
-  background: rgb(58, 165, 253);
-  overflow: hidden;
+  font-size: 12px;
+  color: white;
+  letter-spacing: 0.3px;
 }
 
-.box:before {
-  content: "T";
-  position: absolute;
-  top: 0;
-  background: #67c23a;
-  width: 100%;
-  height: 100%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transform: translateY(100%);
-  transition: transform 0.4s;
+.num-text {
+  font-weight: 700;
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.9);
+  letter-spacing: 0.3px;
 }
 
-.box:nth-child(2)::before {
-  transform: translateY(-100%);
-  content: "T";
-}
-
-.box:nth-child(3)::before {
-  content: "S";
-}
-
-.box:nth-child(4)::before {
-  transform: translateY(-100%);
-  content: "8";
-}
-
-.box:nth-child(5)::before {
-  content: "8";
-}
-
-.box:nth-child(6)::before {
-  transform: translateY(-100%);
-  content: "A";
-}
-
-.box:nth-child(7)::before {
-  content: "P";
-}
-
-.box:nth-child(8)::before {
-  transform: translateY(-100%);
-  content: "I";
-}
-
-.winStyle-7 {
-  border-top-right-radius: 0;
-}
-
-.winStyle-8 {
-  border-top-right-radius: 10px;
-}
-
-.winStyle-1 {
-  border-top-left-radius: 10px;
-}
-.button:hover .box:before {
-  transform: translateY(0);
+.api-text {
+  background-color: white;
+  color: #4886FF;
+  font-size: 9px;
+  font-weight: 700;
+  padding: 0px 2px;
+  border-radius: 2px;
+  margin-left: 2px;
 }
 </style>

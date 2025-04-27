@@ -7,11 +7,14 @@ import Aside from "./components/aside/Aside.vue";
 import Main from "./components/main/Main.vue";
 import Footer from "./components/footer/Footer.vue";
 import WebStore from "./store/web-store";
-import { onMounted, ref } from "vue";
+import { onMounted, ref, watch } from "vue";
+import { useI18n } from 'vue-i18n';
+import i18n from './assets/i18n/i18n';
 
 const ttsStore = useTtsStore();
 const store = new WebStore();
 const isDarkTheme = ref(false);
+const { locale } = useI18n();
 
 // 确保默认值被正确设置
 if (!store.get("api")) {
@@ -36,6 +39,14 @@ if (!store.get("FormConfig")) {
   ttsStore.config.formConfigJson = defaultConfig;
 }
 
+// 确保语言设置正确
+watch(() => ttsStore.config.language, (newLanguage) => {
+  if (newLanguage === 'zh' || newLanguage === 'en') {
+    locale.value = newLanguage;
+    i18n.global.locale.value = newLanguage;
+  }
+}, { immediate: true });
+
 // 切换主题
 const toggleTheme = () => {
   isDarkTheme.value = !isDarkTheme.value;
@@ -47,6 +58,12 @@ onMounted(() => {
   ttsStore.genFormConfig();
   ttsStore.setSSMLValue();
   ttsStore.showDisclaimers();
+  
+  // 确保语言设置正确
+  if (ttsStore.config.language) {
+    locale.value = ttsStore.config.language;
+    i18n.global.locale.value = ttsStore.config.language;
+  }
 });
 </script>
 

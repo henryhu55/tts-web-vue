@@ -1,48 +1,61 @@
 <template>
   <div class="modern-header">
-    <div class="logo">
-      <Logo :winStyle="false" />
-      <span class="logo-text">TTS Vue</span>
+    <div class="app-branding">
+      <span class="app-title">TTS web vue</span>
     </div>
     <div class="controls">
-      <el-tooltip content="切换主题" placement="bottom" effect="light">
-        <el-button
-          circle
-          @click="$emit('toggle-theme')"
-        >
-          <el-icon><MoonNight /></el-icon>
-        </el-button>
-      </el-tooltip>
+      <div class="api-badge" @click="openApiSite">
+        <span>TTS88</span>
+        <span class="api-tag">API</span>
+      </div>
       
-      <el-dropdown trigger="click">
-        <el-button circle>
-          <el-icon><More /></el-icon>
-        </el-button>
-        <template #dropdown>
-          <el-dropdown-menu>
-            <el-dropdown-item>
-              <el-icon><InfoFilled /></el-icon> 关于应用
-            </el-dropdown-item>
-            <el-dropdown-item>
-              <el-icon><QuestionFilled /></el-icon> 帮助文档
-            </el-dropdown-item>
-          </el-dropdown-menu>
-        </template>
-      </el-dropdown>
+      <div class="control-buttons">
+        <el-tooltip content="切换主题" placement="bottom" effect="light">
+          <el-button
+            circle
+            @click="$emit('toggle-theme')"
+          >
+            <el-icon><MoonNight /></el-icon>
+          </el-button>
+        </el-tooltip>
+        
+        <el-dropdown trigger="click">
+          <el-button circle>
+            <el-icon><More /></el-icon>
+          </el-button>
+          <template #dropdown>
+            <el-dropdown-menu>
+              <el-dropdown-item>
+                <el-icon><InfoFilled /></el-icon> 关于应用
+              </el-dropdown-item>
+              <el-dropdown-item>
+                <el-icon><QuestionFilled /></el-icon> 帮助文档
+              </el-dropdown-item>
+              <el-dropdown-item @click="openApiSite">
+                <el-icon><Link /></el-icon> API 官网
+              </el-dropdown-item>
+            </el-dropdown-menu>
+          </template>
+        </el-dropdown>
+      </div>
     </div>
   </div>
 </template>
 
 <script lang="ts" setup>
-import Logo from "./Logo.vue";
 import { ref } from "vue";
 import { useTtsStore } from "@/store/store";
 import { storeToRefs } from "pinia";
+import { Link } from '@element-plus/icons-vue';
 
 const ttsStore = useTtsStore();
 const { config } = storeToRefs(ttsStore);
 
 defineEmits(['toggle-theme']);
+
+const openApiSite = () => {
+  window.open("https://api.tts88.top", "_blank");
+};
 </script>
 
 <style scoped>
@@ -58,22 +71,58 @@ defineEmits(['toggle-theme']);
   box-shadow: var(--shadow-light);
 }
 
-.logo {
+.app-branding {
   display: flex;
   align-items: center;
-  gap: 10px;
+  padding-left: 0;
 }
 
-.logo-text {
-  font-weight: 600;
-  font-size: 18px;
+.app-title {
+  font-weight: 700;
+  font-size: 22px;
   color: var(--text-primary);
-  background: var(--primary-gradient);
+  background: linear-gradient(90deg, #4886FF, #66A5FF);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
+  text-transform: capitalize;
 }
 
 .controls {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.api-badge {
+  display: flex;
+  align-items: center;
+  font-size: 13px;
+  font-weight: 600;
+  color: #4886FF;
+  background-color: rgba(72, 134, 255, 0.1);
+  padding: 4px 8px;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.api-badge:hover {
+  background-color: rgba(72, 134, 255, 0.15);
+  transform: translateY(-1px);
+}
+
+.api-tag {
+  display: inline-block;
+  background-color: #4886FF;
+  color: white;
+  font-size: 10px;
+  font-weight: 700;
+  padding: 0px 3px;
+  border-radius: 2px;
+  margin-left: 3px;
+}
+
+.control-buttons {
   display: flex;
   gap: 8px;
 }
