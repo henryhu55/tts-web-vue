@@ -1,373 +1,342 @@
 <template>
-  <div class="options">
-    <el-form :model="formConfig" label-position="left">
-      <!-- 预设配置选择器 -->
-      <div class="option-item">
-        <div class="option-label">
-          <el-tooltip 
-            content="选择预设语音风格，快速应用多个配置" 
-            placement="top"
-            effect="light"
+  <div class="modern-options">
+    <h2 class="options-title">{{ t('options.voiceSettings') || '语音设置' }}</h2>
+    
+    <el-form :model="formConfig" label-position="left" class="options-form">
+      <div class="options-grid">
+        <!-- 预设配置选择器 -->
+        <div class="option-card">
+          <div class="option-header">
+            <el-tooltip 
+              content="选择预设语音风格，快速应用多个配置" 
+              placement="top"
+              effect="light"
+            >
+              <div class="option-label">
+                <span>{{ t('options.preset') || '预设' }}</span>
+                <el-icon><Star /></el-icon>
+              </div>
+            </el-tooltip>
+          </div>
+          <el-select
+            v-model="currentPreset"
+            :placeholder="t('options.selectPreset') || '选择预设'"
+            class="option-select"
+            @change="applyPreset"
           >
-            <span>{{ t('options.preset') || '预设' }}</span>
-            <el-icon class="icon-right"><Star /></el-icon>
-          </el-tooltip>
+            <el-option 
+              v-for="preset in presets" 
+              :key="preset.id" 
+              :label="preset.name" 
+              :value="preset.id"
+            >
+              <div class="preset-option">
+                <el-icon><component :is="preset.icon" /></el-icon>
+                <span>{{ preset.name }}</span>
+              </div>
+            </el-option>
+          </el-select>
         </div>
-        <el-select
-          v-model="currentPreset"
-          :placeholder="t('options.selectPreset') || '选择预设'"
-          class="full-width"
-          @change="applyPreset"
-        >
-          <el-option 
-            v-for="preset in presets" 
-            :key="preset.id" 
-            :label="preset.name" 
-            :value="preset.id"
-          >
-            <div class="preset-option">
-              <el-icon><component :is="preset.icon" /></el-icon>
-              <span style="margin-left: 8px">{{ preset.name }}</span>
-            </div>
-          </el-option>
-        </el-select>
-      </div>
 
-      <div class="option-item">
-        <div class="option-label">
-          <el-tooltip 
-            content="选择用于文本转语音的API服务" 
-            placement="top"
-            effect="light"
+        <!-- API 选择 -->
+        <div class="option-card">
+          <div class="option-header">
+            <el-tooltip 
+              content="选择用于文本转语音的API服务" 
+              placement="top"
+              effect="light"
+            >
+              <div class="option-label">
+                <span>{{ t('options.api') || '接口' }}</span>
+                <el-icon><Connection /></el-icon>
+              </div>
+            </el-tooltip>
+          </div>
+          <el-select
+            v-model="formConfig.api"
+            :placeholder="t('options.selectApi') || '选择接口'"
+            @change="apiChange"
+            class="option-select"
           >
-            <span>{{ t('options.api') || '接口' }}</span>
-            <el-icon class="icon-right"><Connection /></el-icon>
-          </el-tooltip>
-        </div>
-        <el-select
-          v-model="formConfig.api"
-          :placeholder="t('options.selectApi') || '选择接口'"
-          @change="apiChange"
-          class="full-width"
-          >
-          <el-option
-            v-for="item in oc.apiSelect"
-            :key="item.value"
-            :label="item.label"
-            :value="item.value"
+            <el-option
+              v-for="item in oc.apiSelect"
+              :key="item.value"
+              :label="item.label"
+              :value="item.value"
             />
-        </el-select>
-      </div>
-      <div class="option-item">
-        <div class="option-label">
-          <el-tooltip 
-            content="选择语音的语言" 
-            placement="top"
-            effect="light"
-          >
-            <span>{{ t('options.language') || '语言' }}</span>
-            <el-icon class="icon-right"><ChatDotRound /></el-icon>
-          </el-tooltip>
+          </el-select>
         </div>
-        <el-select-v2
-          class="full-width"
-          v-model="formConfig.languageSelect"
-          :placeholder="t('options.selectLanguage') || '选择语言'"
-          filterable
-          :options="oc.languageSelect"
-          @change="languageSelectChange"
-        >
-        </el-select-v2>
-      </div>
-      <div class="option-item">
-        <div class="option-label">
-          <el-tooltip 
-            content="选择要使用的语音人物" 
-            placement="top"
-            effect="light"
-          >
-            <span>{{ t('options.voice') || '语音' }}</span>
-            <el-icon class="icon-right"><Microphone /></el-icon>
-          </el-tooltip>
-        </div>
-        <el-select
-          v-model="formConfig.voiceSelect"
-          :placeholder="t('options.selectVoice') || '选择语音'"
-          @change="voiceSelectChange"
-          class="full-width"
-        >
-          <el-option
-            v-for="item in voiceSelectList"
-            :key="item.ShortName"
-            :label="item.DisplayName + '-' + item.LocalName"
-            :value="item.ShortName"
-          >
-            <div style="display: flex; justify-content: space-between">
-              <span style="margin-right: 5px">{{
-                item.DisplayName + "-" + item.LocalName
-              }}</span>
-              <el-button
-                size="small"
-                type="success"
-                circle
-                @click.stop="audition(item.ShortName)"
-                ><el-icon><CaretRight /></el-icon
-              ></el-button>
-            </div>
-          </el-option>
-        </el-select>
-      </div>
-      <div class="option-item">
-        <div class="option-label">
-          <el-tooltip 
-            content="选择语音的说话风格，如新闻播报、抒情等" 
-            placement="top"
-            effect="light"
-          >
-            <span>{{ t('options.speakingStyle') || '风格' }}</span>
-            <el-icon class="icon-right"><Mic /></el-icon>
-          </el-tooltip>
-        </div>
-        <el-select
-          v-model="formConfig.voiceStyleSelect"
-          :placeholder="t('options.selectSpeakingStyle') || '选择风格'"
-          :disabled="apiEdge"
-          class="full-width"
-        >
-          <el-option
-            v-for="item in voiceStyleSelectList"
-            :key="item"
-            :label="getStyleDes(item)?.word || item"
-            :value="item"
-          >
-            <div style="display: flex; justify-content: start">
-              <span style="margin-right: 5px">{{
-                getStyleDes(item)?.emoji
-              }}</span>
-              <span>{{ getStyleDes(item)?.word || item }}</span>
-            </div>
-          </el-option>
-        </el-select>
-      </div>
-      <div class="option-item">
-        <div class="option-label">
-          <el-tooltip 
-            content="选择语音的角色扮演类型，如老年人、年轻人等" 
-            placement="top"
-            effect="light"
-          >
-            <span>{{ t('options.rolePlaying') || '角色' }}</span>
-            <el-icon class="icon-right"><UserFilled /></el-icon>
-          </el-tooltip>
-        </div>
-        <el-select 
-          v-model="formConfig.role" 
-          :placeholder="t('options.selectRole') || '选择角色'" 
-          :disabled="apiEdge"
-          class="full-width"
-        >
-          <el-option
-            v-for="item in rolePlayList"
-            :key="item"
-            :label="getRoleDes(item)?.word || item "
-            :value="item"
-          >
-            <div style="display: flex; justify-content: start">
-              <span style="margin-right: 5px">{{
-                getRoleDes(item)?.emoji
-              }}</span>
-              <span>{{ getRoleDes(item)?.word || item }}</span>
-            </div>
-          </el-option>
-        </el-select>
-      </div>
-      
-      <!-- 新增强度配置 -->
-      <div class="option-item">
-        <div class="option-label">
-          <el-tooltip 
-            content="调整语音风格的强度程度" 
-            placement="top"
-            effect="light"
-          >
-            <span>{{ t('options.intensity') || '强度' }}</span>
-            <el-icon class="icon-right"><Aim /></el-icon>
-          </el-tooltip>
-        </div>
-        <el-select
-          v-model="formConfig.intensity"
-          :placeholder="t('options.selectIntensity') || '选择强度'"
-          :disabled="apiEdge"
-          class="full-width"
-        >
-          <el-option value="default" :label="t('options.default') || '默认'"></el-option>
-          <el-option value="0.5" :label="t('options.weak') || '弱'"></el-option>
-          <el-option value="1" :label="t('options.normal') || '正常'"></el-option>
-          <el-option value="1.5" :label="t('options.strong') || '强'"></el-option>
-          <el-option value="2" :label="t('options.extraStrong') || '超强'"></el-option>
-        </el-select>
-      </div>
-      
-      <!-- 新增静音配置 -->
-      <div class="option-item">
-        <div class="option-label">
-          <el-tooltip 
-            content="在文本中插入不同长度的停顿" 
-            placement="top"
-            effect="light"
-          >
-            <span>{{ t('options.silence') || '静音' }}</span>
-            <el-icon class="icon-right"><Timer /></el-icon>
-          </el-tooltip>
-        </div>
-        <el-select
-          v-model="formConfig.silence"
-          :placeholder="t('options.selectSilence') || '选择静音'"
-          :disabled="apiEdge"
-          class="full-width"
-        >
-          <el-option value="default" :label="t('options.defaultSilence') || '默认'"></el-option>
-          <el-option value="20ms" :label="20 + 'ms'"></el-option>
-          <el-option value="50ms" :label="50 + 'ms'"></el-option>
-          <el-option value="100ms" :label="100 + 'ms'"></el-option>
-          <el-option value="200ms" :label="200 + 'ms'"></el-option>
-          <el-option value="500ms" :label="500 + 'ms'"></el-option>
-          <el-option value="1000ms" :label="1000 + 'ms'"></el-option>
-          <el-option value="2000ms" :label="2000 + 'ms'"></el-option>
-        </el-select>
-      </div>
-      
-      <!-- 新增音量配置 -->
-      <div class="option-item">
-        <div class="option-label">
-          <el-tooltip 
-            content="调整语音的音量大小" 
-            placement="top"
-            effect="light"
-          >
-            <span>{{ t('options.volume') || '音量' }}</span>
-            <el-icon class="icon-right"><Headset /></el-icon>
-          </el-tooltip>
-        </div>
-        <el-select
-          v-model="formConfig.volume"
-          :placeholder="t('options.selectVolume') || '选择音量'"
-          :disabled="apiEdge"
-          class="full-width"
-        >
-          <el-option value="default" :label="t('options.default') || '默认'">
-            <div class="volume-option">
-              <el-icon><Headset /></el-icon>
-              <span style="margin-left: 8px">{{ t('options.default') || '默认' }}</span>
-            </div>
-          </el-option>
-          <el-option value="extraWeak" :label="t('options.extraWeak') || '超弱'">
-            <div class="volume-option">
-              <span class="volume-icon"><i class="volume-bar" style="height: 3px;"></i></span>
-              <span style="margin-left: 8px">{{ t('options.extraWeak') || '超弱' }}</span>
-            </div>
-          </el-option>
-          <el-option value="weak" :label="t('options.weak') || '弱'">
-            <div class="volume-option">
-              <span class="volume-icon"><i class="volume-bar" style="height: 6px;"></i></span>
-              <span style="margin-left: 8px">{{ t('options.weak') || '弱' }}</span>
-            </div>
-          </el-option>
-          <el-option value="strong" :label="t('options.strong') || '强'">
-            <div class="volume-option">
-              <span class="volume-icon">
-                <i class="volume-bar" style="height: 9px;"></i>
-                <i class="volume-bar" style="height: 12px;"></i>
-              </span>
-              <span style="margin-left: 8px">{{ t('options.strong') || '强' }}</span>
-            </div>
-          </el-option>
-          <el-option value="extraStrong" :label="t('options.extraStrong') || '超强'">
-            <div class="volume-option">
-              <span class="volume-icon">
-                <i class="volume-bar" style="height: 9px;"></i>
-                <i class="volume-bar" style="height: 12px;"></i>
-                <i class="volume-bar" style="height: 15px;"></i>
-              </span>
-              <span style="margin-left: 8px">{{ t('options.extraStrong') || '超强' }}</span>
-            </div>
-          </el-option>
-        </el-select>
-      </div>
-      
-      <!-- 速度滑块 -->
-      <div class="option-item">
-        <div class="option-label">
-          <el-tooltip 
-            content="调整语音的说话速度" 
-            placement="top"
-            effect="light"
-          >
-            <span>{{ t('options.speed') || '语速' }}</span>
-            <el-icon class="icon-right"><DArrowRight /></el-icon>
-          </el-tooltip>
-        </div>
-        <div class="slider-container">
-          <el-slider
-            v-model="formConfig.speed"
-            show-input
-            size="small"
-            :show-input-controls="false"
-            :max="3"
-            :step="0.01"
-          />
-        </div>
-      </div>
-      
-      <!-- 音调滑块 -->
-      <div class="option-item">
-        <div class="option-label">
-          <el-tooltip 
-            content="调整语音的音调高低" 
-            placement="top"
-            effect="light"
-          >
-            <span>{{ t('options.pitch') || '音调' }}</span>
-            <el-icon class="icon-right"><TrendCharts /></el-icon>
-          </el-tooltip>
-        </div>
-        <div class="slider-container">
-          <el-slider
-            v-model="formConfig.pitch"
-            show-input
-            size="small"
-            :show-input-controls="false"
-            :max="2"
-            :step="0.01"
-          />
-        </div>
-      </div>
-      
-      <div class="option-item startBtn">
-        <div class="configOption">
-          <el-button
-            color="#626aef"
-            :dark="false"
-            plain
-            size="small"
-            @click="saveConfig"
-            >{{ t('options.saveConfig') }}</el-button
-          >
+        
+        <!-- 语言选择 -->
+        <div class="option-card">
+          <div class="option-header">
+            <el-tooltip 
+              content="选择语音的语言" 
+              placement="top"
+              effect="light"
+            >
+              <div class="option-label">
+                <span>{{ t('options.language') || '语言' }}</span>
+                <el-icon><ChatDotRound /></el-icon>
+              </div>
+            </el-tooltip>
+          </div>
           <el-select-v2
-            class="get-cfg"
-            v-model="currConfigName"
-            :placeholder="t('options.selectConfig')"
+            class="option-select"
+            v-model="formConfig.languageSelect"
+            :placeholder="t('options.selectLanguage') || '选择语言'"
             filterable
-            :options="config.configLabel"
-            @change="configChange"
-          ></el-select-v2>
+            :options="oc.languageSelect"
+            @change="languageSelectChange"
+          >
+          </el-select-v2>
         </div>
-        <a href="#" class="btn" @click="startBtn">
-          <template v-if="isLoading">
-            <Loading></Loading>
-          </template>
-          <template v-else> {{ t('options.startConversion') }} </template>
-        </a>
+        
+        <!-- 语音选择 -->
+        <div class="option-card">
+          <div class="option-header">
+            <el-tooltip 
+              content="选择要使用的语音人物" 
+              placement="top"
+              effect="light"
+            >
+              <div class="option-label">
+                <span>{{ t('options.voice') || '语音' }}</span>
+                <el-icon><Microphone /></el-icon>
+              </div>
+            </el-tooltip>
+          </div>
+          <el-select
+            v-model="formConfig.voiceSelect"
+            :placeholder="t('options.selectVoice') || '选择语音'"
+            @change="voiceSelectChange"
+            class="option-select"
+          >
+            <el-option
+              v-for="item in voiceSelectList"
+              :key="item.ShortName"
+              :label="item.DisplayName + '-' + item.LocalName"
+              :value="item.ShortName"
+            >
+              <div class="voice-option">
+                <span>{{ item.DisplayName + "-" + item.LocalName }}</span>
+                <el-button
+                  size="small"
+                  type="primary"
+                  circle
+                  @click.stop="audition(item.ShortName)"
+                ><el-icon><CaretRight /></el-icon></el-button>
+              </div>
+            </el-option>
+          </el-select>
+        </div>
+        
+        <!-- 风格选择 -->
+        <div class="option-card">
+          <div class="option-header">
+            <el-tooltip 
+              content="选择语音的说话风格，如新闻播报、抒情等" 
+              placement="top"
+              effect="light"
+            >
+              <div class="option-label">
+                <span>{{ t('options.speakingStyle') || '风格' }}</span>
+                <el-icon><Mic /></el-icon>
+              </div>
+            </el-tooltip>
+          </div>
+          <el-select
+            v-model="formConfig.voiceStyleSelect"
+            :placeholder="t('options.selectSpeakingStyle') || '选择风格'"
+            :disabled="apiEdge"
+            class="option-select"
+          >
+            <el-option
+              v-for="item in voiceStyleSelectList"
+              :key="item"
+              :label="getStyleDes(item)?.word || item"
+              :value="item"
+            >
+              <div class="style-option">
+                <span class="style-emoji">{{ getStyleDes(item)?.emoji }}</span>
+                <span>{{ getStyleDes(item)?.word || item }}</span>
+              </div>
+            </el-option>
+          </el-select>
+        </div>
+        
+        <!-- 角色选择 -->
+        <div class="option-card">
+          <div class="option-header">
+            <el-tooltip 
+              content="选择语音的角色扮演类型，如老年人、年轻人等" 
+              placement="top"
+              effect="light"
+            >
+              <div class="option-label">
+                <span>{{ t('options.rolePlaying') || '角色' }}</span>
+                <el-icon><UserFilled /></el-icon>
+              </div>
+            </el-tooltip>
+          </div>
+          <el-select 
+            v-model="formConfig.role" 
+            :placeholder="t('options.selectRole') || '选择角色'" 
+            :disabled="apiEdge"
+            class="option-select"
+          >
+            <el-option
+              v-for="item in rolePlayList"
+              :key="item"
+              :label="getRoleDes(item)?.word || item"
+              :value="item"
+            >
+              <div class="style-option">
+                <span class="style-emoji">{{ getRoleDes(item)?.emoji }}</span>
+                <span>{{ getRoleDes(item)?.word || item }}</span>
+              </div>
+            </el-option>
+          </el-select>
+        </div>
+      </div>
+      
+      <div class="sliders-section">
+        <h3 class="sliders-title">{{ t('options.advancedSettings') || '高级设置' }}</h3>
+        
+        <div class="sliders-grid">
+          <!-- 强度滑块 -->
+          <div class="slider-card">
+            <div class="slider-header">
+              <el-tooltip content="调整语音风格的强度程度" placement="top" effect="light">
+                <div class="option-label">
+                  <span>{{ t('options.intensity') || '强度' }}</span>
+                  <el-icon><Aim /></el-icon>
+                </div>
+              </el-tooltip>
+              <span class="slider-value">{{ formConfig.intensity || 'default' }}</span>
+            </div>
+            <el-select
+              v-model="formConfig.intensity"
+              :placeholder="t('options.selectIntensity') || '选择强度'"
+              :disabled="apiEdge"
+              class="option-select"
+            >
+              <el-option value="default" :label="t('options.default') || '默认'"></el-option>
+              <el-option value="0.5" :label="t('options.weak') || '弱'"></el-option>
+              <el-option value="1" :label="t('options.normal') || '正常'"></el-option>
+              <el-option value="1.5" :label="t('options.strong') || '强'"></el-option>
+              <el-option value="2" :label="t('options.extraStrong') || '超强'"></el-option>
+            </el-select>
+          </div>
+          
+          <!-- 静音选择 -->
+          <div class="slider-card">
+            <div class="slider-header">
+              <el-tooltip content="在文本中插入不同长度的停顿" placement="top" effect="light">
+                <div class="option-label">
+                  <span>{{ t('options.silence') || '静音' }}</span>
+                  <el-icon><Timer /></el-icon>
+                </div>
+              </el-tooltip>
+              <span class="slider-value">{{ formConfig.silence || 'default' }}</span>
+            </div>
+            <el-select
+              v-model="formConfig.silence"
+              :placeholder="t('options.selectSilence') || '选择静音'"
+              :disabled="apiEdge"
+              class="option-select"
+            >
+              <el-option value="default" :label="t('options.defaultSilence') || '默认'"></el-option>
+              <el-option value="20ms" :label="20 + 'ms'"></el-option>
+              <el-option value="50ms" :label="50 + 'ms'"></el-option>
+              <el-option value="100ms" :label="100 + 'ms'"></el-option>
+              <el-option value="200ms" :label="200 + 'ms'"></el-option>
+              <el-option value="500ms" :label="500 + 'ms'"></el-option>
+              <el-option value="1000ms" :label="1000 + 'ms'"></el-option>
+              <el-option value="2000ms" :label="2000 + 'ms'"></el-option>
+            </el-select>
+          </div>
+          
+          <!-- 音量滑块 -->
+          <div class="slider-card">
+            <div class="slider-header">
+              <el-tooltip content="调整语音的音量大小" placement="top" effect="light">
+                <div class="option-label">
+                  <span>{{ t('options.volume') || '音量' }}</span>
+                  <el-icon><Headset /></el-icon>
+                </div>
+              </el-tooltip>
+              <span class="slider-value">{{ formConfig.volume || 'default' }}</span>
+            </div>
+            <el-select
+              v-model="formConfig.volume"
+              :placeholder="t('options.selectVolume') || '选择音量'"
+              :disabled="apiEdge"
+              class="option-select"
+            >
+              <el-option value="default" :label="t('options.default') || '默认'"></el-option>
+              <el-option value="x-soft" :label="t('options.xSoft') || '极轻'"></el-option>
+              <el-option value="soft" :label="t('options.soft') || '轻'"></el-option>
+              <el-option value="medium" :label="t('options.medium') || '中等'"></el-option>
+              <el-option value="loud" :label="t('options.loud') || '响'"></el-option>
+              <el-option value="x-loud" :label="t('options.xLoud') || '极响'"></el-option>
+            </el-select>
+          </div>
+          
+          <!-- 语速滑块 -->
+          <div class="slider-card">
+            <div class="slider-header">
+              <el-tooltip content="调整语音的语速" placement="top" effect="light">
+                <div class="option-label">
+                  <span>{{ t('options.speed') || '语速' }}</span>
+                  <el-icon><Clock /></el-icon>
+                </div>
+              </el-tooltip>
+              <span class="slider-value">{{ formConfig.speed }}x</span>
+            </div>
+            <el-slider 
+              v-model="formConfig.speed" 
+              :min="0.5" 
+              :max="2" 
+              :step="0.1" 
+              class="modern-slider"
+              :format-tooltip="(val) => val + 'x'"
+            />
+          </div>
+          
+          <!-- 音调滑块 -->
+          <div class="slider-card">
+            <div class="slider-header">
+              <el-tooltip content="调整语音的音调" placement="top" effect="light">
+                <div class="option-label">
+                  <span>{{ t('options.pitch') || '音调' }}</span>
+                  <el-icon><TrendCharts /></el-icon>
+                </div>
+              </el-tooltip>
+              <span class="slider-value">{{ formConfig.pitch }}x</span>
+            </div>
+            <el-slider 
+              v-model="formConfig.pitch" 
+              :min="0.5" 
+              :max="2" 
+              :step="0.1" 
+              class="modern-slider"
+              :format-tooltip="(val) => val + 'x'"
+            />
+          </div>
+        </div>
+      </div>
+      
+      <div class="actions-section">
+        <el-button type="primary" @click="savePreset" class="action-button">
+          <el-icon><Star /></el-icon>
+          {{ t('options.saveAsPreset') || '保存为预设' }}
+        </el-button>
+        
+        <el-button @click="useDefaultSettings" class="action-button">
+          <el-icon><RefreshRight /></el-icon>
+          {{ t('options.resetToDefault') || '恢复默认' }}
+        </el-button>
       </div>
     </el-form>
   </div>
@@ -386,7 +355,8 @@ import WebStore from "@/store/web-store";
 import { 
   Connection, ChatDotRound, Microphone, UserFilled, Mic, 
   Aim, Timer, Headset, DArrowRight, TrendCharts, Star,
-  DocumentChecked, Reading, Collection, Lightning, Cloudy
+  DocumentChecked, Reading, Collection, Lightning, Cloudy,
+  Clock, RefreshRight
 } from '@element-plus/icons-vue';
 import { getTTSData } from "@/api/tts";
 
@@ -847,141 +817,161 @@ const startBtn = () => {
 
   ttsStore.start();
 };
+
+const savePreset = () => {
+  // Implementation of savePreset function
+};
+
+const useDefaultSettings = () => {
+  // Implementation of useDefaultSettings function
+};
 </script>
 
 <style scoped>
-.options {
-  background-color: #fff;
-  margin-left: 5px;
-  padding: 10px 12px !important;
-  border: 1px solid #dcdfe6;
-  border-radius: 5px;
+.modern-options {
+  padding: 20px;
 }
-.el-form {
-  height: 99%;
-  display: flex;
-  flex-direction: column;
+
+.options-title {
+  font-size: 20px;
+  font-weight: 600;
+  margin-bottom: 24px;
+  color: var(--text-primary);
+  background: var(--primary-gradient);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
 }
-.option-item {
+
+.options-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 16px;
+  margin-bottom: 30px;
+}
+
+.option-card {
+  background-color: var(--card-background);
+  border-radius: var(--border-radius-medium);
+  padding: 16px;
+  border: 1px solid var(--border-color);
+  transition: all var(--transition-fast);
+}
+
+.option-card:hover {
+  border-color: var(--primary-color);
+  box-shadow: var(--shadow-light);
+}
+
+.option-header {
+  margin-bottom: 12px;
+}
+
+.option-label {
   display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 500;
+  color: var(--text-primary);
+}
+
+.option-label .el-icon {
+  color: var(--primary-color);
+}
+
+.option-select {
+  width: 100%;
+}
+
+.preset-option, .voice-option, .style-option {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.style-emoji {
+  font-size: 16px;
+}
+
+.sliders-section {
+  margin-top: 30px;
+}
+
+.sliders-title {
+  font-size: 18px;
+  font-weight: 600;
+  margin-bottom: 20px;
+  color: var(--text-primary);
+}
+
+.sliders-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 16px;
+  margin-bottom: 30px;
+}
+
+.slider-card {
+  background-color: var(--card-background);
+  border-radius: var(--border-radius-medium);
+  padding: 16px;
+  border: 1px solid var(--border-color);
+  transition: all var(--transition-fast);
+}
+
+.slider-card:hover {
+  border-color: var(--primary-color);
+  box-shadow: var(--shadow-light);
+}
+
+.slider-header {
+  display: flex;
+  justify-content: space-between;
   align-items: center;
   margin-bottom: 12px;
-  width: 100%;
 }
-.option-label {
-  width: 80px;
+
+.slider-value {
   font-size: 14px;
-  color: #606266;
-  text-align: left;
-  padding-right: 8px;
+  color: var(--primary-color);
+  font-weight: 500;
+}
+
+.modern-slider {
+  margin-top: 10px;
+}
+
+:deep(.el-slider__button) {
+  border-color: var(--primary-color);
+}
+
+:deep(.el-slider__bar) {
+  background-color: var(--primary-color);
+}
+
+.actions-section {
+  display: flex;
+  justify-content: center;
+  gap: 16px;
+  margin-top: 30px;
+}
+
+.action-button {
   display: flex;
   align-items: center;
+  gap: 8px;
+  padding: 12px 24px;
+  font-weight: 500;
 }
-.icon-right {
-  margin-left: 4px;
-  font-size: 14px;
-  color: #909399;
+
+/* 暗黑模式适配 */
+.dark-theme .option-card,
+.dark-theme .slider-card {
+  background-color: var(--card-background);
+  border-color: var(--border-color);
 }
-.slider-container {
-  flex: 1;
-  margin-right: 5px;
-}
-.full-width {
-  width: 100% !important;
-}
-.configOption {
-  display: flex;
-  flex-direction: column;
-}
-.el-slider {
-  margin-left: 5px;
-  width: 100%;
-}
-.languageSelect {
-  width: 100% !important;
-}
-.get-cfg {
-  margin-top: 2px;
-  width: 100px;
-}
-:deep(.el-form-item__label) {
-  margin-bottom: 2px !important;
-}
-:deep(.el-slider__runway.show-input) {
-  margin-right: 10px;
-}
-:deep(.el-slider > .el-input-number) {
-  width: 40px;
-}
-:deep(.el-slider .el-input__wrapper) {
-  width: 100%;
-  padding: 0 !important;
-  margin: 0 !important;
-}
-:deep(.el-switch__label.is-active) {
-  font-weight: bold;
-}
-.startBtn {
-  margin-bottom: 0 !important;
-  flex: 1;
-  display: flex !important;
-  align-items: flex-end;
-  justify-content: space-between;
-}
-.volume-option {
-  display: flex;
-  align-items: center;
-}
-.volume-icon {
-  display: flex;
-  align-items: flex-end;
-  height: 15px;
-}
-.volume-bar {
-  display: inline-block;
-  width: 3px;
-  background-color: #409EFF;
-  margin-right: 2px;
-  border-radius: 1px;
-}
-.preset-option {
-  display: flex;
-  align-items: center;
-}
-.btn:link,
-.btn:visited {
-  text-transform: uppercase;
-  text-decoration: none;
-  color: rgb(27, 27, 27);
-  padding: 8px 30px;
-  border: 1px solid;
-  border-radius: 1000px;
-  display: inline-block;
-  transition: all 0.2s;
-  position: relative;
-}
-.btn:hover {
-  transform: translateY(-5px);
-  box-shadow: 0 10px 20px rgba(27, 27, 27, 0.5);
-}
-.btn:active {
-  transform: translateY(-3px);
-}
-.btn::after {
-  content: "";
-  display: inline-block;
-  height: 100%;
-  width: 100%;
-  border-radius: 100px;
-  top: 0;
-  left: 0;
-  position: absolute;
-  z-index: -1;
-  transition: all 0.3s;
-}
-.btn:hover::after {
-  background-color: rgb(0, 238, 255);
-  transform: scaleX(1.4) scaleY(1.5);
-  opacity: 0;
+
+.dark-theme .option-card:hover,
+.dark-theme .slider-card:hover {
+  border-color: var(--primary-color);
 }
 </style>

@@ -1,18 +1,35 @@
 <template>
-  <div class="header">
-    <div class="title">
-      TTS Vue - Web版本
+  <div class="modern-header">
+    <div class="logo">
+      <Logo :winStyle="false" />
+      <span class="logo-text">TTS Vue</span>
     </div>
     <div class="controls">
-      <el-button
-        type="primary"
-        size="small"
-        @click="toggleTheme"
-      >
-        <el-icon><Monitor /></el-icon>
-      </el-button>
+      <el-tooltip content="切换主题" placement="bottom" effect="light">
+        <el-button
+          circle
+          @click="$emit('toggle-theme')"
+        >
+          <el-icon><MoonNight /></el-icon>
+        </el-button>
+      </el-tooltip>
+      
+      <el-dropdown trigger="click">
+        <el-button circle>
+          <el-icon><More /></el-icon>
+        </el-button>
+        <template #dropdown>
+          <el-dropdown-menu>
+            <el-dropdown-item>
+              <el-icon><InfoFilled /></el-icon> 关于应用
+            </el-dropdown-item>
+            <el-dropdown-item>
+              <el-icon><QuestionFilled /></el-icon> 帮助文档
+            </el-dropdown-item>
+          </el-dropdown-menu>
+        </template>
+      </el-dropdown>
     </div>
-    <Logo :winStyle="false" />
   </div>
 </template>
 
@@ -25,28 +42,43 @@ import { storeToRefs } from "pinia";
 const ttsStore = useTtsStore();
 const { config } = storeToRefs(ttsStore);
 
-function toggleTheme() {
-  // 简单的主题切换功能示例
-  document.body.classList.toggle('dark-theme');
-}
+defineEmits(['toggle-theme']);
 </script>
 
 <style scoped>
-.header {
-  height: 30px;
-  background: #fff;
-  border-top-left-radius: 10px;
-  border-top-right-radius: 10px;
+.modern-header {
+  height: 60px;
+  background: var(--card-background);
+  border-top-left-radius: var(--border-radius-large);
+  border-top-right-radius: var(--border-radius-large);
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0 15px;
+  padding: 0 20px;
+  box-shadow: var(--shadow-light);
 }
-.title {
-  font-weight: bold;
-  font-size: 16px;
+
+.logo {
+  display: flex;
+  align-items: center;
+  gap: 10px;
 }
+
+.logo-text {
+  font-weight: 600;
+  font-size: 18px;
+  color: var(--text-primary);
+  background: var(--primary-gradient);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
 .controls {
   display: flex;
+  gap: 8px;
+}
+
+.dark-theme .modern-header {
+  background: var(--card-background);
 }
 </style>

@@ -1,135 +1,171 @@
 <template>
-  <div class="main">
-    <div class="input-area" v-show="page.asideIndex == '1'">
-      <div class="menu">
-        <el-menu
-          mode="horizontal"
-          @select="tabChange"
-          default-active="1"
-          :ellipsis="false"
-        >
-          <el-button @click="dialogVisible = true"><el-icon><MagicStick /></el-icon></el-button>
-          <el-menu-item index="1">{{ t('main.textTab') }}</el-menu-item>
-          <el-menu-item index="2">{{ t('main.ssmlTab') }}</el-menu-item>
-        </el-menu>
-      </div>
-      <div class="text-area" v-show="page.tabIndex == '1'">
-        <el-input
-          v-model="inputs.inputValue"
-          type="textarea"
-          :placeholder="t('main.placeholder')"
-        />
-      </div>
-      <div class="text-area2" v-show="page.tabIndex == '2'">
-        <el-input v-model="inputs.ssmlValue" type="textarea" />
+  <div class="modern-main">
+    <!-- 文本编辑区 -->
+    <div class="input-area-card" v-show="page.asideIndex == '1'">
+      <div class="card-header">
+        <el-tabs @tab-click="handleTabClick" :model-value="page.tabIndex">
+          <el-tab-pane name="1" :label="t('main.textTab')"></el-tab-pane>
+          <el-tab-pane name="2" :label="t('main.ssmlTab')"></el-tab-pane>
+        </el-tabs>
+        
+        <el-button @click="dialogVisible = true" type="primary" class="ai-button">
+          <el-icon><MagicStick /></el-icon>
+          <span>AI 生成</span>
+        </el-button>
       </div>
       
+      <div class="card-body">
+        <div class="text-area-container" v-show="page.tabIndex == '1'">
+          <el-input
+            v-model="inputs.inputValue"
+            type="textarea"
+            :placeholder="t('main.placeholder')"
+            class="modern-textarea"
+            resize="none"
+            :rows="10"
+          />
+        </div>
+        <div class="text-area-container" v-show="page.tabIndex == '2'">
+          <el-input 
+            v-model="inputs.ssmlValue" 
+            type="textarea" 
+            class="modern-textarea"
+            resize="none"
+            :rows="10"
+          />
+        </div>
+      </div>
     </div>
-    
-    <!-- <el-dialog title="Enviar a ChatGPT" :visible.sync="showModal">
-      <el-input v-model="modalInput" placeholder="Escribe algo aquí"></el-input>
-      <span slot="footer" class="dialog-footer">
-        <el-button @click="showModal = false">Cancelar</el-button>
-        <el-button type="primary" @click="sendToChatGPT">Enviar</el-button>
-      </span>
-    </el-dialog> -->
-  
-    <el-dialog v-model="dialogVisible" :title="t('main.titleGenerateTextGPT')" width="30%" draggable style="padding: 0px !important;">
-      <span>{{ t('main.descriptionGenerateTextGPT') }}</span>
-      <div style="display: flex; flex-direction: row; justify-content: space-between; align-items: center; padding: 10px;">
-        <el-input v-model="modalInput" :placeholder="t('main.placeholderGPT')" :disabled="dialogLoading"></el-input>
-        <el-button type="primary" @click="sendToChatGPT" :loading="dialogLoading"><el-icon><ChatLineSquare /></el-icon></el-button>
+
+    <!-- AI 生成对话框 -->
+    <el-dialog 
+      v-model="dialogVisible" 
+      :title="t('main.titleGenerateTextGPT')" 
+      width="500px" 
+      draggable 
+      class="modern-dialog"
+    >
+      <p class="dialog-description">{{ t('main.descriptionGenerateTextGPT') }}</p>
+      <div class="dialog-input">
+        <el-input 
+          v-model="modalInput" 
+          :placeholder="t('main.placeholderGPT')" 
+          :disabled="dialogLoading"
+          class="dialog-prompt-input"
+        ></el-input>
+        <el-button 
+          type="primary" 
+          @click="sendToChatGPT" 
+          :loading="dialogLoading"
+          class="dialog-submit-button"
+        >
+          <el-icon><ChatLineSquare /></el-icon>
+          <span>生成</span>
+        </el-button>
       </div>
     </el-dialog>
 
-    <div class="input-area" v-show="page.asideIndex == '2'">
-      <el-table
-        :data="tableData"
-        height="calc(100vh - 170px)"
-        style="width: 100%"
-      >
-        <el-table-column
-          prop="fileName"
-          :label="t('main.fileName')"
-          show-overflow-tooltip="true"
-        />
-        <el-table-column
-          prop="filePath"
-          :label="t('main.filePath')"
-          show-overflow-tooltip="true"
-        />
-        <el-table-column
-          prop="fileSize"
-          :label="t('main.fileSize')"
-          width="80"
-          show-overflow-tooltip="true"
-        />
-        <el-table-column prop="status" :label="t('main.status')"
-        width="70">
-          <template #default="scope">
-            <div>
-              <el-tag
-                class="ml-2"
-                :type="scope.row.status == 'ready' ? t('main.ready') : t('main.play')"
-                >{{ scope.row.status }}</el-tag
-              >
-            </div>
-          </template>
-        </el-table-column>
-        <el-table-column :label="t('main.action')">
-          <template #default="scope">
-            <template v-if="scope.row.status == 'ready'">
-              <el-button
-                size="small"
-                type="danger"
-                @click="handleDelete(scope.$index, scope.row)"
-                >{{t('main.remove')}}</el-button
-              >
+    <!-- 批量处理区域 -->
+    <div class="batch-area-card" v-show="page.asideIndex == '2'">
+      <div class="card-header">
+        <h2>{{ t('aside.batch') }}</h2>
+        <div class="batch-actions">
+          <el-upload
+            ref="uploadRef"
+            :auto-upload="false"
+            :on-change="fileChange"
+            :on-remove="fileRemove"
+            show-file-list="false"
+            accept=".txt"
+            multiple
+          >
+            <template #trigger>
+              <el-button type="primary">
+                <el-icon><Upload /></el-icon>
+                {{ t('main.selectFiles') }}
+              </el-button>
             </template>
-            <template v-else>
-              <el-button
-                size="small"
-                type="warning"
-                @click="play(scope.row)"
-                circle
-                ><el-icon><CaretRight /></el-icon
-              ></el-button>
-              <el-button size="small" @click="openInFolder(scope.row)" circle
-                ><el-icon><FolderOpened /></el-icon
-              ></el-button>
+          </el-upload>
+          <el-button @click="clearAll" class="clear-button">
+            <el-icon><DeleteFilled /></el-icon>
+            {{ t('main.clearAll') }}
+          </el-button>
+        </div>
+      </div>
+      
+      <div class="card-body">
+        <el-table
+          :data="tableData"
+          style="width: 100%"
+          class="modern-table"
+          height="calc(100vh - 300px)"
+        >
+          <el-table-column
+            prop="fileName"
+            :label="t('main.fileName')"
+            show-overflow-tooltip="true"
+          />
+          <el-table-column
+            prop="filePath"
+            :label="t('main.filePath')"
+            show-overflow-tooltip="true"
+          />
+          <el-table-column
+            prop="fileSize"
+            :label="t('main.fileSize')"
+            width="80"
+            show-overflow-tooltip="true"
+          />
+          <el-table-column prop="status" :label="t('main.status')"
+          width="100">
+            <template #default="scope">
+              <div>
+                <el-tag
+                  class="status-tag"
+                  :type="scope.row.status == 'ready' ? 'info' : 'success'"
+                  >{{ scope.row.status }}</el-tag
+                >
+              </div>
             </template>
-          </template>
-        </el-table-column>
-      </el-table>
-      <div class="table-tool">
-        <el-upload
-          ref="uploadRef"
-          :auto-upload="false"
-          :on-change="fileChange"
-          :on-remove="fileRemove"
-          show-file-list="false"
-          accept=".txt"
-          multiple
-        >
-          <template #trigger>
-            <el-button type="primary">{{ t('main.selectFiles') }}</el-button>
-          </template>
-
-          <template #tip>
-            <div class="el-upload__tip">{{ t('main.fileFormatTip') }}</div>
-          </template>
-        </el-upload>
-        <el-button type="warning" @click="clearAll"
-          ><el-icon><DeleteFilled /></el-icon>{{ t('main.clearAll') }}</el-button
-        >
+          </el-table-column>
+          <el-table-column :label="t('main.action')" width="120">
+            <template #default="scope">
+              <template v-if="scope.row.status == 'ready'">
+                <el-button
+                  size="small"
+                  type="danger"
+                  @click="handleDelete(scope.$index, scope.row)"
+                  >{{t('main.remove')}}</el-button
+                >
+              </template>
+              <template v-else>
+                <div class="action-buttons">
+                  <el-button
+                    size="small"
+                    type="primary"
+                    @click="play(scope.row)"
+                    circle
+                    ><el-icon><CaretRight /></el-icon
+                  ></el-button>
+                  <el-button size="small" @click="openInFolder(scope.row)" circle
+                    ><el-icon><FolderOpened /></el-icon
+                  ></el-button>
+                </div>
+              </template>
+            </template>
+          </el-table-column>
+        </el-table>
       </div>
     </div>
-    <!-- <MainOptions v-show="page.asideIndex != '3'"></MainOptions> -->
-    <MainOptions v-show="['1', '2'].includes(page.asideIndex)"></MainOptions>
-    <div class="main-config-page" v-if="page.asideIndex == '3'">
+    
+    <!-- 配置页显示 -->
+    <MainOptions v-show="['1', '2'].includes(page.asideIndex)" class="options-container"></MainOptions>
+    
+    <div class="config-page-container" v-if="page.asideIndex == '3'">
       <ConfigPage></ConfigPage>
     </div>
-    <div class="main-config-page" v-if="page.asideIndex == '4'">
+    
+    <div class="doc-page-container" v-if="page.asideIndex == '4'">
       <iframe class="doc-frame" src="https://docs.tts88.top/">
       </iframe>
     </div>
@@ -200,8 +236,8 @@ const dialogVisible = ref(false)
 
 const visible = ref(false)
 
-const tabChange = (index: number) => {
-  page.value.tabIndex = index.toString();
+const handleTabClick = (tab: any) => {
+  page.value.tabIndex = tab.props.name;
 };
 const uploadRef = ref<UploadInstance>();
 
@@ -321,69 +357,171 @@ const openInFolder = (val: any) => {
 </script>
 
 <style scoped>
-.main {
-  background-color: #f2f3f5;
-  scroll-behavior: smooth;
-  overscroll-behavior: contain;
+.modern-main {
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.input-area-card, .batch-area-card {
+  background-color: var(--card-background);
+  border-radius: var(--border-radius-large);
+  box-shadow: var(--shadow-medium);
+  overflow: hidden;
+  transition: transform var(--transition-normal), box-shadow var(--transition-normal);
+}
+
+.input-area-card:hover, .batch-area-card:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--shadow-large);
+}
+
+.card-header {
   display: flex;
   justify-content: space-between;
+  align-items: center;
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--border-color);
 }
-.input-area {
-  width: 100% !important;
-  border-radius: 5px !important;
+
+.card-header h2 {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--text-primary);
 }
-.main-config-page {
-  width: 100%;
-  height: calc(100vh - 102px);
-  background-color: #fff;
-  border-radius: 5px;
-  border: 1px solid #dcdfe6;
+
+.card-body {
+  padding: 20px;
+}
+
+.text-area-container {
+  height: 100%;
+}
+
+.modern-textarea {
+  border: none;
+  height: 100%;
+}
+
+:deep(.el-textarea__inner) {
+  height: 100%;
+  resize: none;
+  border: none;
+  background-color: var(--card-background);
+  color: var(--text-primary);
+  font-size: 16px;
+  padding: 16px;
+  line-height: 1.6;
+}
+
+.ai-button {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.modern-dialog {
+  border-radius: var(--border-radius-large);
+}
+
+.dialog-description {
+  margin-top: 0;
+  margin-bottom: 20px;
+  color: var(--text-secondary);
+}
+
+.dialog-input {
+  display: flex;
+  gap: 10px;
+}
+
+.dialog-prompt-input {
+  flex: 1;
+}
+
+.dialog-submit-button {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.batch-actions {
+  display: flex;
+  gap: 10px;
+}
+
+.modern-table {
+  border-radius: var(--border-radius-medium);
   overflow: hidden;
 }
-.table-tool {
-  background-color: #fff;
-  border-radius: 5px;
-  border: 1px solid #dcdfe6;
-  height: 68px;
+
+:deep(.el-table) {
+  --el-table-border-color: var(--border-color);
+  --el-table-header-bg-color: rgba(74, 108, 247, 0.05);
+  --el-table-row-hover-bg-color: rgba(74, 108, 247, 0.03);
+}
+
+:deep(.el-table th) {
+  background-color: var(--el-table-header-bg-color);
+  font-weight: 600;
+}
+
+.status-tag {
+  border-radius: 12px;
+  padding: 0 10px;
+}
+
+.action-buttons {
   display: flex;
-  justify-content: space-around;
+  gap: 6px;
+}
+
+.clear-button {
+  display: flex;
   align-items: center;
+  gap: 6px;
 }
-.menu .el-menu {
-  border: 1px solid #dcdfe6;
-  border-radius: 5px;
-  height: 30px;
+
+.config-page-container, .doc-page-container {
+  flex: 1;
+  background-color: var(--card-background);
+  border-radius: var(--border-radius-large);
+  box-shadow: var(--shadow-medium);
+  overflow: hidden;
+  height: calc(100vh - 180px);
 }
-:deep(.el-upload-list) {
-  display: none;
-}
-:deep(.el-textarea__inner) {
-  height: calc(100vh - 130px);
-  resize: none;
-  border-radius: 5px !important;
-}
-:deep(textarea::-webkit-scrollbar) {
-  width: 5px;
-}
-:deep(textarea::-webkit-scrollbar-thumb) {
-  width: 5px;
-  position: relative;
-  display: block;
-  cursor: pointer;
-  border-radius: inherit;
-  background-color: rgb(183, 192, 201);
-  transition: 0.3 background-color;
-  opacity: 0.3;
-}
+
 .doc-frame {
   width: 100%;
   height: 100%;
-  border: medium none;
+  border: none;
 }
 
-.my-header {
-  display: flex;
-  flex-direction: row;
-  justify-content: space-between;
+.options-container {
+  background-color: var(--card-background);
+  border-radius: var(--border-radius-large);
+  box-shadow: var(--shadow-medium);
+  padding: 20px;
+  margin-top: 20px;
+}
+
+:deep(.el-tabs__item) {
+  font-size: 16px;
+  padding: 0 20px;
+}
+
+:deep(.el-tabs__active-bar) {
+  background-color: var(--primary-color);
+}
+
+:deep(.el-tabs__item.is-active) {
+  color: var(--primary-color);
+  font-weight: 600;
+}
+
+:deep(.el-tabs__nav-wrap::after) {
+  background-color: var(--border-color);
 }
 </style>
