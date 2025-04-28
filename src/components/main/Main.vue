@@ -1,7 +1,7 @@
 <template>
   <div class="modern-main">
     <!-- 文本编辑区 -->
-    <div class="input-area-card" v-show="page.asideIndex == '1'">
+    <div class="input-area-card" v-show="page.asideIndex === '1'">
       <div class="card-header">
         <el-tabs @tab-click="handleTabClick" :model-value="page.tabIndex">
           <el-tab-pane name="1" :label="t('main.textTab')"></el-tab-pane>
@@ -15,7 +15,7 @@
       </div>
       
       <div class="card-body">
-        <div class="text-area-container" v-show="page.tabIndex == '1'">
+        <div class="text-area-container" v-show="page.tabIndex === '1'">
           <el-input
             v-model="inputs.inputValue"
             type="textarea"
@@ -25,7 +25,7 @@
             :rows="10"
           />
         </div>
-        <div class="text-area-container" v-show="page.tabIndex == '2'">
+        <div class="text-area-container" v-show="page.tabIndex === '2'">
           <el-input 
             v-model="inputs.ssmlValue" 
             type="textarea" 
@@ -66,7 +66,7 @@
     </el-dialog>
 
     <!-- 批量处理区域 -->
-    <div class="batch-area-card" v-show="page.asideIndex == '2'">
+    <div class="batch-area-card" v-show="page.asideIndex === '2'">
       <div class="card-header">
         <h2>{{ t('aside.batch') }}</h2>
         <div class="batch-actions">
@@ -161,13 +161,39 @@
     <!-- 配置页显示 -->
     <MainOptions v-show="['1', '2'].includes(page.asideIndex)" class="options-container"></MainOptions>
     
-    <div class="config-page-container" v-if="page.asideIndex == '3'">
+    <div v-if="page.asideIndex === '3'" class="config-page-container" :key="'config-page'">
       <ConfigPage></ConfigPage>
     </div>
     
-    <div class="doc-page-container" v-if="page.asideIndex == '4'">
-      <iframe class="doc-frame" src="https://docs.tts88.top/">
+    <div v-if="page.asideIndex === '4'" class="doc-page-container" :key="'doc-page'">
+      <div v-if="!iframeLoaded && !iframeError" class="iframe-loading">
+        <div class="loading-spinner"></div>
+        <p>正在加载文档<span class="loading-dots"></span></p>
+      </div>
+      <iframe 
+        ref="docIframe"
+        class="doc-frame" 
+        :src="iframeCurrentSrc" 
+        @load="handleIframeLoad"
+        @error="handleIframeError"
+        allow="fullscreen"
+        referrerpolicy="no-referrer"
+        :class="{'iframe-visible': iframeLoaded}"
+        sandbox="allow-scripts allow-same-origin allow-popups allow-forms"
+      >
       </iframe>
+      <div v-if="iframeError" class="iframe-error">
+        <el-icon class="error-icon"><WarningFilled /></el-icon>
+        <p>加载文档失败，请检查网络连接或尝试备用链接。</p>
+        <div class="error-actions">
+          <el-button type="primary" @click="reloadIframe">
+            <el-icon><RefreshRight /></el-icon> 重新加载
+          </el-button>
+          <el-button @click="tryAlternativeUrl">
+            <el-icon><SwitchButton /></el-icon> 尝试备用链接
+          </el-button>
+        </div>
+      </div>
     </div>
   </div>
 </template>
@@ -179,7 +205,7 @@ import MainOptions from "./MainOptions.vue";
 import ConfigPage from "../configpage/ConfigPage.vue";
 import { ElButton, ElDialog, ElMessage } from 'element-plus'
 
-import { ref, watch } from "vue";
+import { ref, watch, onMounted, onUpdated, nextTick, onUnmounted } from "vue";
 import type { UploadInstance, UploadProps, UploadUserFile } from "element-plus";
 import { useTtsStore } from "@/store/store";
 import { storeToRefs } from "pinia";
@@ -187,8 +213,382 @@ const { t } = useI18n();
 const store = useTtsStore();
 const { inputs, page, tableData, currMp3Url, config, formConfig, audioPlayer } =
   storeToRefs(store);
-// SSML内容和文本框内容同步
 
+// iframe refs 和加载状态
+const docIframe = ref<HTMLIFrameElement | null>(null);
+const iframeLoaded = ref(false);
+const iframeError = ref(false);
+const docUrl = ref('https://docs.tts88.top/');
+const urlIndex = ref(0);
+const iframeCurrentSrc = ref('');
+const docUrls = [
+  'https://docs.tts88.top/',
+  'https://henryhu55.github.io/tts-docs',
+  'https://tts88.top/docs'
+];
+
+// 初始化iframe源
+const initIframe = () => {
+  iframeCurrentSrc.value = '';
+  
+  // 在清除src后，立即设置容器和iframe样式以确保正确显示
+  nextTick(() => {
+    // 修改页面主容器样式，保留基本结构但减少内边距
+    const mainContainer = document.querySelector('.modern-main');
+    if (mainContainer instanceof HTMLElement && page.value.asideIndex === '4') {
+      mainContainer.style.padding = '0';
+      mainContainer.style.gap = '0';
+      // 不设置固定高度和位置，避免覆盖左侧菜单
+    }
+    
+    const container = document.querySelector('.doc-page-container');
+    if (container instanceof HTMLElement) {
+      // 设置文档容器填充可用空间，但不使用fixed定位
+      container.style.display = 'flex';
+      container.style.flexDirection = 'column';
+      container.style.height = 'calc(100vh - 40px)'; // 只预留顶部导航栏的空间
+      container.style.margin = '0';
+      container.style.padding = '0';
+      container.style.borderRadius = '0';
+      container.style.boxShadow = 'none';
+      // 不使用fixed定位，避免覆盖左侧菜单
+      container.style.position = 'relative';
+    }
+    
+    if (docIframe.value) {
+      docIframe.value.style.display = 'block';
+      docIframe.value.style.flex = '1';
+      docIframe.value.style.width = '100%';
+      docIframe.value.style.height = '100%';
+      docIframe.value.style.minHeight = '700px';
+      docIframe.value.style.maxHeight = 'none';
+      docIframe.value.style.margin = '0';
+      docIframe.value.style.padding = '0';
+      docIframe.value.style.border = 'none';
+      docIframe.value.style.borderRadius = '0';
+    }
+    
+    // 设置iframe源
+    iframeCurrentSrc.value = docUrl.value;
+    console.log('iframe 初始化源设置为:', docUrl.value);
+  });
+};
+
+// 尝试使用备用链接
+const tryAlternativeUrl = () => {
+  urlIndex.value = (urlIndex.value + 1) % docUrls.length;
+  docUrl.value = docUrls[urlIndex.value];
+  console.log(`尝试备用文档链接: ${docUrl.value}`);
+  
+  iframeLoaded.value = false;
+  iframeError.value = false;
+  
+  // 清空并重新设置src以确保重新加载
+  initIframe();
+  
+  ElMessage({
+    message: `正在尝试备用链接: ${docUrl.value}`,
+    type: "info",
+    duration: 3000,
+  });
+};
+
+// 处理来自iframe的消息
+const handleIframeMessage = (event: MessageEvent) => {
+  console.log('收到消息:', event);
+  
+  // 确保消息来源安全，验证来源域名
+  const isValidOrigin = docUrls.some(url => {
+    try {
+      const urlHost = new URL(url).hostname;
+      return event.origin.includes(urlHost);
+    } catch (e) {
+      return false;
+    }
+  });
+  
+  // 如果消息来源不安全，忽略此消息
+  if (!isValidOrigin) {
+    console.warn('收到来自未知来源的消息，已忽略:', event.origin);
+    return;
+  }
+  
+  console.log('来自文档页面的消息:', event.data);
+  
+  // 处理不同类型的消息
+  if (typeof event.data === 'object' && event.data !== null) {
+    // 文档加载完成消息
+    if (event.data.type === 'docLoaded') {
+      iframeLoaded.value = true;
+      iframeError.value = false;
+      
+      ElMessage({
+        message: "文档页面已准备就绪",
+        type: "success",
+        duration: 2000,
+      });
+      
+      // 对iframe内容回送确认消息
+      sendMessageToIframe({
+        type: 'docLoadedConfirm',
+        status: 'success'
+      });
+    }
+    
+    // 调整高度消息
+    if (event.data.type === 'resizeHeight' && typeof event.data.height === 'number') {
+      const height = event.data.height;
+      if (height > 0 && docIframe.value) {
+        // 确保高度合理
+        const safeHeight = Math.max(Math.min(height, 5000), 300);
+        docIframe.value.style.height = `${safeHeight}px`;
+        console.log(`根据iframe请求调整高度: ${safeHeight}px`);
+      }
+    }
+    
+    // 导航请求消息
+    if (event.data.type === 'navigate' && typeof event.data.url === 'string') {
+      // 允许在iframe内部导航到指定URL
+      if (docIframe.value) {
+        console.log(`iframe请求导航到: ${event.data.url}`);
+        // 可选：检查URL是否安全，例如仅允许相同域名下的导航
+      }
+    }
+  }
+};
+
+// 向iframe发送消息
+const sendMessageToIframe = (message: any) => {
+  if (docIframe.value && docIframe.value.contentWindow) {
+    try {
+      docIframe.value.contentWindow.postMessage(message, '*');
+      console.log('向iframe发送消息:', message);
+    } catch (error) {
+      console.error('向iframe发送消息失败:', error);
+    }
+  }
+};
+
+// 在iframe加载完成后发送初始化消息
+const sendInitMessageToIframe = () => {
+  // 等待iframe完全加载
+  setTimeout(() => {
+    sendMessageToIframe({
+      type: 'init',
+      appInfo: {
+        name: 'TTS Web Vue',
+        version: '1.0',
+        theme: document.body.classList.contains('dark-theme') ? 'dark' : 'light'
+      }
+    });
+  }, 1000);
+};
+
+// 处理 iframe 加载成功
+const handleIframeLoad = (event: Event) => {
+  console.log('iframe 加载事件触发');
+  
+  // 检查iframe是否完全加载且可访问
+  try {
+    const iframe = event.target as HTMLIFrameElement;
+    
+    // 不是所有iframe都会触发跨域报错，但我们需要检查是否实际加载成功
+    if (iframe.contentWindow && iframe.src.includes(docUrl.value)) {
+      iframeLoaded.value = true;
+      iframeError.value = false;
+      
+      console.log('iframe 加载成功:', {
+        width: iframe.offsetWidth,
+        height: iframe.offsetHeight
+      });
+      
+      // 尝试调整iframe高度
+      nextTick(() => {
+        adjustIframeHeight();
+        // 发送初始化消息到iframe
+        sendInitMessageToIframe();
+      });
+      
+      // 显示加载成功提示
+      ElMessage({
+        message: "文档加载成功",
+        type: "success",
+        duration: 2000,
+      });
+    } else {
+      console.warn('iframe可能加载不完整或存在跨域问题');
+    }
+  } catch (error) {
+    // 处理跨域安全限制导致的错误
+    console.error('检查iframe出错 (可能是跨域问题):', error);
+    // 我们不将这种情况标记为错误，因为iframe可能仍然正常加载
+    iframeLoaded.value = true;
+  }
+};
+
+// 添加新函数用于调整iframe高度
+const adjustIframeHeight = () => {
+  if (!docIframe.value) return;
+  
+  // 获取容器高度
+  const container = document.querySelector('.doc-page-container');
+  if (!container) return;
+  
+  // 修改页面主容器样式，减少内边距但保留基本布局
+  const mainContainer = document.querySelector('.modern-main');
+  if (mainContainer instanceof HTMLElement && page.value.asideIndex === '4') {
+    mainContainer.style.padding = '0';
+    mainContainer.style.gap = '0';
+    // 不修改主容器的overflow和高度，保持基本布局
+  }
+  
+  // 获取可用高度（视口高度减去顶部导航栏高度）
+  const availableHeight = window.innerHeight - 40;
+  
+  // 设置container样式以充分利用可用空间
+  if (container instanceof HTMLElement) {
+    container.style.height = `${availableHeight}px`;
+    container.style.maxHeight = `${availableHeight}px`;
+    container.style.margin = '0';
+    container.style.padding = '0';
+    container.style.borderRadius = '0';
+    container.style.boxShadow = 'none';
+    // 使用相对定位，不覆盖左侧菜单
+    container.style.position = 'relative';
+  }
+  
+  // 设置iframe样式以充满容器
+  docIframe.value.style.width = '100%';
+  docIframe.value.style.height = '100%';
+  docIframe.value.style.minHeight = '700px';
+  docIframe.value.style.maxHeight = 'none';
+  docIframe.value.style.display = 'block';
+  docIframe.value.style.flex = '1';
+  docIframe.value.style.margin = '0';
+  docIframe.value.style.padding = '0';
+  docIframe.value.style.border = 'none';
+  docIframe.value.style.borderRadius = '0';
+  
+  // 强制iframe内容与容器大小相匹配
+  try {
+    if (docIframe.value.contentWindow && docIframe.value.contentWindow.document) {
+      const iframeDoc = docIframe.value.contentWindow.document;
+      // 尝试通过样式影响iframe内部文档的大小
+      const styleEl = iframeDoc.createElement('style');
+      styleEl.textContent = 'html, body { height: 100%; margin: 0; padding: 0; overflow: auto; }';
+      iframeDoc.head.appendChild(styleEl);
+    }
+  } catch (error) {
+    console.warn('无法修改iframe内部样式 (跨域限制):', error);
+  }
+};
+
+// 处理 iframe 加载失败
+const handleIframeError = (event: Event) => {
+  console.error('iframe 加载失败:', event);
+  iframeLoaded.value = false;
+  iframeError.value = true;
+  
+  ElMessage({
+    message: "文档加载失败，请检查网络连接",
+    type: "error",
+    duration: 3000,
+  });
+};
+
+// 重新加载 iframe
+const reloadIframe = () => {
+  console.log('重新加载 iframe');
+  iframeLoaded.value = false;
+  iframeError.value = false;
+  
+  // 强制 iframe 重新加载
+  initIframe();
+  
+  ElMessage({
+    message: "正在重新加载文档",
+    type: "info",
+    duration: 2000,
+  });
+};
+
+// 监听页面索引变化
+watch(() => page.value.asideIndex, (newIndex, oldIndex) => {
+  console.log(`页面索引从 ${oldIndex} 变更为 ${newIndex}`);
+  
+  if (newIndex === '4') {
+    console.log('进入文档页面');
+    // 进入文档页面时重置状态
+    iframeLoaded.value = false;
+    iframeError.value = false;
+    
+    // 确保iframe加载正确的URL
+    initIframe();
+    
+    // 300ms后尝试调整高度，以确保DOM已完全渲染
+    setTimeout(() => {
+      adjustIframeHeight();
+    }, 300);
+  }
+}, { immediate: true });
+
+// 监听主题变化，通知iframe
+watch(() => document.body.classList.contains('dark-theme'), (isDarkTheme) => {
+  // 向iframe发送主题变更消息
+  if (page.value.asideIndex === '4' && iframeLoaded.value) {
+    sendMessageToIframe({
+      type: 'themeChange',
+      theme: isDarkTheme ? 'dark' : 'light'
+    });
+  }
+});
+
+// 组件挂载时
+onMounted(() => {
+  console.log('Main 组件已挂载, 当前页面索引:', page.value.asideIndex);
+  
+  // 添加窗口消息监听，以便文档页面能够与主应用通信
+  window.addEventListener('message', handleIframeMessage);
+  
+  // 添加窗口大小变化监听
+  window.addEventListener('resize', handleResize);
+  
+  // 初始化状态
+  if (page.value.asideIndex === '4') {
+    console.log('组件初始化时，页面索引已经是文档页');
+    initIframe();
+    
+    // 延迟调整高度
+    setTimeout(() => {
+      adjustIframeHeight();
+    }, 500);
+  }
+});
+
+// 组件更新时
+onUpdated(() => {
+  console.log('Main 组件已更新, 当前页面索引:', page.value.asideIndex);
+  
+  if (page.value.asideIndex === '4') {
+    const docPageContainer = document.querySelector('.doc-page-container');
+    console.log('文档页面渲染状态:', {
+      iframeLoaded: iframeLoaded.value,
+      iframeError: iframeError.value,
+      docPageVisible: docPageContainer ? docPageContainer.getBoundingClientRect().height > 0 : false,
+      docIframeRef: docIframe.value ? '已获取' : '未获取',
+      containerHeight: docPageContainer?.clientHeight
+    });
+    
+    // 组件更新时也尝试调整高度
+    if (iframeLoaded.value && !iframeError.value) {
+      nextTick(() => {
+        adjustIframeHeight();
+      });
+    }
+  }
+});
+
+// SSML内容和文本框内容同步
 i18n.global.locale.value = config.value.language;
 watch(
   () => inputs.value.inputValue,
@@ -354,14 +754,46 @@ const openInFolder = (val: any) => {
     });
   }
 };
+
+// 调试文档页面
+const debugDocument = () => {
+  console.log('手动检查文档页面状态');
+  
+  // 强制将页面索引设置为文档页
+  if (page.value.asideIndex !== '4') {
+    console.log('强制切换到文档页面');
+    page.value.asideIndex = '4';
+  } else {
+    // 如果已经在文档页面，则重新加载iframe
+    reloadIframe();
+  }
+};
+
+// 单独定义resize处理函数以便于移除
+const handleResize = () => {
+  if (page.value.asideIndex === '4') {
+    nextTick(() => {
+      adjustIframeHeight();
+    });
+  }
+};
+
+// 添加卸载时的清理函数
+onUnmounted(() => {
+  window.removeEventListener('message', handleIframeMessage);
+  window.removeEventListener('resize', handleResize);
+});
 </script>
 
 <style scoped>
 .modern-main {
-  padding: 20px;
+  padding: 10px; /* 减少主容器的内边距 */
   display: flex;
   flex-direction: column;
   gap: 20px;
+  width: 100%;
+  box-sizing: border-box;
+  overflow: hidden;
 }
 
 .input-area-card, .batch-area-card {
@@ -490,13 +922,48 @@ const openInFolder = (val: any) => {
   border-radius: var(--border-radius-large);
   box-shadow: var(--shadow-medium);
   overflow: hidden;
-  height: calc(100vh - 180px);
+  height: calc(100vh - 180px); /* 确保有足够的高度 */
+  width: 100%;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+}
+
+/* 特别强调文档容器样式 */
+.doc-page-container {
+  position: relative;
+  z-index: 5;
+  height: calc(100vh - 40px); /* 只预留顶部导航栏的空间 */
+  transform: translateZ(0); /* 启用硬件加速 */
+  will-change: transform; /* 优化渲染性能 */
+  margin: 0; /* 重置外边距 */
+  padding: 0; /* 重置内边距 */
+  display: flex;
+  flex-direction: column;
+  overflow: hidden; /* 防止内容溢出 */
+  box-sizing: border-box; /* 确保padding不增加总尺寸 */
+  border-radius: 0;
+  box-shadow: none;
 }
 
 .doc-frame {
   width: 100%;
   height: 100%;
+  min-height: 700px;
   border: none;
+  display: block;
+  overflow: auto;
+  border-radius: 0;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  flex: 1; /* 让iframe自动填充容器 */
+  max-height: none !important; /* 覆盖可能的最大高度限制 */
+  margin: 0;
+  padding: 0;
+}
+
+.iframe-visible {
+  opacity: 1;
 }
 
 .options-container {
@@ -523,5 +990,112 @@ const openInFolder = (val: any) => {
 
 :deep(.el-tabs__nav-wrap::after) {
   background-color: var(--border-color);
+}
+
+.iframe-loading, .iframe-error {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  background-color: var(--card-background);
+  z-index: 1000;
+  text-align: center;
+}
+
+.iframe-loading {
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.loading-spinner {
+  width: 40px;
+  height: 40px;
+  border: 4px solid rgba(74, 108, 247, 0.2);
+  border-radius: 50%;
+  border-top-color: var(--primary-color);
+  animation: spin 1s linear infinite;
+  margin-bottom: 16px;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.iframe-error {
+  padding: 30px;
+  background-color: var(--card-background);
+}
+
+.iframe-error p {
+  margin: 16px 0;
+  font-size: 16px;
+  color: var(--text-secondary);
+}
+
+.error-icon {
+  font-size: 48px;
+  color: #ff4757;
+  margin-bottom: 16px;
+}
+
+.error-actions {
+  display: flex;
+  gap: 16px;
+  margin-top: 16px;
+}
+
+.loading-dots {
+  display: inline-block;
+  width: 30px;
+  text-align: left;
+}
+
+.loading-dots:after {
+  content: '.';
+  animation: dots 1.5s steps(5, end) infinite;
+}
+
+@keyframes dots {
+  0%, 20% {
+    content: '.';
+  }
+  40% {
+    content: '..';
+  }
+  60% {
+    content: '...';
+  }
+  80%, 100% {
+    content: '';
+  }
+}
+
+/* 媒体查询以处理不同屏幕尺寸 */
+@media screen and (max-width: 768px) {
+  .doc-page-container {
+    height: calc(100vh - 40px);
+  }
+  
+  .doc-frame {
+    min-height: 500px;
+  }
+}
+
+@media screen and (min-width: 1440px) {
+  .doc-page-container {
+    height: calc(100vh - 40px);
+  }
+  
+  .doc-frame {
+    min-height: 800px;
+  }
 }
 </style>

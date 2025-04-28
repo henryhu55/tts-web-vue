@@ -117,6 +117,8 @@ body {
 .modern-body-container {
   height: calc(100vh - 60px);
   overflow: hidden;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .modern-aside {
@@ -132,6 +134,9 @@ body {
   display: flex;
   flex-direction: column;
   background-color: var(--background-color);
+  width: 100%;
+  flex: 1;
+  box-sizing: border-box;
 }
 
 .modern-main {
@@ -139,6 +144,8 @@ body {
   padding: 20px !important;
   margin: 0 !important;
   overflow: auto;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .modern-footer {

@@ -41,8 +41,9 @@ const ttsStore = useTtsStore();
 const { page, config } = storeToRefs(ttsStore);
 
 const menuChange = (index: number) => {
-  if (index === 4) return;
+  console.log(`菜单切换: 索引 ${index} 被点击`);
   page.value.asideIndex = index.toString();
+  console.log(`页面索引设置为: ${page.value.asideIndex}`);
 };
 </script>
 
