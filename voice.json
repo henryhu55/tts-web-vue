@@ -1,0 +1,2358 @@
+[
+  {
+    "ShortName": "af-ZA-AdriNeural",
+    "Local": "af-ZA"
+  },
+  {
+    "ShortName": "af-ZA-WillemNeural",
+    "Local": "af-ZA"
+  },
+  {
+    "ShortName": "am-ET-MekdesNeural",
+    "Local": "am-ET"
+  },
+  {
+    "ShortName": "am-ET-AmehaNeural",
+    "Local": "am-ET"
+  },
+  {
+    "ShortName": "ar-AE-FatimaNeural",
+    "Local": "ar-AE"
+  },
+  {
+    "ShortName": "ar-AE-HamdanNeural",
+    "Local": "ar-AE"
+  },
+  {
+    "ShortName": "ar-BH-LailaNeural",
+    "Local": "ar-BH"
+  },
+  {
+    "ShortName": "ar-BH-AliNeural",
+    "Local": "ar-BH"
+  },
+  {
+    "ShortName": "ar-DZ-AminaNeural",
+    "Local": "ar-DZ"
+  },
+  {
+    "ShortName": "ar-DZ-IsmaelNeural",
+    "Local": "ar-DZ"
+  },
+  {
+    "ShortName": "ar-EG-SalmaNeural",
+    "Local": "ar-EG"
+  },
+  {
+    "ShortName": "ar-EG-ShakirNeural",
+    "Local": "ar-EG"
+  },
+  {
+    "ShortName": "ar-IQ-RanaNeural",
+    "Local": "ar-IQ"
+  },
+  {
+    "ShortName": "ar-IQ-BasselNeural",
+    "Local": "ar-IQ"
+  },
+  {
+    "ShortName": "ar-JO-SanaNeural",
+    "Local": "ar-JO"
+  },
+  {
+    "ShortName": "ar-JO-TaimNeural",
+    "Local": "ar-JO"
+  },
+  {
+    "ShortName": "ar-KW-NouraNeural",
+    "Local": "ar-KW"
+  },
+  {
+    "ShortName": "ar-KW-FahedNeural",
+    "Local": "ar-KW"
+  },
+  {
+    "ShortName": "ar-LB-LaylaNeural",
+    "Local": "ar-LB"
+  },
+  {
+    "ShortName": "ar-LB-RamiNeural",
+    "Local": "ar-LB"
+  },
+  {
+    "ShortName": "ar-LY-ImanNeural",
+    "Local": "ar-LY"
+  },
+  {
+    "ShortName": "ar-LY-OmarNeural",
+    "Local": "ar-LY"
+  },
+  {
+    "ShortName": "ar-MA-MounaNeural",
+    "Local": "ar-MA"
+  },
+  {
+    "ShortName": "ar-MA-JamalNeural",
+    "Local": "ar-MA"
+  },
+  {
+    "ShortName": "ar-OM-AyshaNeural",
+    "Local": "ar-OM"
+  },
+  {
+    "ShortName": "ar-OM-AbdullahNeural",
+    "Local": "ar-OM"
+  },
+  {
+    "ShortName": "ar-QA-AmalNeural",
+    "Local": "ar-QA"
+  },
+  {
+    "ShortName": "ar-QA-MoazNeural",
+    "Local": "ar-QA"
+  },
+  {
+    "ShortName": "ar-SA-ZariyahNeural",
+    "Local": "ar-SA"
+  },
+  {
+    "ShortName": "ar-SA-HamedNeural",
+    "Local": "ar-SA"
+  },
+  {
+    "ShortName": "ar-SY-AmanyNeural",
+    "Local": "ar-SY"
+  },
+  {
+    "ShortName": "ar-SY-LaithNeural",
+    "Local": "ar-SY"
+  },
+  {
+    "ShortName": "ar-TN-ReemNeural",
+    "Local": "ar-TN"
+  },
+  {
+    "ShortName": "ar-TN-HediNeural",
+    "Local": "ar-TN"
+  },
+  {
+    "ShortName": "ar-YE-MaryamNeural",
+    "Local": "ar-YE"
+  },
+  {
+    "ShortName": "ar-YE-SalehNeural",
+    "Local": "ar-YE"
+  },
+  {
+    "ShortName": "as-IN-YashicaNeural",
+    "Local": "as-IN"
+  },
+  {
+    "ShortName": "as-IN-PriyomNeural",
+    "Local": "as-IN"
+  },
+  {
+    "ShortName": "az-AZ-BanuNeural",
+    "Local": "az-AZ"
+  },
+  {
+    "ShortName": "az-AZ-BabekNeural",
+    "Local": "az-AZ"
+  },
+  {
+    "ShortName": "bg-BG-KalinaNeural",
+    "Local": "bg-BG"
+  },
+  {
+    "ShortName": "bg-BG-BorislavNeural",
+    "Local": "bg-BG"
+  },
+  {
+    "ShortName": "bn-BD-NabanitaNeural",
+    "Local": "bn-BD"
+  },
+  {
+    "ShortName": "bn-BD-PradeepNeural",
+    "Local": "bn-BD"
+  },
+  {
+    "ShortName": "bn-IN-TanishaaNeural",
+    "Local": "bn-IN"
+  },
+  {
+    "ShortName": "bn-IN-BashkarNeural",
+    "Local": "bn-IN"
+  },
+  {
+    "ShortName": "bs-BA-VesnaNeural",
+    "Local": "bs-BA"
+  },
+  {
+    "ShortName": "bs-BA-GoranNeural",
+    "Local": "bs-BA"
+  },
+  {
+    "ShortName": "ca-ES-JoanaNeural",
+    "Local": "ca-ES"
+  },
+  {
+    "ShortName": "ca-ES-EnricNeural",
+    "Local": "ca-ES"
+  },
+  {
+    "ShortName": "ca-ES-AlbaNeural",
+    "Local": "ca-ES"
+  },
+  {
+    "ShortName": "cs-CZ-VlastaNeural",
+    "Local": "cs-CZ"
+  },
+  {
+    "ShortName": "cs-CZ-AntoninNeural",
+    "Local": "cs-CZ"
+  },
+  {
+    "ShortName": "cy-GB-NiaNeural",
+    "Local": "cy-GB"
+  },
+  {
+    "ShortName": "cy-GB-AledNeural",
+    "Local": "cy-GB"
+  },
+  {
+    "ShortName": "da-DK-ChristelNeural",
+    "Local": "da-DK"
+  },
+  {
+    "ShortName": "da-DK-JeppeNeural",
+    "Local": "da-DK"
+  },
+  {
+    "ShortName": "de-AT-IngridNeural",
+    "Local": "de-AT"
+  },
+  {
+    "ShortName": "de-AT-JonasNeural",
+    "Local": "de-AT"
+  },
+  {
+    "ShortName": "de-CH-LeniNeural",
+    "Local": "de-CH"
+  },
+  {
+    "ShortName": "de-CH-JanNeural",
+    "Local": "de-CH"
+  },
+  {
+    "ShortName": "de-DE-KatjaNeural",
+    "Local": "de-DE"
+  },
+  {
+    "ShortName": "de-DE-ConradNeural",
+    "Local": "de-DE"
+  },
+  {
+    "ShortName": "de-DE-SeraphinaMultilingualNeural",
+    "Local": "de-DE"
+  },
+  {
+    "ShortName": "de-DE-FlorianMultilingualNeural",
+    "Local": "de-DE"
+  },
+  {
+    "ShortName": "de-DE-AmalaNeural",
+    "Local": "de-DE"
+  },
+  {
+    "ShortName": "de-DE-BerndNeural",
+    "Local": "de-DE"
+  },
+  {
+    "ShortName": "de-DE-ChristophNeural",
+    "Local": "de-DE"
+  },
+  {
+    "ShortName": "de-DE-ElkeNeural",
+    "Local": "de-DE"
+  },
+  {
+    "ShortName": "de-DE-GiselaNeural",
+    "Local": "de-DE"
+  },
+  {
+    "ShortName": "de-DE-KasperNeural",
+    "Local": "de-DE"
+  },
+  {
+    "ShortName": "de-DE-KillianNeural",
+    "Local": "de-DE"
+  },
+  {
+    "ShortName": "de-DE-KlarissaNeural",
+    "Local": "de-DE"
+  },
+  {
+    "ShortName": "de-DE-KlausNeural",
+    "Local": "de-DE"
+  },
+  {
+    "ShortName": "de-DE-LouisaNeural",
+    "Local": "de-DE"
+  },
+  {
+    "ShortName": "de-DE-MajaNeural",
+    "Local": "de-DE"
+  },
+  {
+    "ShortName": "de-DE-RalfNeural",
+    "Local": "de-DE"
+  },
+  {
+    "ShortName": "de-DE-TanjaNeural",
+    "Local": "de-DE"
+  },
+  {
+    "ShortName": "de-DE-Florian:DragonHDLatestNeural",
+    "Local": "de-DE"
+  },
+  {
+    "ShortName": "de-DE-Seraphina:DragonHDLatestNeural",
+    "Local": "de-DE"
+  },
+  {
+    "ShortName": "el-GR-AthinaNeural",
+    "Local": "el-GR"
+  },
+  {
+    "ShortName": "el-GR-NestorasNeural",
+    "Local": "el-GR"
+  },
+  {
+    "ShortName": "en-AU-NatashaNeural",
+    "Local": "en-AU"
+  },
+  {
+    "ShortName": "en-AU-WilliamNeural",
+    "Local": "en-AU"
+  },
+  {
+    "ShortName": "en-AU-AnnetteNeural",
+    "Local": "en-AU"
+  },
+  {
+    "ShortName": "en-AU-CarlyNeural",
+    "Local": "en-AU"
+  },
+  {
+    "ShortName": "en-AU-DarrenNeural",
+    "Local": "en-AU"
+  },
+  {
+    "ShortName": "en-AU-DuncanNeural",
+    "Local": "en-AU"
+  },
+  {
+    "ShortName": "en-AU-ElsieNeural",
+    "Local": "en-AU"
+  },
+  {
+    "ShortName": "en-AU-FreyaNeural",
+    "Local": "en-AU"
+  },
+  {
+    "ShortName": "en-AU-JoanneNeural",
+    "Local": "en-AU"
+  },
+  {
+    "ShortName": "en-AU-KenNeural",
+    "Local": "en-AU"
+  },
+  {
+    "ShortName": "en-AU-KimNeural",
+    "Local": "en-AU"
+  },
+  {
+    "ShortName": "en-AU-NeilNeural",
+    "Local": "en-AU"
+  },
+  {
+    "ShortName": "en-AU-TimNeural",
+    "Local": "en-AU"
+  },
+  {
+    "ShortName": "en-AU-TinaNeural",
+    "Local": "en-AU"
+  },
+  {
+    "ShortName": "en-CA-ClaraNeural",
+    "Local": "en-CA"
+  },
+  {
+    "ShortName": "en-CA-LiamNeural",
+    "Local": "en-CA"
+  },
+  {
+    "ShortName": "en-GB-SoniaNeural",
+    "Local": "en-GB"
+  },
+  {
+    "ShortName": "en-GB-RyanNeural",
+    "Local": "en-GB"
+  },
+  {
+    "ShortName": "en-GB-LibbyNeural",
+    "Local": "en-GB"
+  },
+  {
+    "ShortName": "en-GB-AdaMultilingualNeural",
+    "Local": "en-GB"
+  },
+  {
+    "ShortName": "en-GB-OllieMultilingualNeural",
+    "Local": "en-GB"
+  },
+  {
+    "ShortName": "en-GB-AbbiNeural",
+    "Local": "en-GB"
+  },
+  {
+    "ShortName": "en-GB-AlfieNeural",
+    "Local": "en-GB"
+  },
+  {
+    "ShortName": "en-GB-BellaNeural",
+    "Local": "en-GB"
+  },
+  {
+    "ShortName": "en-GB-ElliotNeural",
+    "Local": "en-GB"
+  },
+  {
+    "ShortName": "en-GB-EthanNeural",
+    "Local": "en-GB"
+  },
+  {
+    "ShortName": "en-GB-HollieNeural",
+    "Local": "en-GB"
+  },
+  {
+    "ShortName": "en-GB-MaisieNeural",
+    "Local": "en-GB"
+  },
+  {
+    "ShortName": "en-GB-NoahNeural",
+    "Local": "en-GB"
+  },
+  {
+    "ShortName": "en-GB-OliverNeural",
+    "Local": "en-GB"
+  },
+  {
+    "ShortName": "en-GB-OliviaNeural",
+    "Local": "en-GB"
+  },
+  {
+    "ShortName": "en-GB-ThomasNeural",
+    "Local": "en-GB"
+  },
+  {
+    "ShortName": "en-GB-MiaNeural",
+    "Local": "en-GB"
+  },
+  {
+    "ShortName": "en-HK-YanNeural",
+    "Local": "en-HK"
+  },
+  {
+    "ShortName": "en-HK-SamNeural",
+    "Local": "en-HK"
+  },
+  {
+    "ShortName": "en-IE-EmilyNeural",
+    "Local": "en-IE"
+  },
+  {
+    "ShortName": "en-IE-ConnorNeural",
+    "Local": "en-IE"
+  },
+  {
+    "ShortName": "en-IN-AaravNeural",
+    "Local": "en-IN"
+  },
+  {
+    "ShortName": "en-IN-AashiNeural",
+    "Local": "en-IN"
+  },
+  {
+    "ShortName": "en-IN-AartiNeural",
+    "Local": "en-IN"
+  },
+  {
+    "ShortName": "en-IN-ArjunNeural",
+    "Local": "en-IN"
+  },
+  {
+    "ShortName": "en-IN-AnanyaNeural",
+    "Local": "en-IN"
+  },
+  {
+    "ShortName": "en-IN-KavyaNeural",
+    "Local": "en-IN"
+  },
+  {
+    "ShortName": "en-IN-KunalNeural",
+    "Local": "en-IN"
+  },
+  {
+    "ShortName": "en-IN-NeerjaNeural",
+    "Local": "en-IN"
+  },
+  {
+    "ShortName": "en-IN-PrabhatNeural",
+    "Local": "en-IN"
+  },
+  {
+    "ShortName": "en-IN-RehaanNeural",
+    "Local": "en-IN"
+  },
+  {
+    "ShortName": "en-KE-AsiliaNeural",
+    "Local": "en-KE"
+  },
+  {
+    "ShortName": "en-KE-ChilembaNeural",
+    "Local": "en-KE"
+  },
+  {
+    "ShortName": "en-NG-EzinneNeural",
+    "Local": "en-NG"
+  },
+  {
+    "ShortName": "en-NG-AbeoNeural",
+    "Local": "en-NG"
+  },
+  {
+    "ShortName": "en-NZ-MollyNeural",
+    "Local": "en-NZ"
+  },
+  {
+    "ShortName": "en-NZ-MitchellNeural",
+    "Local": "en-NZ"
+  },
+  {
+    "ShortName": "en-PH-RosaNeural",
+    "Local": "en-PH"
+  },
+  {
+    "ShortName": "en-PH-JamesNeural",
+    "Local": "en-PH"
+  },
+  {
+    "ShortName": "en-SG-LunaNeural",
+    "Local": "en-SG"
+  },
+  {
+    "ShortName": "en-SG-WayneNeural",
+    "Local": "en-SG"
+  },
+  {
+    "ShortName": "en-TZ-ImaniNeural",
+    "Local": "en-TZ"
+  },
+  {
+    "ShortName": "en-TZ-ElimuNeural",
+    "Local": "en-TZ"
+  },
+  {
+    "ShortName": "en-US-AvaMultilingualNeural",
+    "Local": "en-US"
+  },
+  {
+    "ShortName": "en-US-AndrewMultilingualNeural",
+    "Local": "en-US"
+  },
+  {
+    "ShortName": "en-US-EmmaMultilingualNeural",
+    "Local": "en-US"
+  },
+  {
+    "ShortName": "en-US-AlloyTurboMultilingualNeural",
+    "Local": "en-US"
+  },
+  {
+    "ShortName": "en-US-EchoTurboMultilingualNeural",
+    "Local": "en-US"
+  },
+  {
+    "ShortName": "en-US-FableTurboMultilingualNeural",
+    "Local": "en-US"
+  },
+  {
+    "ShortName": "en-US-OnyxTurboMultilingualNeural",
+    "Local": "en-US"
+  },
+  {
+    "ShortName": "en-US-NovaTurboMultilingualNeural",
+    "Local": "en-US"
+  },
+  {
+    "ShortName": "en-US-ShimmerTurboMultilingualNeural",
+    "Local": "en-US"
+  },
+  {
+    "ShortName": "en-US-BrianMultilingualNeural",
+    "Local": "en-US"
+  },
+  {
+    "ShortName": "en-US-AvaNeural",
+    "Local": "en-US"
+  },
+  {
+    "ShortName": "en-US-AndrewNeural",
+    "Local": "en-US"
+  },
+  {
+    "ShortName": "en-US-EmmaNeural",
+    "Local": "en-US"
+  },
+  {
+    "ShortName": "en-US-BrianNeural",
+    "Local": "en-US"
+  },
+  {
+    "ShortName": "en-US-JennyNeural",
+    "Local": "en-US"
+  },
+  {
+    "ShortName": "en-US-GuyNeural",
+    "Local": "en-US"
+  },
+  {
+    "ShortName": "en-US-AriaNeural",
+    "Local": "en-US"
+  },
+  {
+    "ShortName": "en-US-DavisNeural",
+    "Local": "en-US"
+  },
+  {
+    "ShortName": "en-US-JaneNeural",
+    "Local": "en-US"
+  },
+  {
+    "ShortName": "en-US-JasonNeural",
+    "Local": "en-US"
+  },
+  {
+    "ShortName": "en-US-KaiNeural",
+    "Local": "en-US"
+  },
+  {
+    "ShortName": "en-US-LunaNeural",
+    "Local": "en-US"
+  },
+  {
+    "ShortName": "en-US-SaraNeural",
+    "Local": "en-US"
+  },
+  {
+    "ShortName": "en-US-TonyNeural",
+    "Local": "en-US"
+  },
+  {
+    "ShortName": "en-US-NancyNeural",
+    "Local": "en-US"
+  },
+  {
+    "ShortName": "en-US-CoraMultilingualNeural",
+    "Local": "en-US"
+  },
+  {
+    "ShortName": "en-US-ChristopherMultilingualNeural",
+    "Local": "en-US"
+  },
+  {
+    "ShortName": "en-US-BrandonMultilingualNeural",
+    "Local": "en-US"
+  },
+  {
+    "ShortName": "en-US-AmberNeural",
+    "Local": "en-US"
+  },
+  {
+    "ShortName": "en-US-AnaNeural",
+    "Local": "en-US"
+  },
+  {
+    "ShortName": "en-US-AshleyNeural",
+    "Local": "en-US"
+  },
+  {
+    "ShortName": "en-US-BrandonNeural",
+    "Local": "en-US"
+  },
+  {
+    "ShortName": "en-US-ChristopherNeural",
+    "Local": "en-US"
+  },
+  {
+    "ShortName": "en-US-CoraNeural",
+    "Local": "en-US"
+  },
+  {
+    "ShortName": "en-US-ElizabethNeural",
+    "Local": "en-US"
+  },
+  {
+    "ShortName": "en-US-EricNeural",
+    "Local": "en-US"
+  },
+  {
+    "ShortName": "en-US-JacobNeural",
+    "Local": "en-US"
+  },
+  {
+    "ShortName": "en-US-JennyMultilingualNeural",
+    "Local": "en-US"
+  },
+  {
+    "ShortName": "en-US-MichelleNeural",
+    "Local": "en-US"
+  },
+  {
+    "ShortName": "en-US-MonicaNeural",
+    "Local": "en-US"
+  },
+  {
+    "ShortName": "en-US-RogerNeural",
+    "Local": "en-US"
+  },
+  {
+    "ShortName": "en-US-RyanMultilingualNeural",
+    "Local": "en-US"
+  },
+  {
+    "ShortName": "en-US-SteffanNeural",
+    "Local": "en-US"
+  },
+  {
+    "ShortName": "en-US-AdamMultilingualNeural",
+    "Local": "en-US"
+  },
+  {
+    "ShortName": "en-US-AIGenerate1Neural",
+    "Local": "en-US"
+  },
+  {
+    "ShortName": "en-US-AIGenerate2Neural",
+    "Local": "en-US"
+  },
+  {
+    "ShortName": "en-US-AmandaMultilingualNeural",
+    "Local": "en-US"
+  },
+  {
+    "ShortName": "en-US-AshTurboMultilingualNeural",
+    "Local": "en-US"
+  },
+  {
+    "ShortName": "en-US-BlueNeural",
+    "Local": "en-US"
+  },
+  {
+    "ShortName": "en-US-DavisMultilingualNeural",
+    "Local": "en-US"
+  },
+  {
+    "ShortName": "en-US-DerekMultilingualNeural",
+    "Local": "en-US"
+  },
+  {
+    "ShortName": "en-US-DustinMultilingualNeural",
+    "Local": "en-US"
+  },
+  {
+    "ShortName": "en-US-EvelynMultilingualNeural",
+    "Local": "en-US"
+  },
+  {
+    "ShortName": "en-US-LewisMultilingualNeural",
+    "Local": "en-US"
+  },
+  {
+    "ShortName": "en-US-LolaMultilingualNeural",
+    "Local": "en-US"
+  },
+  {
+    "ShortName": "en-US-NancyMultilingualNeural",
+    "Local": "en-US"
+  },
+  {
+    "ShortName": "en-US-PhoebeMultilingualNeural",
+    "Local": "en-US"
+  },
+  {
+    "ShortName": "en-US-SamuelMultilingualNeural",
+    "Local": "en-US"
+  },
+  {
+    "ShortName": "en-US-SerenaMultilingualNeural",
+    "Local": "en-US"
+  },
+  {
+    "ShortName": "en-US-SteffanMultilingualNeural",
+    "Local": "en-US"
+  },
+  {
+    "ShortName": "en-US-Adam:DragonHDLatestNeural",
+    "Local": "en-US"
+  },
+  {
+    "ShortName": "en-US-Andrew:DragonHDLatestNeural",
+    "Local": "en-US"
+  },
+  {
+    "ShortName": "en-US-Andrew2:DragonHDLatestNeural",
+    "Local": "en-US"
+  },
+  {
+    "ShortName": "en-US-Ava:DragonHDLatestNeural",
+    "Local": "en-US"
+  },
+  {
+    "ShortName": "en-US-Brian:DragonHDLatestNeural",
+    "Local": "en-US"
+  },
+  {
+    "ShortName": "en-US-Davis:DragonHDLatestNeural",
+    "Local": "en-US"
+  },
+  {
+    "ShortName": "en-US-Emma:DragonHDLatestNeural",
+    "Local": "en-US"
+  },
+  {
+    "ShortName": "en-US-Emma2:DragonHDLatestNeural",
+    "Local": "en-US"
+  },
+  {
+    "ShortName": "en-US-Steffan:DragonHDLatestNeural",
+    "Local": "en-US"
+  },
+  {
+    "ShortName": "en-US-Alloy:DragonHDLatestNeural",
+    "Local": "en-US"
+  },
+  {
+    "ShortName": "en-US-Andrew3:DragonHDLatestNeural",
+    "Local": "en-US"
+  },
+  {
+    "ShortName": "en-US-Aria:DragonHDLatestNeural",
+    "Local": "en-US"
+  },
+  {
+    "ShortName": "en-US-Ava3:DragonHDLatestNeural",
+    "Local": "en-US"
+  },
+  {
+    "ShortName": "en-US-Bree:DragonHDLatestNeural",
+    "Local": "en-US"
+  },
+  {
+    "ShortName": "en-US-Jenny:DragonHDLatestNeural",
+    "Local": "en-US"
+  },
+  {
+    "ShortName": "en-US-MultiTalker-Ava-Andrew:DragonHDLatestNeural",
+    "Local": "en-US"
+  },
+  {
+    "ShortName": "en-US-MultiTalker-Ava-Steffan:DragonHDLatestNeural",
+    "Local": "en-US"
+  },
+  {
+    "ShortName": "en-US-Nova:DragonHDLatestNeural",
+    "Local": "en-US"
+  },
+  {
+    "ShortName": "en-US-Phoebe:DragonHDLatestNeural",
+    "Local": "en-US"
+  },
+  {
+    "ShortName": "en-US-Serena:DragonHDLatestNeural",
+    "Local": "en-US"
+  },
+  {
+    "ShortName": "en-ZA-LeahNeural",
+    "Local": "en-ZA"
+  },
+  {
+    "ShortName": "en-ZA-LukeNeural",
+    "Local": "en-ZA"
+  },
+  {
+    "ShortName": "es-AR-ElenaNeural",
+    "Local": "es-AR"
+  },
+  {
+    "ShortName": "es-AR-TomasNeural",
+    "Local": "es-AR"
+  },
+  {
+    "ShortName": "es-BO-SofiaNeural",
+    "Local": "es-BO"
+  },
+  {
+    "ShortName": "es-BO-MarceloNeural",
+    "Local": "es-BO"
+  },
+  {
+    "ShortName": "es-CL-CatalinaNeural",
+    "Local": "es-CL"
+  },
+  {
+    "ShortName": "es-CL-LorenzoNeural",
+    "Local": "es-CL"
+  },
+  {
+    "ShortName": "es-CO-SalomeNeural",
+    "Local": "es-CO"
+  },
+  {
+    "ShortName": "es-CO-GonzaloNeural",
+    "Local": "es-CO"
+  },
+  {
+    "ShortName": "es-CR-MariaNeural",
+    "Local": "es-CR"
+  },
+  {
+    "ShortName": "es-CR-JuanNeural",
+    "Local": "es-CR"
+  },
+  {
+    "ShortName": "es-CU-BelkysNeural",
+    "Local": "es-CU"
+  },
+  {
+    "ShortName": "es-CU-ManuelNeural",
+    "Local": "es-CU"
+  },
+  {
+    "ShortName": "es-DO-RamonaNeural",
+    "Local": "es-DO"
+  },
+  {
+    "ShortName": "es-DO-EmilioNeural",
+    "Local": "es-DO"
+  },
+  {
+    "ShortName": "es-EC-AndreaNeural",
+    "Local": "es-EC"
+  },
+  {
+    "ShortName": "es-EC-LuisNeural",
+    "Local": "es-EC"
+  },
+  {
+    "ShortName": "es-ES-ElviraNeural",
+    "Local": "es-ES"
+  },
+  {
+    "ShortName": "es-ES-AlvaroNeural",
+    "Local": "es-ES"
+  },
+  {
+    "ShortName": "es-ES-ArabellaMultilingualNeural",
+    "Local": "es-ES"
+  },
+  {
+    "ShortName": "es-ES-IsidoraMultilingualNeural",
+    "Local": "es-ES"
+  },
+  {
+    "ShortName": "es-ES-TristanMultilingualNeural",
+    "Local": "es-ES"
+  },
+  {
+    "ShortName": "es-ES-XimenaMultilingualNeural",
+    "Local": "es-ES"
+  },
+  {
+    "ShortName": "es-ES-AbrilNeural",
+    "Local": "es-ES"
+  },
+  {
+    "ShortName": "es-ES-ArnauNeural",
+    "Local": "es-ES"
+  },
+  {
+    "ShortName": "es-ES-DarioNeural",
+    "Local": "es-ES"
+  },
+  {
+    "ShortName": "es-ES-EliasNeural",
+    "Local": "es-ES"
+  },
+  {
+    "ShortName": "es-ES-EstrellaNeural",
+    "Local": "es-ES"
+  },
+  {
+    "ShortName": "es-ES-IreneNeural",
+    "Local": "es-ES"
+  },
+  {
+    "ShortName": "es-ES-LaiaNeural",
+    "Local": "es-ES"
+  },
+  {
+    "ShortName": "es-ES-LiaNeural",
+    "Local": "es-ES"
+  },
+  {
+    "ShortName": "es-ES-NilNeural",
+    "Local": "es-ES"
+  },
+  {
+    "ShortName": "es-ES-SaulNeural",
+    "Local": "es-ES"
+  },
+  {
+    "ShortName": "es-ES-TeoNeural",
+    "Local": "es-ES"
+  },
+  {
+    "ShortName": "es-ES-TrianaNeural",
+    "Local": "es-ES"
+  },
+  {
+    "ShortName": "es-ES-VeraNeural",
+    "Local": "es-ES"
+  },
+  {
+    "ShortName": "es-ES-XimenaNeural",
+    "Local": "es-ES"
+  },
+  {
+    "ShortName": "es-ES-Tristan:DragonHDLatestNeural",
+    "Local": "es-ES"
+  },
+  {
+    "ShortName": "es-ES-Ximena:DragonHDLatestNeural",
+    "Local": "es-ES"
+  },
+  {
+    "ShortName": "es-GQ-TeresaNeural",
+    "Local": "es-GQ"
+  },
+  {
+    "ShortName": "es-GQ-JavierNeural",
+    "Local": "es-GQ"
+  },
+  {
+    "ShortName": "es-GT-MartaNeural",
+    "Local": "es-GT"
+  },
+  {
+    "ShortName": "es-GT-AndresNeural",
+    "Local": "es-GT"
+  },
+  {
+    "ShortName": "es-HN-KarlaNeural",
+    "Local": "es-HN"
+  },
+  {
+    "ShortName": "es-HN-CarlosNeural",
+    "Local": "es-HN"
+  },
+  {
+    "ShortName": "es-MX-DaliaNeural",
+    "Local": "es-MX"
+  },
+  {
+    "ShortName": "es-MX-JorgeNeural",
+    "Local": "es-MX"
+  },
+  {
+    "ShortName": "es-MX-BeatrizNeural",
+    "Local": "es-MX"
+  },
+  {
+    "ShortName": "es-MX-CandelaNeural",
+    "Local": "es-MX"
+  },
+  {
+    "ShortName": "es-MX-CarlotaNeural",
+    "Local": "es-MX"
+  },
+  {
+    "ShortName": "es-MX-CecilioNeural",
+    "Local": "es-MX"
+  },
+  {
+    "ShortName": "es-MX-GerardoNeural",
+    "Local": "es-MX"
+  },
+  {
+    "ShortName": "es-MX-LarissaNeural",
+    "Local": "es-MX"
+  },
+  {
+    "ShortName": "es-MX-LibertoNeural",
+    "Local": "es-MX"
+  },
+  {
+    "ShortName": "es-MX-LucianoNeural",
+    "Local": "es-MX"
+  },
+  {
+    "ShortName": "es-MX-MarinaNeural",
+    "Local": "es-MX"
+  },
+  {
+    "ShortName": "es-MX-NuriaNeural",
+    "Local": "es-MX"
+  },
+  {
+    "ShortName": "es-MX-PelayoNeural",
+    "Local": "es-MX"
+  },
+  {
+    "ShortName": "es-MX-RenataNeural",
+    "Local": "es-MX"
+  },
+  {
+    "ShortName": "es-MX-YagoNeural",
+    "Local": "es-MX"
+  },
+  {
+    "ShortName": "es-MX-DaliaMultilingualNeural",
+    "Local": "es-MX"
+  },
+  {
+    "ShortName": "es-MX-JorgeMultilingualNeural",
+    "Local": "es-MX"
+  },
+  {
+    "ShortName": "es-NI-YolandaNeural",
+    "Local": "es-NI"
+  },
+  {
+    "ShortName": "es-NI-FedericoNeural",
+    "Local": "es-NI"
+  },
+  {
+    "ShortName": "es-PA-MargaritaNeural",
+    "Local": "es-PA"
+  },
+  {
+    "ShortName": "es-PA-RobertoNeural",
+    "Local": "es-PA"
+  },
+  {
+    "ShortName": "es-PE-CamilaNeural",
+    "Local": "es-PE"
+  },
+  {
+    "ShortName": "es-PE-AlexNeural",
+    "Local": "es-PE"
+  },
+  {
+    "ShortName": "es-PR-KarinaNeural",
+    "Local": "es-PR"
+  },
+  {
+    "ShortName": "es-PR-VictorNeural",
+    "Local": "es-PR"
+  },
+  {
+    "ShortName": "es-PY-TaniaNeural",
+    "Local": "es-PY"
+  },
+  {
+    "ShortName": "es-PY-MarioNeural",
+    "Local": "es-PY"
+  },
+  {
+    "ShortName": "es-SV-LorenaNeural",
+    "Local": "es-SV"
+  },
+  {
+    "ShortName": "es-SV-RodrigoNeural",
+    "Local": "es-SV"
+  },
+  {
+    "ShortName": "es-US-PalomaNeural",
+    "Local": "es-US"
+  },
+  {
+    "ShortName": "es-US-AlonsoNeural",
+    "Local": "es-US"
+  },
+  {
+    "ShortName": "es-UY-ValentinaNeural",
+    "Local": "es-UY"
+  },
+  {
+    "ShortName": "es-UY-MateoNeural",
+    "Local": "es-UY"
+  },
+  {
+    "ShortName": "es-VE-PaolaNeural",
+    "Local": "es-VE"
+  },
+  {
+    "ShortName": "es-VE-SebastianNeural",
+    "Local": "es-VE"
+  },
+  {
+    "ShortName": "et-EE-AnuNeural",
+    "Local": "et-EE"
+  },
+  {
+    "ShortName": "et-EE-KertNeural",
+    "Local": "et-EE"
+  },
+  {
+    "ShortName": "eu-ES-AinhoaNeural",
+    "Local": "eu-ES"
+  },
+  {
+    "ShortName": "eu-ES-AnderNeural",
+    "Local": "eu-ES"
+  },
+  {
+    "ShortName": "fa-IR-DilaraNeural",
+    "Local": "fa-IR"
+  },
+  {
+    "ShortName": "fa-IR-FaridNeural",
+    "Local": "fa-IR"
+  },
+  {
+    "ShortName": "fi-FI-SelmaNeural",
+    "Local": "fi-FI"
+  },
+  {
+    "ShortName": "fi-FI-HarriNeural",
+    "Local": "fi-FI"
+  },
+  {
+    "ShortName": "fi-FI-NooraNeural",
+    "Local": "fi-FI"
+  },
+  {
+    "ShortName": "fil-PH-BlessicaNeural",
+    "Local": "fil-PH"
+  },
+  {
+    "ShortName": "fil-PH-AngeloNeural",
+    "Local": "fil-PH"
+  },
+  {
+    "ShortName": "fr-BE-CharlineNeural",
+    "Local": "fr-BE"
+  },
+  {
+    "ShortName": "fr-BE-GerardNeural",
+    "Local": "fr-BE"
+  },
+  {
+    "ShortName": "fr-CA-SylvieNeural",
+    "Local": "fr-CA"
+  },
+  {
+    "ShortName": "fr-CA-JeanNeural",
+    "Local": "fr-CA"
+  },
+  {
+    "ShortName": "fr-CA-AntoineNeural",
+    "Local": "fr-CA"
+  },
+  {
+    "ShortName": "fr-CA-ThierryNeural",
+    "Local": "fr-CA"
+  },
+  {
+    "ShortName": "fr-CH-ArianeNeural",
+    "Local": "fr-CH"
+  },
+  {
+    "ShortName": "fr-CH-FabriceNeural",
+    "Local": "fr-CH"
+  },
+  {
+    "ShortName": "fr-FR-DeniseNeural",
+    "Local": "fr-FR"
+  },
+  {
+    "ShortName": "fr-FR-HenriNeural",
+    "Local": "fr-FR"
+  },
+  {
+    "ShortName": "fr-FR-VivienneMultilingualNeural",
+    "Local": "fr-FR"
+  },
+  {
+    "ShortName": "fr-FR-RemyMultilingualNeural",
+    "Local": "fr-FR"
+  },
+  {
+    "ShortName": "fr-FR-LucienMultilingualNeural",
+    "Local": "fr-FR"
+  },
+  {
+    "ShortName": "fr-FR-AlainNeural",
+    "Local": "fr-FR"
+  },
+  {
+    "ShortName": "fr-FR-BrigitteNeural",
+    "Local": "fr-FR"
+  },
+  {
+    "ShortName": "fr-FR-CelesteNeural",
+    "Local": "fr-FR"
+  },
+  {
+    "ShortName": "fr-FR-ClaudeNeural",
+    "Local": "fr-FR"
+  },
+  {
+    "ShortName": "fr-FR-CoralieNeural",
+    "Local": "fr-FR"
+  },
+  {
+    "ShortName": "fr-FR-EloiseNeural",
+    "Local": "fr-FR"
+  },
+  {
+    "ShortName": "fr-FR-JacquelineNeural",
+    "Local": "fr-FR"
+  },
+  {
+    "ShortName": "fr-FR-JeromeNeural",
+    "Local": "fr-FR"
+  },
+  {
+    "ShortName": "fr-FR-JosephineNeural",
+    "Local": "fr-FR"
+  },
+  {
+    "ShortName": "fr-FR-MauriceNeural",
+    "Local": "fr-FR"
+  },
+  {
+    "ShortName": "fr-FR-YvesNeural",
+    "Local": "fr-FR"
+  },
+  {
+    "ShortName": "fr-FR-YvetteNeural",
+    "Local": "fr-FR"
+  },
+  {
+    "ShortName": "fr-FR-Remy:DragonHDLatestNeural",
+    "Local": "fr-FR"
+  },
+  {
+    "ShortName": "fr-FR-Vivienne:DragonHDLatestNeural",
+    "Local": "fr-FR"
+  },
+  {
+    "ShortName": "ga-IE-OrlaNeural",
+    "Local": "ga-IE"
+  },
+  {
+    "ShortName": "ga-IE-ColmNeural",
+    "Local": "ga-IE"
+  },
+  {
+    "ShortName": "gl-ES-SabelaNeural",
+    "Local": "gl-ES"
+  },
+  {
+    "ShortName": "gl-ES-RoiNeural",
+    "Local": "gl-ES"
+  },
+  {
+    "ShortName": "gu-IN-DhwaniNeural",
+    "Local": "gu-IN"
+  },
+  {
+    "ShortName": "gu-IN-NiranjanNeural",
+    "Local": "gu-IN"
+  },
+  {
+    "ShortName": "he-IL-HilaNeural",
+    "Local": "he-IL"
+  },
+  {
+    "ShortName": "he-IL-AvriNeural",
+    "Local": "he-IL"
+  },
+  {
+    "ShortName": "hi-IN-AaravNeural",
+    "Local": "hi-IN"
+  },
+  {
+    "ShortName": "hi-IN-AnanyaNeural",
+    "Local": "hi-IN"
+  },
+  {
+    "ShortName": "hi-IN-AartiNeural",
+    "Local": "hi-IN"
+  },
+  {
+    "ShortName": "hi-IN-ArjunNeural",
+    "Local": "hi-IN"
+  },
+  {
+    "ShortName": "hi-IN-KavyaNeural",
+    "Local": "hi-IN"
+  },
+  {
+    "ShortName": "hi-IN-KunalNeural",
+    "Local": "hi-IN"
+  },
+  {
+    "ShortName": "hi-IN-RehaanNeural",
+    "Local": "hi-IN"
+  },
+  {
+    "ShortName": "hi-IN-SwaraNeural",
+    "Local": "hi-IN"
+  },
+  {
+    "ShortName": "hi-IN-MadhurNeural",
+    "Local": "hi-IN"
+  },
+  {
+    "ShortName": "hr-HR-GabrijelaNeural",
+    "Local": "hr-HR"
+  },
+  {
+    "ShortName": "hr-HR-SreckoNeural",
+    "Local": "hr-HR"
+  },
+  {
+    "ShortName": "hu-HU-NoemiNeural",
+    "Local": "hu-HU"
+  },
+  {
+    "ShortName": "hu-HU-TamasNeural",
+    "Local": "hu-HU"
+  },
+  {
+    "ShortName": "hy-AM-AnahitNeural",
+    "Local": "hy-AM"
+  },
+  {
+    "ShortName": "hy-AM-HaykNeural",
+    "Local": "hy-AM"
+  },
+  {
+    "ShortName": "id-ID-GadisNeural",
+    "Local": "id-ID"
+  },
+  {
+    "ShortName": "id-ID-ArdiNeural",
+    "Local": "id-ID"
+  },
+  {
+    "ShortName": "is-IS-GudrunNeural",
+    "Local": "is-IS"
+  },
+  {
+    "ShortName": "is-IS-GunnarNeural",
+    "Local": "is-IS"
+  },
+  {
+    "ShortName": "it-IT-ElsaNeural",
+    "Local": "it-IT"
+  },
+  {
+    "ShortName": "it-IT-IsabellaNeural",
+    "Local": "it-IT"
+  },
+  {
+    "ShortName": "it-IT-DiegoNeural",
+    "Local": "it-IT"
+  },
+  {
+    "ShortName": "it-IT-AlessioMultilingualNeural",
+    "Local": "it-IT"
+  },
+  {
+    "ShortName": "it-IT-IsabellaMultilingualNeural",
+    "Local": "it-IT"
+  },
+  {
+    "ShortName": "it-IT-GiuseppeMultilingualNeural",
+    "Local": "it-IT"
+  },
+  {
+    "ShortName": "it-IT-MarcelloMultilingualNeural",
+    "Local": "it-IT"
+  },
+  {
+    "ShortName": "it-IT-BenignoNeural",
+    "Local": "it-IT"
+  },
+  {
+    "ShortName": "it-IT-CalimeroNeural",
+    "Local": "it-IT"
+  },
+  {
+    "ShortName": "it-IT-CataldoNeural",
+    "Local": "it-IT"
+  },
+  {
+    "ShortName": "it-IT-FabiolaNeural",
+    "Local": "it-IT"
+  },
+  {
+    "ShortName": "it-IT-FiammaNeural",
+    "Local": "it-IT"
+  },
+  {
+    "ShortName": "it-IT-GianniNeural",
+    "Local": "it-IT"
+  },
+  {
+    "ShortName": "it-IT-GiuseppeNeural",
+    "Local": "it-IT"
+  },
+  {
+    "ShortName": "it-IT-ImeldaNeural",
+    "Local": "it-IT"
+  },
+  {
+    "ShortName": "it-IT-IrmaNeural",
+    "Local": "it-IT"
+  },
+  {
+    "ShortName": "it-IT-LisandroNeural",
+    "Local": "it-IT"
+  },
+  {
+    "ShortName": "it-IT-PalmiraNeural",
+    "Local": "it-IT"
+  },
+  {
+    "ShortName": "it-IT-PierinaNeural",
+    "Local": "it-IT"
+  },
+  {
+    "ShortName": "it-IT-RinaldoNeural",
+    "Local": "it-IT"
+  },
+  {
+    "ShortName": "iu-Cans-CA-SiqiniqNeural",
+    "Local": "iu-Cans-CA"
+  },
+  {
+    "ShortName": "iu-Cans-CA-TaqqiqNeural",
+    "Local": "iu-Cans-CA"
+  },
+  {
+    "ShortName": "iu-Latn-CA-SiqiniqNeural",
+    "Local": "iu-Latn-CA"
+  },
+  {
+    "ShortName": "iu-Latn-CA-TaqqiqNeural",
+    "Local": "iu-Latn-CA"
+  },
+  {
+    "ShortName": "ja-JP-NanamiNeural",
+    "Local": "ja-JP"
+  },
+  {
+    "ShortName": "ja-JP-KeitaNeural",
+    "Local": "ja-JP"
+  },
+  {
+    "ShortName": "ja-JP-AoiNeural",
+    "Local": "ja-JP"
+  },
+  {
+    "ShortName": "ja-JP-DaichiNeural",
+    "Local": "ja-JP"
+  },
+  {
+    "ShortName": "ja-JP-MayuNeural",
+    "Local": "ja-JP"
+  },
+  {
+    "ShortName": "ja-JP-NaokiNeural",
+    "Local": "ja-JP"
+  },
+  {
+    "ShortName": "ja-JP-ShioriNeural",
+    "Local": "ja-JP"
+  },
+  {
+    "ShortName": "ja-JP-MasaruMultilingualNeural",
+    "Local": "ja-JP"
+  },
+  {
+    "ShortName": "ja-JP-Masaru:DragonHDLatestNeural",
+    "Local": "ja-JP"
+  },
+  {
+    "ShortName": "ja-JP-Nanami:DragonHDLatestNeural",
+    "Local": "ja-JP"
+  },
+  {
+    "ShortName": "jv-ID-SitiNeural",
+    "Local": "jv-ID"
+  },
+  {
+    "ShortName": "jv-ID-DimasNeural",
+    "Local": "jv-ID"
+  },
+  {
+    "ShortName": "ka-GE-EkaNeural",
+    "Local": "ka-GE"
+  },
+  {
+    "ShortName": "ka-GE-GiorgiNeural",
+    "Local": "ka-GE"
+  },
+  {
+    "ShortName": "kk-KZ-AigulNeural",
+    "Local": "kk-KZ"
+  },
+  {
+    "ShortName": "kk-KZ-DauletNeural",
+    "Local": "kk-KZ"
+  },
+  {
+    "ShortName": "km-KH-SreymomNeural",
+    "Local": "km-KH"
+  },
+  {
+    "ShortName": "km-KH-PisethNeural",
+    "Local": "km-KH"
+  },
+  {
+    "ShortName": "kn-IN-SapnaNeural",
+    "Local": "kn-IN"
+  },
+  {
+    "ShortName": "kn-IN-GaganNeural",
+    "Local": "kn-IN"
+  },
+  {
+    "ShortName": "ko-KR-SunHiNeural",
+    "Local": "ko-KR"
+  },
+  {
+    "ShortName": "ko-KR-InJoonNeural",
+    "Local": "ko-KR"
+  },
+  {
+    "ShortName": "ko-KR-HyunsuMultilingualNeural",
+    "Local": "ko-KR"
+  },
+  {
+    "ShortName": "ko-KR-BongJinNeural",
+    "Local": "ko-KR"
+  },
+  {
+    "ShortName": "ko-KR-GookMinNeural",
+    "Local": "ko-KR"
+  },
+  {
+    "ShortName": "ko-KR-HyunsuNeural",
+    "Local": "ko-KR"
+  },
+  {
+    "ShortName": "ko-KR-JiMinNeural",
+    "Local": "ko-KR"
+  },
+  {
+    "ShortName": "ko-KR-SeoHyeonNeural",
+    "Local": "ko-KR"
+  },
+  {
+    "ShortName": "ko-KR-SoonBokNeural",
+    "Local": "ko-KR"
+  },
+  {
+    "ShortName": "ko-KR-YuJinNeural",
+    "Local": "ko-KR"
+  },
+  {
+    "ShortName": "lo-LA-KeomanyNeural",
+    "Local": "lo-LA"
+  },
+  {
+    "ShortName": "lo-LA-ChanthavongNeural",
+    "Local": "lo-LA"
+  },
+  {
+    "ShortName": "lt-LT-OnaNeural",
+    "Local": "lt-LT"
+  },
+  {
+    "ShortName": "lt-LT-LeonasNeural",
+    "Local": "lt-LT"
+  },
+  {
+    "ShortName": "lv-LV-EveritaNeural",
+    "Local": "lv-LV"
+  },
+  {
+    "ShortName": "lv-LV-NilsNeural",
+    "Local": "lv-LV"
+  },
+  {
+    "ShortName": "mk-MK-MarijaNeural",
+    "Local": "mk-MK"
+  },
+  {
+    "ShortName": "mk-MK-AleksandarNeural",
+    "Local": "mk-MK"
+  },
+  {
+    "ShortName": "ml-IN-SobhanaNeural",
+    "Local": "ml-IN"
+  },
+  {
+    "ShortName": "ml-IN-MidhunNeural",
+    "Local": "ml-IN"
+  },
+  {
+    "ShortName": "mn-MN-YesuiNeural",
+    "Local": "mn-MN"
+  },
+  {
+    "ShortName": "mn-MN-BataaNeural",
+    "Local": "mn-MN"
+  },
+  {
+    "ShortName": "mr-IN-AarohiNeural",
+    "Local": "mr-IN"
+  },
+  {
+    "ShortName": "mr-IN-ManoharNeural",
+    "Local": "mr-IN"
+  },
+  {
+    "ShortName": "ms-MY-YasminNeural",
+    "Local": "ms-MY"
+  },
+  {
+    "ShortName": "ms-MY-OsmanNeural",
+    "Local": "ms-MY"
+  },
+  {
+    "ShortName": "mt-MT-GraceNeural",
+    "Local": "mt-MT"
+  },
+  {
+    "ShortName": "mt-MT-JosephNeural",
+    "Local": "mt-MT"
+  },
+  {
+    "ShortName": "my-MM-NilarNeural",
+    "Local": "my-MM"
+  },
+  {
+    "ShortName": "my-MM-ThihaNeural",
+    "Local": "my-MM"
+  },
+  {
+    "ShortName": "nb-NO-PernilleNeural",
+    "Local": "nb-NO"
+  },
+  {
+    "ShortName": "nb-NO-FinnNeural",
+    "Local": "nb-NO"
+  },
+  {
+    "ShortName": "nb-NO-IselinNeural",
+    "Local": "nb-NO"
+  },
+  {
+    "ShortName": "ne-NP-HemkalaNeural",
+    "Local": "ne-NP"
+  },
+  {
+    "ShortName": "ne-NP-SagarNeural",
+    "Local": "ne-NP"
+  },
+  {
+    "ShortName": "nl-BE-DenaNeural",
+    "Local": "nl-BE"
+  },
+  {
+    "ShortName": "nl-BE-ArnaudNeural",
+    "Local": "nl-BE"
+  },
+  {
+    "ShortName": "nl-NL-FennaNeural",
+    "Local": "nl-NL"
+  },
+  {
+    "ShortName": "nl-NL-MaartenNeural",
+    "Local": "nl-NL"
+  },
+  {
+    "ShortName": "nl-NL-ColetteNeural",
+    "Local": "nl-NL"
+  },
+  {
+    "ShortName": "or-IN-SubhasiniNeural",
+    "Local": "or-IN"
+  },
+  {
+    "ShortName": "or-IN-SukantNeural",
+    "Local": "or-IN"
+  },
+  {
+    "ShortName": "pa-IN-OjasNeural",
+    "Local": "pa-IN"
+  },
+  {
+    "ShortName": "pa-IN-VaaniNeural",
+    "Local": "pa-IN"
+  },
+  {
+    "ShortName": "pl-PL-AgnieszkaNeural",
+    "Local": "pl-PL"
+  },
+  {
+    "ShortName": "pl-PL-MarekNeural",
+    "Local": "pl-PL"
+  },
+  {
+    "ShortName": "pl-PL-ZofiaNeural",
+    "Local": "pl-PL"
+  },
+  {
+    "ShortName": "ps-AF-LatifaNeural",
+    "Local": "ps-AF"
+  },
+  {
+    "ShortName": "ps-AF-GulNawazNeural",
+    "Local": "ps-AF"
+  },
+  {
+    "ShortName": "pt-BR-FranciscaNeural",
+    "Local": "pt-BR"
+  },
+  {
+    "ShortName": "pt-BR-AntonioNeural",
+    "Local": "pt-BR"
+  },
+  {
+    "ShortName": "pt-BR-MacerioMultilingualNeural",
+    "Local": "pt-BR"
+  },
+  {
+    "ShortName": "pt-BR-ThalitaMultilingualNeural",
+    "Local": "pt-BR"
+  },
+  {
+    "ShortName": "pt-BR-BrendaNeural",
+    "Local": "pt-BR"
+  },
+  {
+    "ShortName": "pt-BR-DonatoNeural",
+    "Local": "pt-BR"
+  },
+  {
+    "ShortName": "pt-BR-ElzaNeural",
+    "Local": "pt-BR"
+  },
+  {
+    "ShortName": "pt-BR-FabioNeural",
+    "Local": "pt-BR"
+  },
+  {
+    "ShortName": "pt-BR-GiovannaNeural",
+    "Local": "pt-BR"
+  },
+  {
+    "ShortName": "pt-BR-HumbertoNeural",
+    "Local": "pt-BR"
+  },
+  {
+    "ShortName": "pt-BR-JulioNeural",
+    "Local": "pt-BR"
+  },
+  {
+    "ShortName": "pt-BR-LeilaNeural",
+    "Local": "pt-BR"
+  },
+  {
+    "ShortName": "pt-BR-LeticiaNeural",
+    "Local": "pt-BR"
+  },
+  {
+    "ShortName": "pt-BR-ManuelaNeural",
+    "Local": "pt-BR"
+  },
+  {
+    "ShortName": "pt-BR-NicolauNeural",
+    "Local": "pt-BR"
+  },
+  {
+    "ShortName": "pt-BR-ThalitaNeural",
+    "Local": "pt-BR"
+  },
+  {
+    "ShortName": "pt-BR-ValerioNeural",
+    "Local": "pt-BR"
+  },
+  {
+    "ShortName": "pt-BR-YaraNeural",
+    "Local": "pt-BR"
+  },
+  {
+    "ShortName": "pt-PT-RaquelNeural",
+    "Local": "pt-PT"
+  },
+  {
+    "ShortName": "pt-PT-DuarteNeural",
+    "Local": "pt-PT"
+  },
+  {
+    "ShortName": "pt-PT-FernandaNeural",
+    "Local": "pt-PT"
+  },
+  {
+    "ShortName": "ro-RO-AlinaNeural",
+    "Local": "ro-RO"
+  },
+  {
+    "ShortName": "ro-RO-EmilNeural",
+    "Local": "ro-RO"
+  },
+  {
+    "ShortName": "ru-RU-SvetlanaNeural",
+    "Local": "ru-RU"
+  },
+  {
+    "ShortName": "ru-RU-DmitryNeural",
+    "Local": "ru-RU"
+  },
+  {
+    "ShortName": "ru-RU-DariyaNeural",
+    "Local": "ru-RU"
+  },
+  {
+    "ShortName": "si-LK-ThiliniNeural",
+    "Local": "si-LK"
+  },
+  {
+    "ShortName": "si-LK-SameeraNeural",
+    "Local": "si-LK"
+  },
+  {
+    "ShortName": "sk-SK-ViktoriaNeural",
+    "Local": "sk-SK"
+  },
+  {
+    "ShortName": "sk-SK-LukasNeural",
+    "Local": "sk-SK"
+  },
+  {
+    "ShortName": "sl-SI-PetraNeural",
+    "Local": "sl-SI"
+  },
+  {
+    "ShortName": "sl-SI-RokNeural",
+    "Local": "sl-SI"
+  },
+  {
+    "ShortName": "so-SO-UbaxNeural",
+    "Local": "so-SO"
+  },
+  {
+    "ShortName": "so-SO-MuuseNeural",
+    "Local": "so-SO"
+  },
+  {
+    "ShortName": "sq-AL-AnilaNeural",
+    "Local": "sq-AL"
+  },
+  {
+    "ShortName": "sq-AL-IlirNeural",
+    "Local": "sq-AL"
+  },
+  {
+    "ShortName": "sr-Latn-RS-NicholasNeural",
+    "Local": "sr-Latn-RS"
+  },
+  {
+    "ShortName": "sr-Latn-RS-SophieNeural",
+    "Local": "sr-Latn-RS"
+  },
+  {
+    "ShortName": "sr-RS-SophieNeural",
+    "Local": "sr-RS"
+  },
+  {
+    "ShortName": "sr-RS-NicholasNeural",
+    "Local": "sr-RS"
+  },
+  {
+    "ShortName": "su-ID-TutiNeural",
+    "Local": "su-ID"
+  },
+  {
+    "ShortName": "su-ID-JajangNeural",
+    "Local": "su-ID"
+  },
+  {
+    "ShortName": "sv-SE-SofieNeural",
+    "Local": "sv-SE"
+  },
+  {
+    "ShortName": "sv-SE-MattiasNeural",
+    "Local": "sv-SE"
+  },
+  {
+    "ShortName": "sv-SE-HilleviNeural",
+    "Local": "sv-SE"
+  },
+  {
+    "ShortName": "sw-KE-ZuriNeural",
+    "Local": "sw-KE"
+  },
+  {
+    "ShortName": "sw-KE-RafikiNeural",
+    "Local": "sw-KE"
+  },
+  {
+    "ShortName": "sw-TZ-RehemaNeural",
+    "Local": "sw-TZ"
+  },
+  {
+    "ShortName": "sw-TZ-DaudiNeural",
+    "Local": "sw-TZ"
+  },
+  {
+    "ShortName": "ta-IN-PallaviNeural",
+    "Local": "ta-IN"
+  },
+  {
+    "ShortName": "ta-IN-ValluvarNeural",
+    "Local": "ta-IN"
+  },
+  {
+    "ShortName": "ta-LK-SaranyaNeural",
+    "Local": "ta-LK"
+  },
+  {
+    "ShortName": "ta-LK-KumarNeural",
+    "Local": "ta-LK"
+  },
+  {
+    "ShortName": "ta-MY-KaniNeural",
+    "Local": "ta-MY"
+  },
+  {
+    "ShortName": "ta-MY-SuryaNeural",
+    "Local": "ta-MY"
+  },
+  {
+    "ShortName": "ta-SG-VenbaNeural",
+    "Local": "ta-SG"
+  },
+  {
+    "ShortName": "ta-SG-AnbuNeural",
+    "Local": "ta-SG"
+  },
+  {
+    "ShortName": "te-IN-ShrutiNeural",
+    "Local": "te-IN"
+  },
+  {
+    "ShortName": "te-IN-MohanNeural",
+    "Local": "te-IN"
+  },
+  {
+    "ShortName": "th-TH-PremwadeeNeural",
+    "Local": "th-TH"
+  },
+  {
+    "ShortName": "th-TH-NiwatNeural",
+    "Local": "th-TH"
+  },
+  {
+    "ShortName": "th-TH-AcharaNeural",
+    "Local": "th-TH"
+  },
+  {
+    "ShortName": "tr-TR-EmelNeural",
+    "Local": "tr-TR"
+  },
+  {
+    "ShortName": "tr-TR-AhmetNeural",
+    "Local": "tr-TR"
+  },
+  {
+    "ShortName": "uk-UA-PolinaNeural",
+    "Local": "uk-UA"
+  },
+  {
+    "ShortName": "uk-UA-OstapNeural",
+    "Local": "uk-UA"
+  },
+  {
+    "ShortName": "ur-IN-GulNeural",
+    "Local": "ur-IN"
+  },
+  {
+    "ShortName": "ur-IN-SalmanNeural",
+    "Local": "ur-IN"
+  },
+  {
+    "ShortName": "ur-PK-UzmaNeural",
+    "Local": "ur-PK"
+  },
+  {
+    "ShortName": "ur-PK-AsadNeural",
+    "Local": "ur-PK"
+  },
+  {
+    "ShortName": "uz-UZ-MadinaNeural",
+    "Local": "uz-UZ"
+  },
+  {
+    "ShortName": "uz-UZ-SardorNeural",
+    "Local": "uz-UZ"
+  },
+  {
+    "ShortName": "vi-VN-HoaiMyNeural",
+    "Local": "vi-VN"
+  },
+  {
+    "ShortName": "vi-VN-NamMinhNeural",
+    "Local": "vi-VN"
+  },
+  {
+    "ShortName": "wuu-CN-XiaotongNeural",
+    "Local": "wuu-CN"
+  },
+  {
+    "ShortName": "wuu-CN-YunzheNeural",
+    "Local": "wuu-CN"
+  },
+  {
+    "ShortName": "yue-CN-XiaoMinNeural",
+    "Local": "yue-CN"
+  },
+  {
+    "ShortName": "yue-CN-YunSongNeural",
+    "Local": "yue-CN"
+  },
+  {
+    "ShortName": "zh-CN-XiaoxiaoNeural",
+    "Local": "zh-CN"
+  },
+  {
+    "ShortName": "zh-CN-YunxiNeural",
+    "Local": "zh-CN"
+  },
+  {
+    "ShortName": "zh-CN-YunjianNeural",
+    "Local": "zh-CN"
+  },
+  {
+    "ShortName": "zh-CN-XiaoyiNeural",
+    "Local": "zh-CN"
+  },
+  {
+    "ShortName": "zh-CN-YunyangNeural",
+    "Local": "zh-CN"
+  },
+  {
+    "ShortName": "zh-CN-XiaochenNeural",
+    "Local": "zh-CN"
+  },
+  {
+    "ShortName": "zh-CN-XiaochenMultilingualNeural",
+    "Local": "zh-CN"
+  },
+  {
+    "ShortName": "zh-CN-XiaohanNeural",
+    "Local": "zh-CN"
+  },
+  {
+    "ShortName": "zh-CN-XiaomengNeural",
+    "Local": "zh-CN"
+  },
+  {
+    "ShortName": "zh-CN-XiaomoNeural",
+    "Local": "zh-CN"
+  },
+  {
+    "ShortName": "zh-CN-XiaoqiuNeural",
+    "Local": "zh-CN"
+  },
+  {
+    "ShortName": "zh-CN-XiaorouNeural",
+    "Local": "zh-CN"
+  },
+  {
+    "ShortName": "zh-CN-XiaoruiNeural",
+    "Local": "zh-CN"
+  },
+  {
+    "ShortName": "zh-CN-XiaoshuangNeural",
+    "Local": "zh-CN"
+  },
+  {
+    "ShortName": "zh-CN-XiaoxiaoDialectsNeural",
+    "Local": "zh-CN"
+  },
+  {
+    "ShortName": "zh-CN-XiaoxiaoMultilingualNeural",
+    "Local": "zh-CN"
+  },
+  {
+    "ShortName": "zh-CN-XiaoyanNeural",
+    "Local": "zh-CN"
+  },
+  {
+    "ShortName": "zh-CN-XiaoyouNeural",
+    "Local": "zh-CN"
+  },
+  {
+    "ShortName": "zh-CN-XiaoyuMultilingualNeural",
+    "Local": "zh-CN"
+  },
+  {
+    "ShortName": "zh-CN-XiaozhenNeural",
+    "Local": "zh-CN"
+  },
+  {
+    "ShortName": "zh-CN-YunfengNeural",
+    "Local": "zh-CN"
+  },
+  {
+    "ShortName": "zh-CN-YunhaoNeural",
+    "Local": "zh-CN"
+  },
+  {
+    "ShortName": "zh-CN-YunjieNeural",
+    "Local": "zh-CN"
+  },
+  {
+    "ShortName": "zh-CN-YunxiaNeural",
+    "Local": "zh-CN"
+  },
+  {
+    "ShortName": "zh-CN-YunyeNeural",
+    "Local": "zh-CN"
+  },
+  {
+    "ShortName": "zh-CN-YunyiMultilingualNeural",
+    "Local": "zh-CN"
+  },
+  {
+    "ShortName": "zh-CN-YunzeNeural",
+    "Local": "zh-CN"
+  },
+  {
+    "ShortName": "zh-CN-Xiaochen:DragonHDFlashLatestNeural",
+    "Local": "zh-CN"
+  },
+  {
+    "ShortName": "zh-CN-Xiaoxiao:DragonHDFlashLatestNeural",
+    "Local": "zh-CN"
+  },
+  {
+    "ShortName": "zh-CN-Xiaoxiao2:DragonHDFlashLatestNeural",
+    "Local": "zh-CN"
+  },
+  {
+    "ShortName": "zh-CN-YunfanMultilingualNeural",
+    "Local": "zh-CN"
+  },
+  {
+    "ShortName": "zh-CN-Yunxiao:DragonHDFlashLatestNeural",
+    "Local": "zh-CN"
+  },
+  {
+    "ShortName": "zh-CN-YunxiaoMultilingualNeural",
+    "Local": "zh-CN"
+  },
+  {
+    "ShortName": "zh-CN-Yunyi:DragonHDFlashLatestNeural",
+    "Local": "zh-CN"
+  },
+  {
+    "ShortName": "zh-CN-Xiaochen:DragonHDLatestNeural",
+    "Local": "zh-CN"
+  },
+  {
+    "ShortName": "zh-CN-Yunfan:DragonHDLatestNeural",
+    "Local": "zh-CN"
+  },
+  {
+    "ShortName": "zh-CN-guangxi-YunqiNeural",
+    "Local": "zh-CN-guangxi"
+  },
+  {
+    "ShortName": "zh-CN-henan-YundengNeural",
+    "Local": "zh-CN-henan"
+  },
+  {
+    "ShortName": "zh-CN-liaoning-XiaobeiNeural",
+    "Local": "zh-CN-liaoning"
+  },
+  {
+    "ShortName": "zh-CN-liaoning-YunbiaoNeural",
+    "Local": "zh-CN-liaoning"
+  },
+  {
+    "ShortName": "zh-CN-shaanxi-XiaoniNeural",
+    "Local": "zh-CN-shaanxi"
+  },
+  {
+    "ShortName": "zh-CN-shandong-YunxiangNeural",
+    "Local": "zh-CN-shandong"
+  },
+  {
+    "ShortName": "zh-CN-sichuan-YunxiNeural",
+    "Local": "zh-CN-sichuan"
+  },
+  {
+    "ShortName": "zh-HK-HiuMaanNeural",
+    "Local": "zh-HK"
+  },
+  {
+    "ShortName": "zh-HK-WanLungNeural",
+    "Local": "zh-HK"
+  },
+  {
+    "ShortName": "zh-HK-HiuGaaiNeural",
+    "Local": "zh-HK"
+  },
+  {
+    "ShortName": "zh-TW-HsiaoChenNeural",
+    "Local": "zh-TW"
+  },
+  {
+    "ShortName": "zh-TW-YunJheNeural",
+    "Local": "zh-TW"
+  },
+  {
+    "ShortName": "zh-TW-HsiaoYuNeural",
+    "Local": "zh-TW"
+  },
+  {
+    "ShortName": "zu-ZA-ThandoNeural",
+    "Local": "zu-ZA"
+  },
+  {
+    "ShortName": "zu-ZA-ThembaNeural",
+    "Local": "zu-ZA"
+  }
+]

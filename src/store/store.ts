@@ -18,8 +18,8 @@ export const useTtsStore = defineStore("ttsStore", {
     
     return {
       inputs: {
-        inputValue: "你好啊\n今天天气怎么样?",
-        ssmlValue: "你好啊\n今天天气怎么样?",
+        inputValue: "如果你觉得这个项目还不错， 欢迎Star、Fork和PR。你的Star是对作者最好的鼓励。",
+        ssmlValue: "如果你觉得这个项目还不错， 欢迎Star、Fork和PR。你的Star是对作者最好的鼓励。",
       },
       formConfig: defaultFormConfig,
       page: {

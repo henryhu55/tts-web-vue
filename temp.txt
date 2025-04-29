@@ -1,3 +1,0 @@
-    setThirdPartyApi() {
-      store.set("thirdPartyApi", this.config.thirdPartyApi);
-    },
