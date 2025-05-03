@@ -80,8 +80,48 @@ async function getTTSData(params: TTSParams): Promise<TTSResponse> {
         
         return await callTTS88Api(content, tts88Key, thirdPartyApi, retryCount, retryInterval);
       
+      case 5: // 本地TTS服务
+        console.log("使用本地TTS服务");
+        // 导入本地TTS服务相关功能
+        const { useLocalTTSStore } = await import('@/store/local-tts-store');
+        const localTTSStore = useLocalTTSStore();
+        
+        if (!localTTSStore.config.enabled || !localTTSStore.config.baseUrl) {
+          throw new Error("本地TTS服务未启用或未配置");
+        }
+        
+        // 使用本地TTS服务的getAudioStream方法
+        const isSSML = activeIndex === "1"; // 判断是否为SSML内容
+        const localContent = isSSML ? ssmlContent : inputContent;
+        
+        if (!localContent) {
+          throw new Error("没有可转换的内容");
+        }
+        
+        try {
+          // 获取音频URL
+          const audioUrl = await localTTSStore.getAudioStream(
+            localContent,
+            undefined, // 使用默认voice
+            undefined, // 使用默认language
+            "mp3",
+            isSSML
+          );
+          
+          if (!audioUrl) {
+            throw new Error("获取本地TTS音频失败");
+          }
+          
+          // 返回可播放的URL
+          return {
+            audibleUrl: audioUrl
+          };
+        } catch (localError: any) {
+          throw new Error(`本地TTS服务错误: ${localError.message}`);
+        }
+      
       default:
-        throw new Error(`不支持的API类型: ${api}，Web版本仅支持Azure Speech API和TTS88 API`);
+        throw new Error(`不支持的API类型: ${api}，Web版本仅支持Azure Speech API、TTS88 API和本地TTS服务`);
     }
   } catch (error) {
     console.error("TTS转换失败:", error);

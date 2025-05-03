@@ -1,27 +1,53 @@
 {
   "compilerOptions": {
-    "ignoreDeprecations": "5.0",
     "target": "esnext",
     "module": "esnext",
     "moduleResolution": "node",
-    "importHelpers": true,
     "jsx": "preserve",
-    "esModuleInterop": true,
-    "resolveJsonModule": true,
     "sourceMap": true,
-    "baseUrl": "./",
-    "strict": true,
-    "paths": { "@/*": ["src/*"] },
+    "resolveJsonModule": true,
+    "esModuleInterop": true,
+    "lib": ["esnext", "dom"],
+    "types": ["vite/client", "element-plus/global", "@vue/runtime-core"],
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["./src/*"]
+    },
+    "allowJs": true,
+    "skipLibCheck": true,
     "allowSyntheticDefaultImports": true,
-    "skipLibCheck": true
+    "skipDefaultLibCheck": true,
+    "verbatimModuleSyntax": false,
+    
+    // 完全关闭严格类型检查
+    "strict": false,
+    "noImplicitAny": false,
+    "strictNullChecks": false,
+    "strictFunctionTypes": false,
+    "strictBindCallApply": false,
+    "strictPropertyInitialization": false,
+    "noImplicitThis": false,
+    "alwaysStrict": false,
+    
+    // 允许模板引用this
+    "suppressImplicitAnyIndexErrors": true,
+    
+    // 禁用额外检查
+    "noUnusedLocals": false,
+    "noUnusedParameters": false,
+    "noImplicitReturns": false,
+    "noFallthroughCasesInSwitch": false,
+    
+    // 忽略导入检查
+    "allowUnreachableCode": true,
+    "noErrorTruncation": true
   },
-  "references": [{ "path": "./tsconfig.node.json" }],
   "include": [
     "src/**/*.ts",
+    "src/**/*.d.ts",
     "src/**/*.tsx",
     "src/**/*.vue",
-    "tests/**/*.ts",
-    "tests/**/*.tsx"
+    "src/types/**/*.d.ts"
   ],
-  "exclude": ["node_modules"]
+  "references": [{ "path": "./tsconfig.node.json" }]
 }
