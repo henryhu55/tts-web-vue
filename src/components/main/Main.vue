@@ -506,6 +506,7 @@ import MainOptions from "./MainOptions.vue";
 import VoiceSelector from "./VoiceSelector.vue";
 import ConfigPage from "../configpage/ConfigPage.vue";
 import { ElMessage } from 'element-plus';
+import WebStore from "@/store/web-store";
 
 import { ref, watch, onMounted, nextTick, onUnmounted } from "vue";
 import { useTtsStore } from "@/store/store";
@@ -1185,8 +1186,57 @@ const getChineseName = (shortName: string) => {
     return shortName;
   }
   
+  // 特殊处理方言格式：zh-CN-henan-YundengNeural
+  if (nameParts.length >= 4) {
+    const region = nameParts[0] + '-' + nameParts[1]; // 如zh-CN
+    const dialect = nameParts[2].toLowerCase(); // 如henan
+    const name = nameParts[3].replace('Neural', ''); // 如Yundeng
+    
+    // 方言映射
+    const dialectMap: {[key: string]: string} = {
+      'shaanxi': '陕西方言',
+      'henan': '河南方言',
+      'liaoning': '东北方言',
+      'shandong': '山东方言',
+      'shanghai': '上海方言',
+      'sichuan': '四川方言',
+      'tianjin': '天津方言',
+      'hebei': '河北方言',
+      'shanxi': '山西方言',
+      'gansu': '甘肃方言',
+      'anhui': '安徽方言',
+      'hubei': '湖北方言',
+      'honghu': '洪湖方言',
+      'yunnan': '云南方言'
+    };
+    
+    if (dialectMap[dialect]) {
+      // 中文名称映射
+      const nameMap: {[key: string]: string} = {
+        'Yundeng': '云登',
+        'Yunfeng': '云枫',
+        'Yunhao': '云皓',
+        'Yunxia': '云霞',
+        'Yunxi': '云熙',
+        'Yunye': '云叶',
+        'Yunyang': '云阳',
+        'Yunxiang': '云翔',
+        'Xiaoxuan': '晓萱',
+        'Xiaochen': '晓辰',
+        'Xiaoshuang': '晓双'
+        // 其他名称可以根据需要添加
+      };
+      
+      if (nameMap[name]) {
+        return `${name}-${dialectMap[dialect]}·${nameMap[name]}`;
+      } else {
+        return `${name}-${dialectMap[dialect]}`;
+      }
+    }
+  }
+  
   // 提取区域和名称
-  const region = nameParts[0] + '-' + nameParts[1]; // 如zh-CN, zh-TW, zh-HK
+  const region = nameParts[0] + '-' + nameParts[1]; // 如zh-CN, zh-TW, zh-HK, yue-CN, wuu-CN
   const name = nameParts[2].replace('Neural', '');
   
   // 中文名称映射
@@ -1231,6 +1281,20 @@ const getChineseName = (shortName: string) => {
     'Yunxuan': '云轩',
     'Xiaohui': '晓慧',
     
+    // 粤语 (yue-CN)
+    'XiaoMin': '小敏',
+    'YunSong': '云松',
+    'XiaoRong': '小蓉',
+    'YunZa': '云扎',
+    'XiaoYu': '晓瑜',
+    'WanLu': '婉露',
+    'XiuYin': '秀英',
+    'YunJun': '云军',
+    
+    // 吴语 (wuu-CN)
+    'Xiaotong': '晓彤',
+    'Yunzhe': '云哲',
+    
     // 方言
     'Honghu': '洪湖',
     'Liaoning': '辽宁',
@@ -1255,7 +1319,98 @@ const getChineseName = (shortName: string) => {
     'WanLung': '雲龍'
   };
   
+  // 区域特定名称
+  const regionNames: {[region: string]: {[key: string]: string}} = {
+    'zh-CN': {
+      'YunJhe': '云杰'
+    },
+    'zh-TW': {
+      'HsiaoChen': '曉臻',
+      'HsiaoYu': '曉雨',
+      'YunJhe': '雲哲'
+    },
+    'zh-HK': {
+      'HiuMaan': '曉曼',
+      'HiuGaai': '曉佳',
+      'WanLung': '雲龍'
+    },
+    'yue-CN': {
+      'XiaoMin': '小敏',
+      'YunSong': '云松',
+      'XiaoRong': '小蓉',
+      'YunZa': '云扎',
+      'XiaoYu': '晓瑜',
+      'WanLu': '婉露',
+      'XiuYin': '秀英',
+      'YunJun': '云军'
+    },
+    'wuu-CN': {
+      'Xiaotong': '晓彤',
+      'Yunzhe': '云哲'
+    }
+  };
+  
+  // 检查是否有区域特定的名称
+  if (regionNames[region] && regionNames[region][name]) {
+    return `${name}-${regionNames[region][name]}`;
+  }
+  
+  // 使用通用名称映射
   if (nameMap[name]) {
+    // 对于粤语区域，在中文名前添加"粤语"标识
+    if (region === 'yue-CN') {
+      return `${name}-粤语·${nameMap[name]}`;
+    }
+    
+    // 对于吴语区域，在中文名前添加"吴语"标识
+    if (region === 'wuu-CN') {
+      return `${name}-吴语·${nameMap[name]}`;
+    }
+    
+    // 对于方言区域，添加对应方言标识
+    if (name === 'Shaanxi' || name === 'shaanxi') {
+      return `${name}-陕西方言`;
+    }
+    if (name === 'Henan' || name === 'henan') {
+      return `${name}-河南方言`;
+    }
+    if (name === 'Liaoning' || name === 'liaoning') {
+      return `${name}-东北方言`;
+    }
+    if (name === 'Shandong' || name === 'shandong') {
+      return `${name}-山东方言`;
+    }
+    if (name === 'Shanghai' || name === 'shanghai') {
+      return `${name}-上海方言`;
+    }
+    if (name === 'Sichuan' || name === 'sichuan') {
+      return `${name}-四川方言`;
+    }
+    if (name === 'Tianjin' || name === 'tianjin') {
+      return `${name}-天津方言`;
+    }
+    if (name === 'Hebei' || name === 'hebei') {
+      return `${name}-河北方言`;
+    }
+    if (name === 'Shanxi' || name === 'shanxi') {
+      return `${name}-山西方言`;
+    }
+    if (name === 'Gansu' || name === 'gansu') {
+      return `${name}-甘肃方言`;
+    }
+    if (name === 'Anhui' || name === 'anhui') {
+      return `${name}-安徽方言`;
+    }
+    if (name === 'Hubei' || name === 'hubei') {
+      return `${name}-湖北方言`;
+    }
+    if (name === 'Honghu' || name === 'honghu') {
+      return `${name}-洪湖方言`;
+    }
+    if (name === 'Yunnan' || name === 'yunnan') {
+      return `${name}-云南方言`;
+    }
+    
     return `${name}-${nameMap[name]}`;
   }
   
@@ -1267,15 +1422,23 @@ const audition = async (value: string) => {
   // 如果有抽屉打开，则关闭
   openSettingsDrawer.value = false;
   
+  // 打印开始试听的声音
+  console.log("开始试听声音:", value);
+  
   // 创建临时的SSML用于试听
   const tempInput = inputs.value.inputValue;
   const tempSSML = inputs.value.ssmlValue;
+  const tempVoice = formConfig.value.voiceSelect; // 保存当前的声音设置
   
   try {
+    // 临时设置声音
+    formConfig.value.voiceSelect = value;
+    console.log("试听设置声音为:", formConfig.value.voiceSelect);
+    
     // 使用试听文本生成SSML
     inputs.value.inputValue = "你好，这是一段试听文本。";
-    formConfig.value.voiceSelect = value;
     ttsStore.setSSMLValue();
+    console.log("试听生成的SSML:", inputs.value.ssmlValue);
     
     // 开始转换并播放
     const voiceData = {
@@ -1327,6 +1490,8 @@ const audition = async (value: string) => {
     // 恢复原始输入
     inputs.value.inputValue = tempInput;
     inputs.value.ssmlValue = tempSSML;
+    formConfig.value.voiceSelect = tempVoice; // 恢复原始声音设置
+    console.log("试听结束，恢复声音设置为:", formConfig.value.voiceSelect);
     isLoading.value = false;
   }
 };
@@ -1394,14 +1559,62 @@ const apiChange = (value: number) => {
 
 // 语言变更处理
 const languageSelectChange = (value: string) => {
+  console.log("语言变更为:", value);
+  
+  // 清除当前选择的声音
   formConfig.value.voiceSelect = "";
+  
+  // 获取新语言下的声音列表
   voiceSelectList.value = optionsConfig.findVoicesByLocaleName(value);
+  console.log(`找到${value}的声音列表:`, voiceSelectList.value.length, "个声音");
+  
+  // 如果有声音，选择第一个作为默认值
+  if (voiceSelectList.value.length > 0) {
+    const firstVoice = voiceSelectList.value[0].ShortName;
+    console.log("自动选择第一个声音:", firstVoice);
+    formConfig.value.voiceSelect = firstVoice;
+    
+    // 更新SSML内容
+    ttsStore.setSSMLValue();
+  } else {
+    console.warn(`语言${value}没有可用的声音`);
+  }
+  
+  // 确保更新配置到本地存储
+  ttsStore.addFormConfig();
 };
 
 // 声音变更处理
 const voiceSelectChange = (value: string) => {
   // 更新声音选择
-  // 在抽屉组件中完成更复杂的设置
+  console.log("声音变更为:", value);
+  
+  // 保存选择的声音到formConfig
+  formConfig.value.voiceSelect = value;
+  
+  // 显式地打印当前formConfig中的声音值
+  console.log("formConfig中的声音值:", formConfig.value.voiceSelect);
+  
+  // 当声音变更时，更新SSML内容
+  ttsStore.setSSMLValue();
+  
+  // 在选择新声音后，更新声音样式列表
+  const selectedVoice = voiceSelectList.value.find(
+    (v) => v.ShortName === value
+  );
+  
+  if (selectedVoice && selectedVoice.VoiceStyleNames) {
+    console.log("可用样式:", selectedVoice.VoiceStyleNames);
+  }
+  
+  // 保存声音选择到本地存储，确保持久化
+  const store = new WebStore();
+  if (formConfig.value.voiceSelect !== value) {
+    console.error("声音值未正确保存到formConfig!");
+  }
+  
+  // 确保更新配置
+  ttsStore.addFormConfig();
 };
 
 // 开始转换按钮
@@ -1422,6 +1635,15 @@ const startBtn = () => {
     });
     return;
   }
+  
+  // 在启动转换前检查并打印当前声音设置
+  console.log("转换前检查 - 当前选择的声音:", formConfig.value.voiceSelect);
+  
+  // 确保SSML中使用的是当前选择的声音
+  ttsStore.setSSMLValue();
+  
+  // 确保更新配置到本地存储
+  ttsStore.addFormConfig();
   
   // 启动转换过程
   ttsStore.start();
@@ -1502,8 +1724,17 @@ const onSelectAnchor = (anchor) => {
     // 保存当前选择的语音样式，稍后可能需要重用
     const selectedStyle = anchor.config.voiceStyleSelect || 'Default';
     
+    // 应用主播配置前先记录声音
+    console.log('应用主播配置，选择声音从:', formConfig.value.voiceSelect, '变更为:', anchor.config.voiceSelect);
+    
     // 应用主播配置
     formConfig.value = {...anchor.config};
+    
+    // 记录语言和声音
+    console.log('选择主播后的语言和声音:', {
+      language: formConfig.value.languageSelect,
+      voice: formConfig.value.voiceSelect
+    });
     
     // 更新声音选择列表
     voiceSelectList.value = optionsConfig.findVoicesByLocaleName(formConfig.value.languageSelect);
@@ -1514,6 +1745,8 @@ const onSelectAnchor = (anchor) => {
     );
     
     if (selectedVoice) {
+      console.log('找到选择的声音:', selectedVoice.ShortName);
+      
       // 获取可用的样式列表
       const availableStyles = selectedVoice.VoiceStyleNames?.split(",") || [];
       
@@ -1524,10 +1757,18 @@ const onSelectAnchor = (anchor) => {
       } else {
         formConfig.value.voiceStyleSelect = 'Default';
       }
+    } else {
+      console.error('无法找到选择的声音:', formConfig.value.voiceSelect);
     }
     
+    // 更新SSML内容以使用新声音
+    ttsStore.setSSMLValue();
+    
+    // 保存更新后的配置
+    ttsStore.addFormConfig();
+    
     ElMessage({
-      message: `已应用语音主播：${anchor.name}`,
+      message: `已应用语音主播：${anchor.name}，声音设置为：${formConfig.value.voiceSelect}`,
       type: 'success',
       duration: 2000
     });

@@ -74,6 +74,15 @@ export const useTtsStore = defineStore("ttsStore", {
     setSSMLValue(text = "") {
       if (text === "") text = this.inputs.inputValue;
       const voice = this.formConfig.voiceSelect;
+      console.log("setSSMLValue - 当前选择的声音:", voice);
+      
+      if (!voice) {
+        console.error("警告: 没有选择声音，将使用默认声音");
+        // 为避免出错，设置一个默认声音
+        this.formConfig.voiceSelect = "zh-CN-XiaoxiaoNeural";
+        console.log("已设置默认声音:", this.formConfig.voiceSelect);
+      }
+      
       const express = this.formConfig.voiceStyleSelect;
       const role = this.formConfig.role;
       const rate = (this.formConfig.speed - 1) * 100;
@@ -106,16 +115,22 @@ export const useTtsStore = defineStore("ttsStore", {
         volumeAttr = ` volume="${volumeMapping[this.formConfig.volume] || this.formConfig.volume}"`;
       }
 
-      this.inputs.ssmlValue = `<speak xmlns="http://www.w3.org/2001/10/synthesis" xmlns:mstts="https://www.w3.org/2001/mstts" xmlns:emo="http://www.w3.org/2009/10/emotionml" version="1.0" xml:lang="en-US">
-        <voice name="${voice}">
+      // 使用当前选择的声音
+      const currentVoice = this.formConfig.voiceSelect;
+      
+      const ssmlContent = `<speak xmlns="http://www.w3.org/2001/10/synthesis" xmlns:mstts="https://www.w3.org/2001/mstts" xmlns:emo="http://www.w3.org/2009/10/emotionml" version="1.0" xml:lang="en-US">
+        <voice name="${currentVoice}">
             <mstts:express-as ${express != "General" ? 'style="' + express + '"' : ""}${role != "Default" ? ' role="' + role + '"' : ""}${intensityAttr}>
                 <prosody rate="${rate}%" pitch="${pitch}%"${volumeAttr}>
                 ${text}
                 </prosody>
             </mstts:express-as>
         </voice>
-    </speak>
-    `;
+      </speak>
+      `;
+      
+      this.inputs.ssmlValue = ssmlContent;
+      console.log("生成的SSML使用声音:", currentVoice);
     },
     setLanguage() {
       store.set("language", this.config.language);

@@ -20,7 +20,7 @@ const freeLimit = ref(null);
 const connectionError = ref('');
 
 // 测试音频
-const testText = '这是一个测试，连接到本地TTS服务';
+const testText = '这是一个测试，连接到free TTS服务';
 const isPlayingTest = ref(false);
 
 // 检查连接

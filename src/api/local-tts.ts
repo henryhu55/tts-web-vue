@@ -69,6 +69,7 @@ export async function getFreeTTSStream(
 ): Promise<ArrayBuffer> {
   try {
     console.log('调用本地TTS服务器免费流API:', params);
+    console.log('语音参数:', params.voice || '未指定 (将使用默认值)');
     
     // 设置默认值
     const requestParams: TTSRequestParams = {
@@ -78,6 +79,8 @@ export async function getFreeTTSStream(
       text: params.text,
       ssml: params.ssml
     };
+    
+    console.log('最终请求参数:', requestParams);
     
     // 请求配置
     const requestConfig = {

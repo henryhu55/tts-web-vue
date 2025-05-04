@@ -459,6 +459,91 @@ const isFavorite = (voice: CategoryVoice) => {
 
 // 获取显示名称（针对中文主播显示中文名称）
 const getDisplayName = (voice: CategoryVoice) => {
+  // 处理复杂方言格式：zh-CN-henan-YundengNeural
+  if (voice.shortName && voice.shortName.split('-').length >= 4) {
+    const parts = voice.shortName.split('-');
+    const dialect = parts[2].toLowerCase();
+    const name = parts[3].replace('Neural', '');
+    
+    // 方言映射
+    const dialectMap: Record<string, string> = {
+      'shaanxi': '陕西方言',
+      'henan': '河南方言',
+      'liaoning': '东北方言',
+      'shandong': '山东方言',
+      'shanghai': '上海方言',
+      'sichuan': '四川方言',
+      'tianjin': '天津方言',
+      'hebei': '河北方言',
+      'shanxi': '山西方言',
+      'gansu': '甘肃方言',
+      'anhui': '安徽方言',
+      'hubei': '湖北方言',
+      'honghu': '洪湖方言',
+      'yunnan': '云南方言'
+    };
+    
+    // 名称映射
+    const nameMap: Record<string, string> = {
+      'Yundeng': '云登',
+      'Yunfeng': '云枫',
+      'Yunhao': '云皓',
+      'Yunxia': '云霞',
+      'Yunxi': '云熙',
+      'Yunye': '云叶',
+      'Yunyang': '云阳',
+      'Yunxiang': '云翔',
+      'Xiaoxuan': '晓萱',
+      'Xiaochen': '晓辰',
+      'Xiaoshuang': '晓双'
+    };
+    
+    if (dialectMap[dialect]) {
+      if (nameMap[name]) {
+        return `${dialectMap[dialect]}·${nameMap[name]}`;
+      } else {
+        return `${dialectMap[dialect]}`;
+      }
+    }
+  }
+  
+  // 方言声音特殊处理
+  const dialectNames: Record<string, string> = {
+    'Shaanxi': '陕西方言',
+    'shaanxi': '陕西方言',
+    'Henan': '河南方言',
+    'henan': '河南方言',
+    'Liaoning': '东北方言',
+    'liaoning': '东北方言',
+    'Shandong': '山东方言',
+    'shandong': '山东方言',
+    'Shanghai': '上海方言',
+    'shanghai': '上海方言',
+    'Sichuan': '四川方言',
+    'sichuan': '四川方言',
+    'Tianjin': '天津方言',
+    'tianjin': '天津方言',
+    'Hebei': '河北方言',
+    'hebei': '河北方言',
+    'Shanxi': '山西方言',
+    'shanxi': '山西方言',
+    'Gansu': '甘肃方言',
+    'gansu': '甘肃方言',
+    'Anhui': '安徽方言',
+    'anhui': '安徽方言',
+    'Hubei': '湖北方言',
+    'hubei': '湖北方言',
+    'Honghu': '洪湖方言',
+    'honghu': '洪湖方言',
+    'Yunnan': '云南方言',
+    'yunnan': '云南方言'
+  };
+  
+  // 检查是否是方言声音
+  if (dialectNames[voice.name]) {
+    return dialectNames[voice.name];
+  }
+  
   // 中文主播名称映射（英文名到中文名）
   const chineseNameMap: Record<string, string> = {
     'Xiaoxuan': '晓萱',
@@ -495,11 +580,33 @@ const getDisplayName = (voice: CategoryVoice) => {
     'Xiaoni': '晓妮',
     'HsiaoChen': '小陈',
     'Xiaobei': '晓贝',
-    'Xiaoqiu': '晓秋'
+    'Xiaoqiu': '晓秋',
+    
+    // 添加粤语主播
+    'XiaoMin': '小敏',
+    'YunSong': '云松',
+    'XiaoRong': '小蓉',
+    'YunZa': '云扎',
+    'XiaoYu': '晓瑜',
+    'WanLu': '婉露',
+    'XiuYin': '秀英',
+    'YunJun': '云军',
+    
+    // 添加吴语主播
+    'Xiaotong': '晓彤',
+    'Yunzhe': '云哲'
   };
 
   // 如果是中文主播，返回中文名称，否则返回原名
-  if ((voice.locale && voice.locale.startsWith('zh-')) && chineseNameMap[voice.name]) {
+  if (((voice.locale && (voice.locale.startsWith('zh-') || voice.locale.startsWith('yue-') || voice.locale.startsWith('wuu-'))) && chineseNameMap[voice.name])) {
+    // 对于粤语添加标识
+    if (voice.locale && voice.locale.startsWith('yue-')) {
+      return `粤语·${chineseNameMap[voice.name]}`;
+    }
+    // 对于吴语添加标识
+    if (voice.locale && voice.locale.startsWith('wuu-')) {
+      return `吴语·${chineseNameMap[voice.name]}`;
+    }
     return chineseNameMap[voice.name];
   }
   
@@ -511,6 +618,34 @@ const getDisplayName = (voice: CategoryVoice) => {
 const getVoiceDescription = (voice: CategoryVoice) => {
   // 如果已有描述，直接返回
   if (voice.description) return voice.description;
+  
+  // 处理复杂方言格式：zh-CN-henan-YundengNeural
+  if (voice.shortName && voice.shortName.split('-').length >= 4) {
+    const parts = voice.shortName.split('-');
+    const dialect = parts[2].toLowerCase();
+    
+    // 方言描述映射
+    const dialectDescMap: Record<string, string> = {
+      'shaanxi': '陕西方言，适合西北地区方言内容',
+      'henan': '河南方言，适合中原地区方言内容',
+      'liaoning': '东北方言，适合东北地区方言内容',
+      'shandong': '山东方言，适合鲁东地区方言内容',
+      'shanghai': '上海方言，适合江浙沪地区方言内容',
+      'sichuan': '四川方言，适合川渝地区方言内容',
+      'tianjin': '天津方言，适合京津冀地区方言内容',
+      'hebei': '河北方言，适合华北地区方言内容',
+      'shanxi': '山西方言，适合黄土高原地区方言内容',
+      'gansu': '甘肃方言，适合西北地区方言内容',
+      'anhui': '安徽方言，适合江淮地区方言内容',
+      'hubei': '湖北方言，适合长江中游地区方言内容',
+      'honghu': '洪湖方言，适合湖北江汉平原地区方言内容',
+      'yunnan': '云南方言，适合西南地区方言内容'
+    };
+    
+    if (dialectDescMap[dialect]) {
+      return dialectDescMap[dialect];
+    }
+  }
   
   // 根据语音特性生成适合场景描述
   const locale = voice.locale || '';
@@ -553,12 +688,26 @@ const getVoiceDescription = (voice: CategoryVoice) => {
     'Xiaoni': '晓妮',
     'HsiaoChen': '小陈',
     'Xiaobei': '晓贝',
-    'Xiaoqiu': '晓秋'
+    'Xiaoqiu': '晓秋',
+    
+    // 添加粤语主播
+    'XiaoMin': '小敏',
+    'YunSong': '云松',
+    'XiaoRong': '小蓉',
+    'YunZa': '云扎',
+    'XiaoYu': '晓瑜',
+    'WanLu': '婉露',
+    'XiuYin': '秀英',
+    'YunJun': '云军',
+    
+    // 添加吴语主播
+    'Xiaotong': '晓彤',
+    'Yunzhe': '云哲'
   };
   
   // 获取中文名称（如果有）
   let displayName = name;
-  if (locale === 'zh-CN' && chineseNameMap[name]) {
+  if ((locale.startsWith('zh-') || locale.startsWith('yue-') || locale.startsWith('wuu-')) && chineseNameMap[name]) {
     displayName = chineseNameMap[name];
   }
   
@@ -588,6 +737,51 @@ const getVoiceDescription = (voice: CategoryVoice) => {
         'Yunhao': '沉稳大气男声，适合企业宣传、政务通知',
         'Yunze': '清晰标准男声，适合新闻报道、会议演讲',
         '_default': '中文普通话男声，适合专业内容和正式场合'
+      }
+    },
+    'yue-CN': {
+      'Female': {
+        'XiaoMin': '温婉粤语女声，适合粤语内容朗读',
+        'XiaoRong': '亲切粤语女声，适合粤语对话、故事叙述',
+        'XiaoYu': '清新粤语女声，适合粤语日常表达',
+        'WanLu': '柔美粤语女声，适合粤语情感内容',
+        'XiuYin': '标准粤语女声，适合粤语正式场合',
+        '_default': '粤语女声，适合粤语内容朗读和学习'
+      },
+      'Male': {
+        'YunSong': '磁性粤语男声，适合粤语解说、纪录片',
+        'YunZa': '沉稳粤语男声，适合粤语商务内容',
+        'YunJun': '标准粤语男声，适合粤语新闻、通知',
+        '_default': '粤语男声，适合粤语内容朗读和演讲'
+      }
+    },
+    'wuu-CN': {
+      'Female': {
+        'Xiaotong': '优美吴语女声，适合江浙沪地区吴语内容',
+        '_default': '吴语女声，适合吴语内容朗读和学习'
+      },
+      'Male': {
+        'Yunzhe': '标准吴语男声，适合吴语演讲和正式场合',
+        '_default': '吴语男声，适合吴语内容朗读和解说'
+      }
+    },
+    'dialect': {
+      'Any': {
+        'Shaanxi': '陕西方言，适合西北地区方言内容',
+        'Henan': '河南方言，适合中原地区方言内容',
+        'Liaoning': '东北方言，适合东北地区方言内容',
+        'Shandong': '山东方言，适合鲁东地区方言内容',
+        'Shanghai': '上海方言，适合江浙沪地区方言内容',
+        'Sichuan': '四川方言，适合川渝地区方言内容',
+        'Tianjin': '天津方言，适合京津冀地区方言内容',
+        'Hebei': '河北方言，适合华北地区方言内容',
+        'Shanxi': '山西方言，适合黄土高原地区方言内容',
+        'Gansu': '甘肃方言，适合西北地区方言内容',
+        'Anhui': '安徽方言，适合江淮地区方言内容',
+        'Hubei': '湖北方言，适合长江中游地区方言内容',
+        'Honghu': '洪湖方言，适合湖北江汉平原地区方言内容',
+        'Yunnan': '云南方言，适合西南地区方言内容',
+        '_default': '中国方言，适合地方特色内容和方言表达'
       }
     },
     'en-US': {
@@ -658,6 +852,12 @@ const getVoiceDescription = (voice: CategoryVoice) => {
   
   // 根据语音特征匹配描述
   let description = '';
+  
+  // 先检查是否是方言声音
+  if (name && ['Shaanxi', 'Henan', 'Liaoning', 'Shandong', 'Shanghai', 'Sichuan', 'Tianjin', 'Hebei', 'Shanxi', 'Gansu', 'Anhui', 'Hubei', 'Honghu', 'Yunnan'].includes(name)) {
+    const dialectMap = sceneDescriptions['dialect']['Any'];
+    return dialectMap[name] || `${name}方言，适合地方特色内容`;
+  }
   
   // 确定语言区域描述
   const localeDesc = sceneDescriptions[locale];

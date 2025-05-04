@@ -1,4 +1,5 @@
-import { defineStore } from 'pinia';
+// import { defineStore } from 'pinia';
+import * as Pinia from 'pinia';
 import WebStore from './web-store';
 import { 
   LocalTTSConfig, 
@@ -13,7 +14,7 @@ import {
 const store = new WebStore();
 
 // 定义本地TTS服务状态和管理
-export const useLocalTTSStore = defineStore('localTTSStore', {
+export const useLocalTTSStore = Pinia.defineStore('localTTSStore', {
   state: () => {
     return {
       // 配置
