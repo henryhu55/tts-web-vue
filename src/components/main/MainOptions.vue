@@ -1,203 +1,137 @@
 <template>
   <div class="modern-options">
-    <!-- 顶部快速操作栏 -->
-    <div class="top-controls">
-      <div class="left-controls">
-        <!-- API选择下拉菜单 -->
-        <el-select
-          v-model="formConfig.api"
-          size="small"
-          class="quick-select"
-          @change="apiChange"
-        >
-          <template #prefix>
-            <el-icon><Connection /></el-icon>
-          </template>
-          <el-option
-            v-for="item in oc.apiSelect"
-            :key="item.value"
-            :label="item.label"
-            :value="item.value"
-          />
-        </el-select>
-        
-        <!-- 语言选择 -->
-        <el-select
-          v-model="formConfig.languageSelect"
-          size="small"
-          class="quick-select"
-          @change="languageSelectChange"
-          filterable
-        >
-          <template #prefix>
-            <el-icon><ChatDotRound /></el-icon>
-          </template>
-          <el-option
-            v-for="item in oc.languageSelect"
-            :key="item.value"
-            :label="item.label"
-            :value="item.value"
-          />
-        </el-select>
-        
-        <!-- 声音选择 -->
-        <el-select
-          v-model="formConfig.voiceSelect"
-          size="small"
-          class="quick-select"
-          @change="voiceSelectChange"
-          filterable
-        >
-          <template #prefix>
-            <el-icon><Microphone /></el-icon>
-          </template>
-          <el-option
-            v-for="item in voiceSelectList"
-            :key="item.ShortName"
-            :label="item.DisplayName"
-            :value="item.ShortName"
-          >
-            <div class="voice-option">
-              <span>{{ item.DisplayName + "-" + item.LocalName }}</span>
-              <el-button
-                size="small"
-                type="primary"
-                circle
-                @click.stop="audition(item.ShortName)"
-              ><el-icon><CaretRight /></el-icon></el-button>
+    <!-- 抽屉模式的完整选项 -->
+    <div class="drawer-mode">
+      <div class="option-section">
+        <h3 class="section-title">基本选项</h3>
+        <div class="option-grid">
+          <!-- API选择 -->
+          <div class="option-item">
+            <div class="option-label">
+              <span>API服务</span>
+              <el-icon><Connection /></el-icon>
             </div>
-          </el-option>
-        </el-select>
-        
-        <!-- 预设按钮 -->
-        <el-popover
-          placement="bottom"
-          :width="300"
-          trigger="click"
-        >
-          <template #reference>
-            <el-button size="small" class="preset-button" :icon="Star">预设</el-button>
-          </template>
-          <div class="preset-popover">
-            <h4>应用预设</h4>
-            <div class="preset-list">
-              <div 
-                v-for="preset in presets" 
-                :key="preset.id"
-                class="preset-item"
-                @click="applyPreset(preset.id)"
-              >
-                <el-icon><component :is="preset.icon" /></el-icon>
-                <span>{{ preset.name }}</span>
-              </div>
-            </div>
+            <el-select
+              v-model="formConfig.api"
+              size="default"
+              class="full-width-select"
+              @change="apiChange"
+            >
+              <el-option
+                v-for="item in oc.apiSelect"
+                :key="item.value"
+                :label="item.label"
+                :value="item.value"
+              />
+            </el-select>
           </div>
-        </el-popover>
-      </div>
-      
-      <!-- 免费额度信息 -->
-      <div v-if="formConfig.api === 5 && localTTSStore.serverStatus.freeLimit && localTTSStore.serverStatus.connected" class="free-quota-info">
-        <div class="quota-text">
-          <span>免费额度: {{ localTTSStore.serverStatus.freeLimit.remaining }}/{{ localTTSStore.serverStatus.freeLimit.free_limit }} 字符</span>
+          
+          <!-- 语言选择 -->
+          <div class="option-item">
+            <div class="option-label">
+              <span>语言</span>
+              <el-icon><ChatDotRound /></el-icon>
+            </div>
+            <el-select
+              v-model="formConfig.languageSelect"
+              size="default"
+              class="full-width-select"
+              @change="languageSelectChange"
+              filterable
+            >
+              <el-option
+                v-for="item in oc.languageSelect"
+                :key="item.value"
+                :label="item.label"
+                :value="item.value"
+              />
+            </el-select>
+          </div>
+          
+          <!-- 声音选择 -->
+          <div class="option-item full-width-item">
+            <div class="option-label">
+              <span>声音</span>
+              <el-icon><Microphone /></el-icon>
+            </div>
+            <el-select
+              v-model="formConfig.voiceSelect"
+              size="default"
+              class="full-width-select"
+              @change="voiceSelectChange"
+              filterable
+            >
+              <el-option
+                v-for="item in voiceSelectList"
+                :key="item.ShortName"
+                :label="item.DisplayName"
+                :value="item.ShortName"
+              >
+                <div class="voice-option">
+                  <span>{{ item.DisplayName + "-" + item.LocalName }}</span>
+                  <el-button
+                    size="small"
+                    type="primary"
+                    circle
+                    @click.stop="audition(item.ShortName)"
+                  ><el-icon><CaretRight /></el-icon></el-button>
+                </div>
+              </el-option>
+            </el-select>
+          </div>
         </div>
-        <el-progress 
-          :percentage="localTTSStore.freeLimitUsagePercent" 
-          :status="localTTSStore.freeLimitUsagePercent > 90 ? 'exception' : 'success'"
-          :stroke-width="5"
-          :show-text="false"
-        />
       </div>
       
-      <div class="right-controls">
-        <!-- 高级设置按钮 -->
-        <el-button 
-          size="small" 
-          @click="showAdvancedSettings = true"
-          :icon="Setting"
-          class="settings-button"
-        >
-          高级设置
-        </el-button>
-        
-        <!-- 语音主播模式按钮 -->
-        <el-button 
-          size="small" 
-          @click="showVoiceAnchors = true"
-          :icon="Avatar"
-          class="anchor-button"
-        >
-          语音主播
-        </el-button>
-        
-        <!-- 开始按钮 -->
-        <el-button 
-          type="primary" 
-          @click="startBtn" 
-          :loading="isLoading"
-          size="small"
-          class="start-button"
-        >
-          <el-icon><CaretRight /></el-icon>
-          开始转换
-        </el-button>
+      <div class="option-section">
+        <h3 class="section-title">语音调整</h3>
+        <div class="option-grid">
+          <!-- 语速调节 -->
+          <div class="option-item">
+            <div class="option-label">
+              <span>语速</span>
+              <span class="value-display">{{ formConfig.speed }}x</span>
+            </div>
+            <el-slider 
+              v-model="formConfig.speed" 
+              :min="0.5" 
+              :max="2" 
+              :step="0.1" 
+              class="option-slider"
+            />
+          </div>
+          
+          <!-- 音调调节 -->
+          <div class="option-item">
+            <div class="option-label">
+              <span>音调</span>
+              <span class="value-display">{{ formConfig.pitch }}x</span>
+            </div>
+            <el-slider 
+              v-model="formConfig.pitch" 
+              :min="0.5" 
+              :max="2" 
+              :step="0.1"
+              class="option-slider"
+            />
+          </div>
+        </div>
       </div>
-    </div>
-    
-    <!-- 语速/音调快速调节 -->
-    <div class="quick-sliders">
-      <div class="slider-item">
-        <span class="slider-label">语速: {{ formConfig.speed }}x</span>
-        <el-slider 
-          v-model="formConfig.speed" 
-          :min="0.5" 
-          :max="2" 
-          :step="0.1" 
-          class="compact-slider"
-        />
-      </div>
-      <div class="slider-item">
-        <span class="slider-label">音调: {{ formConfig.pitch }}x</span>
-        <el-slider 
-          v-model="formConfig.pitch" 
-          :min="0.5" 
-          :max="2" 
-          :step="0.1"
-          class="compact-slider" 
-        />
-      </div>
-    </div>
-    
-    <!-- 本地TTS服务设置卡片 -->
-    <el-card 
-      v-if="formConfig.api === 5" 
-      class="local-tts-card"
-      shadow="hover"
-    >
-      <LocalTTSSettings />
-    </el-card>
-    
-    <!-- 高级设置对话框 -->
-    <el-dialog
-      v-model="showAdvancedSettings"
-      title="高级语音设置"
-      width="70%"
-      destroy-on-close
-    >
-      <div class="advanced-settings-dialog">
-        <div class="options-grid">
+      
+      <div class="option-section">
+        <h3 class="section-title">高级语音设置</h3>
+        <div class="option-grid">
           <!-- 风格选择 -->
-          <div class="option-card">
-            <div class="option-header">
-              <div class="option-label">
-                <span>{{ t('options.speakingStyle') }}</span>
-                <el-icon><Mic /></el-icon>
-              </div>
+          <div class="option-item">
+            <div class="option-label">
+              <span>{{ t('options.speakingStyle') }}</span>
+              <el-icon><Mic /></el-icon>
             </div>
             <el-select
               v-model="formConfig.voiceStyleSelect"
+              size="default"
               :placeholder="t('options.selectSpeakingStyle')"
               :disabled="apiEdge"
-              class="option-select"
+              class="full-width-select"
             >
               <el-option
                 v-for="item in voiceStyleSelectList"
@@ -214,18 +148,17 @@
           </div>
           
           <!-- 角色选择 -->
-          <div class="option-card">
-            <div class="option-header">
-              <div class="option-label">
-                <span>{{ t('options.rolePlaying') }}</span>
-                <el-icon><UserFilled /></el-icon>
-              </div>
+          <div class="option-item">
+            <div class="option-label">
+              <span>{{ t('options.rolePlaying') }}</span>
+              <el-icon><UserFilled /></el-icon>
             </div>
             <el-select 
               v-model="formConfig.role" 
+              size="default"
               :placeholder="t('options.selectRole')" 
               :disabled="apiEdge"
-              class="option-select"
+              class="full-width-select"
             >
               <el-option
                 v-for="item in rolePlayList"
@@ -241,20 +174,18 @@
             </el-select>
           </div>
           
-          <!-- 强度滑块 -->
-          <div class="option-card">
-            <div class="option-header">
-              <div class="option-label">
-                <span>{{ t('options.intensity') }}</span>
-                <el-icon><Aim /></el-icon>
-              </div>
-              <span class="slider-value">{{ formConfig.intensity || 'default' }}</span>
+          <!-- 强度选项 -->
+          <div class="option-item">
+            <div class="option-label">
+              <span>{{ t('options.intensity') }}</span>
+              <el-icon><Aim /></el-icon>
             </div>
             <el-select
               v-model="formConfig.intensity"
+              size="default"
               :placeholder="t('options.selectIntensity')"
               :disabled="apiEdge"
-              class="option-select"
+              class="full-width-select"
             >
               <el-option value="default" :label="t('options.default')"></el-option>
               <el-option value="0.5" :label="t('options.weak')"></el-option>
@@ -264,81 +195,74 @@
             </el-select>
           </div>
           
-          <!-- 静音选择 -->
-          <div class="option-card">
-            <div class="option-header">
-              <div class="option-label">
-                <span>{{ t('options.silence') }}</span>
-                <el-icon><Timer /></el-icon>
-              </div>
-              <span class="slider-value">{{ formConfig.silence || 'default' }}</span>
+          <!-- 预设按钮 -->
+          <div class="option-item">
+            <div class="option-label">
+              <span>快速预设</span>
+              <el-icon><Star /></el-icon>
             </div>
             <el-select
-              v-model="formConfig.silence"
-              :placeholder="t('options.selectSilence')"
-              :disabled="apiEdge"
-              class="option-select"
+              v-model="currentPreset"
+              size="default"
+              placeholder="选择预设"
+              @change="applyPreset"
+              class="full-width-select"
             >
-              <el-option value="default" :label="t('options.defaultSilence')"></el-option>
-              <el-option value="20ms" :label="20 + 'ms'"></el-option>
-              <el-option value="50ms" :label="50 + 'ms'"></el-option>
-              <el-option value="100ms" :label="100 + 'ms'"></el-option>
-              <el-option value="200ms" :label="200 + 'ms'"></el-option>
-              <el-option value="500ms" :label="500 + 'ms'"></el-option>
-              <el-option value="1000ms" :label="1000 + 'ms'"></el-option>
-              <el-option value="2000ms" :label="2000 + 'ms'"></el-option>
+              <el-option
+                v-for="preset in presets"
+                :key="preset.id"
+                :label="preset.name"
+                :value="preset.id"
+              >
+                <div class="preset-option">
+                  <el-icon><component :is="preset.icon" /></el-icon>
+                  <span>{{ preset.name }}</span>
+                </div>
+              </el-option>
             </el-select>
           </div>
           
-          <!-- 音量滑块 -->
-          <div class="option-card">
-            <div class="option-header">
-              <div class="option-label">
-                <span>{{ t('options.volume') }}</span>
-                <el-icon><Headset /></el-icon>
-              </div>
-              <span class="slider-value">{{ formConfig.volume || 'default' }}</span>
+          <!-- 添加语音主播按钮 -->
+          <div class="option-item">
+            <div class="option-label">
+              <span>语音主播</span>
+              <el-icon><Microphone /></el-icon>
             </div>
-            <el-select
-              v-model="formConfig.volume"
-              :placeholder="t('options.selectVolume')"
-              :disabled="apiEdge"
-              class="option-select"
+            <el-button 
+              type="primary" 
+              size="default" 
+              class="full-width-button"
+              @click="showVoiceAnchors = true"
             >
-              <el-option value="default" :label="t('options.default')"></el-option>
-              <el-option value="x-soft" :label="t('options.xSoft')"></el-option>
-              <el-option value="soft" :label="t('options.soft')"></el-option>
-              <el-option value="medium" :label="t('options.medium')"></el-option>
-              <el-option value="loud" :label="t('options.loud')"></el-option>
-              <el-option value="x-loud" :label="t('options.xLoud')"></el-option>
-            </el-select>
+              <div class="button-content">
+                <el-icon class="button-icon"><Avatar /></el-icon>
+                <span class="button-text">选择语音主播</span>
+              </div>
+            </el-button>
           </div>
         </div>
-        
-        <div class="dialog-footer">
-          <el-button @click="showAdvancedSettings = false">取消</el-button>
-          <el-button type="primary" @click="saveAdvancedSettings">确认</el-button>
-          <el-button @click="useDefaultSettings" class="action-button">
-            <el-icon><RefreshRight /></el-icon>
-            重置默认
-          </el-button>
-          <el-button type="success" @click="savePreset" class="action-button">
-            <el-icon><Star /></el-icon>
-            保存为预设
-          </el-button>
+      </div>
+      
+      <!-- 本地TTS服务设置卡片 -->
+      <div v-if="formConfig.api === 5" class="option-section">
+        <h3 class="section-title">免费TTS服务</h3>
+        <div class="free-service-info">
+          <LocalTTSSettings />
         </div>
       </div>
-    </el-dialog>
+    </div>
     
-    <!-- 语音主播选择对话框 -->
+    <!-- 语音主播对话框 -->
     <el-dialog
       v-model="showVoiceAnchors"
-      title="语音主播选择"
+      title="选择语音主播"
       width="80%"
+      :close-on-click-modal="false"
+      :append-to-body="true"
       destroy-on-close
     >
       <div class="voice-anchor-dialog">
-        <!-- 搜索和分类 -->
+        <!-- 语音主播内容 -->
         <div class="anchor-filters">
           <div class="category-tabs">
             <span 
@@ -383,6 +307,7 @@
                 size="small" 
                 type="primary" 
                 circle
+                class="anchor-play-button"
                 @click.stop="previewVoice(anchor)"
               >
                 <el-icon><CaretRight /></el-icon>
@@ -402,7 +327,7 @@
 
 <script setup lang="ts">
 // @ts-nocheck
-import { ref, reactive, watch, onMounted, computed } from "vue";
+import { ref, reactive, watch, onMounted, computed, defineProps } from "vue";
 import { optionsConfig as oc } from "./options-config";
 import { getStyleDes, getRoleDes } from "./emoji-config";
 import Loading from "./Loading.vue";
@@ -422,6 +347,14 @@ import {
   Search, Avatar, Check, Close
 } from '@element-plus/icons-vue';
 import LocalTTSSettings from '../aside/LocalTTSSettings.vue';
+
+// 定义props
+const props = defineProps({
+  inDrawer: {
+    type: Boolean,
+    default: false
+  }
+});
 
 const { t } = useI18n();
 const ttsStore = useTtsStore();
@@ -450,6 +383,49 @@ const applySelectedAnchor = () => {
   if (selectedAnchor.value) {
     const anchor = voiceAnchors.find(a => a.id === selectedAnchor.value);
     if (anchor) {
+      // 保存当前选择的样式，以便可能需要重用
+      const selectedStyle = anchor.config.voiceStyleSelect || 'Default';
+      
+      // 应用主播配置
+      formConfig.value = {...anchor.config};
+      
+      // 确保更新SSML
+      updateSSML();
+      
+      // 更新可用的风格和角色列表
+      const voice = voiceSelectList.value.find(
+        (item: any) => item.ShortName === formConfig.value.voiceSelect
+      );
+      
+      if (voice) {
+        // 获取可用的样式
+        const availableStyles = voice.VoiceStyleNames?.split(",") || [];
+        voiceStyleSelectList.value = availableStyles;
+        
+        // 获取可用的角色
+        rolePlayList.value = voice.VoiceRoleNames?.split(",") || [];
+        
+        // 检查所选样式是否可用
+        if (availableStyles.length > 0) {
+          if (!availableStyles.includes(selectedStyle)) {
+            // 如果不可用，使用第一个可用样式
+            formConfig.value.voiceStyleSelect = availableStyles[0];
+          } else {
+            // 否则保持选择的样式
+            formConfig.value.voiceStyleSelect = selectedStyle;
+          }
+        } else {
+          formConfig.value.voiceStyleSelect = 'Default';
+        }
+        
+        // 更新角色
+        if (rolePlayList.value.length > 0) {
+          formConfig.value.role = rolePlayList.value[0];
+        } else {
+          formConfig.value.role = '';
+        }
+      }
+      
       ElMessage({
         message: `已应用语音主播：${anchor.name}`,
         type: 'success',
@@ -609,6 +585,20 @@ onMounted(() => {
   // 手动触发一次SSML更新
   updateSSML();
 
+  // 初始化语音主播相关设置
+  showVoiceAnchors.value = false;
+  selectedCategory.value = 'all';
+  searchText.value = '';
+  
+  // 如果已有选择的主播，记录ID
+  const currentVoice = formConfig.value.voiceSelect;
+  const matchingAnchor = voiceAnchors.find(anchor => 
+    anchor.config.voiceSelect === currentVoice
+  );
+  if (matchingAnchor) {
+    selectedAnchor.value = matchingAnchor.id;
+  }
+  
   // 默认显示主播模式
   currentViewMode.value = 'anchors';
 });
@@ -967,10 +957,32 @@ const voiceSelectChange = (value: string) => {
   const voice = voiceSelectList.value.find(
     (item: any) => item.ShortName == formConfig.value.voiceSelect
   );
-  voiceStyleSelectList.value = voice?.VoiceStyleNames?.split(",") || [];
+  
+  // 获取可用的语音样式列表
+  const availableStyles = voice?.VoiceStyleNames?.split(",") || [];
+  voiceStyleSelectList.value = availableStyles;
+  
+  // 获取可用的角色列表
   rolePlayList.value = voice?.VoiceRoleNames?.split(",") || [];
-  formConfig.value.voiceStyleSelect = voiceStyleSelectList.value.length > 0 ? voiceStyleSelectList.value[0] : "";
-  formConfig.value.role = rolePlayList.value.length > 0 ? rolePlayList.value[0] : "";
+  
+  // 检查当前选择的样式是否在可用列表中
+  const currentStyle = formConfig.value.voiceStyleSelect;
+  if (!availableStyles.includes(currentStyle) || !currentStyle) {
+    // 如果不在可用列表中或未设置，则选择第一个可用样式或Default
+    formConfig.value.voiceStyleSelect = availableStyles.length > 0 ? 
+      availableStyles[0] : 
+      'Default';
+  }
+  
+  // 如果角色不在可用列表中，选择第一个可用角色或清空
+  const currentRole = formConfig.value.role;
+  if (rolePlayList.value.length > 0) {
+    if (!rolePlayList.value.includes(currentRole)) {
+      formConfig.value.role = rolePlayList.value[0];
+    }
+  } else {
+    formConfig.value.role = '';
+  }
 };
 
 const configChange = (val: string) => {
@@ -1336,11 +1348,48 @@ const getDefaultAvatar = (anchor: any) => {
 const selectAnchor = async (anchor: any) => {
   selectedAnchor.value = anchor.id;
   
+  // 保存当前选择的样式，以便可能需要重用
+  const selectedStyle = anchor.config.voiceStyleSelect || 'Default';
+  
   // 应用主播配置
   formConfig.value = {...anchor.config};
   
   // 确保更新SSML
   updateSSML();
+  
+  // 触发语音选择变更以更新可用的风格和角色列表，注意不要覆盖已选择的样式
+  const voice = voiceSelectList.value.find(
+    (item: any) => item.ShortName === formConfig.value.voiceSelect
+  );
+  
+  if (voice) {
+    // 获取可用的样式
+    const availableStyles = voice.VoiceStyleNames?.split(",") || [];
+    voiceStyleSelectList.value = availableStyles;
+    
+    // 获取可用的角色
+    rolePlayList.value = voice.VoiceRoleNames?.split(",") || [];
+    
+    // 检查所选样式是否可用
+    if (availableStyles.length > 0) {
+      if (!availableStyles.includes(selectedStyle)) {
+        // 如果不可用，使用第一个可用样式
+        formConfig.value.voiceStyleSelect = availableStyles[0];
+      } else {
+        // 否则保持选择的样式
+        formConfig.value.voiceStyleSelect = selectedStyle;
+      }
+    } else {
+      formConfig.value.voiceStyleSelect = 'Default';
+    }
+    
+    // 更新角色
+    if (rolePlayList.value.length > 0) {
+      formConfig.value.role = rolePlayList.value[0];
+    } else {
+      formConfig.value.role = '';
+    }
+  }
   
   // 提示用户已选择
   ElMessage({
@@ -1440,185 +1489,203 @@ const previewVoice = async (anchor: any) => {
 
 <style scoped>
 .modern-options {
-  padding: 15px 20px;
-  position: relative;
+  width: 100%;
 }
 
-/* 顶部快速操作栏 */
-.top-controls {
+/* 抽屉模式的样式 */
+.drawer-mode {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.option-section {
+  background-color: var(--card-background-light, #f5f7fa);
+  border-radius: 8px;
+  padding: 16px;
+}
+
+.section-title {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin: 0 0 16px 0;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.option-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 16px;
+}
+
+.option-item {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.full-width-item {
+  grid-column: 1 / -1;
+}
+
+.option-label {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 15px;
-  flex-wrap: wrap;
-  gap: 10px;
+  font-size: 14px;
+  color: var(--text-secondary);
 }
 
-.left-controls, .right-controls {
+.value-display {
+  font-weight: 500;
+  color: var(--primary-color);
+}
+
+.full-width-select {
+  width: 100%;
+}
+
+.full-width-button {
+  width: 100%;
   display: flex;
   align-items: center;
-  gap: 10px;
-  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8px;
 }
 
-.quick-select {
-  width: 150px;
+.full-width-button :deep(.el-icon) {
+  vertical-align: middle;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin-right: 4px;
 }
 
-.settings-button, .anchor-button {
+.full-width-button span {
+  vertical-align: middle;
+  line-height: normal;
+}
+
+.button-content {
   display: flex;
   align-items: center;
-  gap: 5px;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
 }
 
-.start-button {
+.button-icon {
+  margin-right: 6px;
   display: flex;
   align-items: center;
-  gap: 5px;
-  background: var(--primary-gradient, linear-gradient(90deg, #409EFF, #67C23A));
-  color: white;
-  border: none;
-  padding: 8px 16px;
-  font-weight: 600;
+  justify-content: center;
 }
 
-/* 快速滑块区域 */
-.quick-sliders {
-  display: flex;
-  gap: 20px;
-  margin-bottom: 15px;
-  background-color: var(--card-background, #f8f9fa);
-  padding: 10px 15px;
-  border-radius: 6px;
-  flex-wrap: wrap;
+.button-text {
+  line-height: 1;
 }
 
-.slider-item {
-  flex: 1;
-  min-width: 200px;
-}
-
-.slider-label {
-  font-size: 13px;
-  color: var(--text-secondary, #606266);
-  display: block;
-  margin-bottom: 5px;
-}
-
-.compact-slider {
+.option-slider {
   margin: 0;
 }
 
-/* 免费额度信息 */
-.free-quota-info {
+.preset-option {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.free-service-info {
+  padding: 0;
+}
+
+/* 主播对话框样式 */
+.voice-anchor-dialog {
+  height: 500px;
   display: flex;
   flex-direction: column;
-  padding: 0 20px;
-  max-width: 200px;
-}
-
-.quota-text {
-  font-size: 12px;
-  color: var(--text-secondary);
-  margin-bottom: 5px;
-  text-align: center;
-}
-
-/* 本地TTS卡片 */
-.local-tts-card {
-  margin-bottom: 20px;
-}
-
-/* 高级设置对话框 */
-.advanced-settings-dialog {
-  padding: 10px;
-}
-
-.dialog-footer {
-  margin-top: 20px;
-  display: flex;
-  justify-content: flex-end;
-  gap: 10px;
-}
-
-/* 语音主播对话框 */
-.voice-anchor-dialog {
-  padding: 10px;
+  overflow: hidden;
+  max-height: 70vh;
 }
 
 .anchor-filters {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 20px;
+  padding: 0 0 16px 0;
+  border-bottom: 1px solid var(--border-color);
   flex-wrap: wrap;
-  gap: 15px;
 }
 
 .category-tabs {
   display: flex;
+  gap: 16px;
+  overflow-x: auto;
+  padding-bottom: 8px;
   flex-wrap: wrap;
-  gap: 10px;
+  max-width: calc(100% - 220px);
 }
 
 .category-tab {
-  padding: 6px 12px;
-  border-radius: 4px;
-  background-color: var(--card-background, #f5f7fa);
+  white-space: nowrap;
+  padding: 4px 12px;
+  border-radius: 16px;
+  font-size: 14px;
   cursor: pointer;
-  font-size: 13px;
+  background-color: var(--card-background-light);
+  color: var(--text-secondary);
   transition: all 0.2s;
+  margin-bottom: 4px;
 }
 
 .category-tab.active {
-  background-color: var(--primary-color, #409EFF);
+  background-color: var(--primary-color);
   color: white;
 }
 
 .anchor-search {
-  width: 250px;
+  width: 200px;
 }
 
 .anchor-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
   gap: 16px;
-  margin-bottom: 20px;
-  max-height: 500px;
+  padding: 16px 0;
   overflow-y: auto;
-  padding: 10px;
+  height: 100%;
 }
 
 .anchor-card {
   display: flex;
-  align-items: center;
-  gap: 12px;
-  background-color: var(--card-background, #f8f9fa);
+  background-color: var(--card-background-light);
   border-radius: 8px;
   padding: 12px;
-  border: 1px solid var(--border-color, #dcdfe6);
+  gap: 12px;
   cursor: pointer;
-  transition: all 0.3s;
-  position: relative;
+  transition: all 0.2s;
+  border: 2px solid transparent;
+  height: 84px; /* 固定卡片高度 */
+  box-sizing: border-box;
 }
 
 .anchor-card:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  transform: translateY(-3px);
 }
 
 .anchor-card.selected {
-  border-color: var(--primary-color, #409EFF);
-  background: linear-gradient(to right, var(--card-background, #f8f9fa), rgba(64, 158, 255, 0.1));
+  border-color: var(--primary-color);
 }
 
 .anchor-avatar {
+  width: 60px;
+  height: 60px;
+  min-width: 60px; /* 确保最小宽度固定 */
   position: relative;
-  width: 50px;
-  height: 50px;
-  border-radius: 50%;
   overflow: hidden;
-  flex-shrink: 0;
+  border-radius: 6px;
 }
 
 .anchor-avatar img {
@@ -1629,98 +1696,105 @@ const previewVoice = async (anchor: any) => {
 
 .anchor-tag {
   position: absolute;
-  top: -3px;
-  right: -3px;
-  background: linear-gradient(45deg, #ffb800, #ff8a00);
+  right: 0;
+  top: 0;
+  background-color: #ff9800;
   color: white;
-  font-size: 9px;
-  font-weight: bold;
-  padding: 2px 5px;
-  border-radius: 4px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+  font-size: 10px;
+  padding: 2px 4px;
+  border-radius: 0 0 0 4px;
 }
 
 .anchor-info {
   flex: 1;
-  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  min-width: 0; /* 确保文本能够自动压缩 */
+  overflow: hidden; /* 确保溢出内容被隐藏 */
 }
 
 .anchor-name {
-  font-weight: 600;
   margin: 0 0 4px 0;
+  font-size: 16px;
+  font-weight: 500;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 
 .anchor-desc {
-  font-size: 12px;
-  color: var(--text-secondary, #909399);
   margin: 0;
+  font-size: 12px;
+  color: var(--text-secondary);
   display: -webkit-box;
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
+  text-overflow: ellipsis;
+  max-height: 2.4em; /* 限制描述文本高度为两行 */
 }
 
 .anchor-actions {
   display: flex;
   align-items: center;
+  justify-content: center;
+  min-width: 32px; /* 为控制区域设置最小宽度 */
+  margin-left: auto; /* 确保控制区域靠右 */
 }
 
-/* 预设弹出窗口 */
-.preset-popover {
-  padding: 10px;
-}
-
-.preset-popover h4 {
-  margin-top: 0;
-  margin-bottom: 10px;
-  font-size: 16px;
-}
-
-.preset-list {
+.anchor-play-button {
   display: flex;
-  flex-direction: column;
-  gap: 8px;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  min-width: 32px; /* 确保最小宽度固定 */
+  flex-shrink: 0; /* 防止按钮被压缩 */
 }
 
-.preset-item {
+.anchor-play-button :deep(.el-icon) {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+}
+
+.dialog-footer {
+  padding: 16px 0;
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  border-top: 1px solid var(--border-color);
+  margin-top: auto;
+}
+
+.style-option {
   display: flex;
   align-items: center;
   gap: 8px;
-  padding: 8px;
-  border-radius: 4px;
-  cursor: pointer;
-  transition: background-color 0.2s;
 }
 
-.preset-item:hover {
-  background-color: var(--primary-color-10, rgba(64, 158, 255, 0.1));
+.style-emoji {
+  font-size: 16px;
+}
+
+.voice-option {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
 }
 
 /* 响应式设计 */
 @media (max-width: 768px) {
-  .top-controls {
-    flex-direction: column;
-    align-items: stretch;
+  .option-grid {
+    grid-template-columns: 1fr;
   }
   
-  .left-controls, .right-controls {
-    justify-content: space-between;
-  }
-  
-  .quick-select {
-    width: 48%;
-  }
-  
-  .free-quota-info {
-    max-width: 100%;
-    padding: 10px 0;
-  }
-  
-  .slider-item {
-    min-width: 100%;
+  .anchor-grid {
+    grid-template-columns: 1fr;
   }
 }
 </style>

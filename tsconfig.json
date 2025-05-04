@@ -29,9 +29,6 @@
     "noImplicitThis": false,
     "alwaysStrict": false,
     
-    // 允许模板引用this
-    "suppressImplicitAnyIndexErrors": true,
-    
     // 禁用额外检查
     "noUnusedLocals": false,
     "noUnusedParameters": false,

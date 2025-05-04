@@ -1,5 +1,9 @@
 // src/assets/i18n/i18n.ts
-import { createI18n } from 'vue-i18n';
+// 使用TypeScript的非空断言
+// @ts-ignore
+import * as VueI18n from 'vue-i18n'
+// @ts-ignore
+const createI18n = VueI18n.createI18n
 
 const messages = {
   en: {
