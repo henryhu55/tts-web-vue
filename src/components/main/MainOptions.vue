@@ -20,9 +20,25 @@
               <el-option
                 v-for="item in oc.apiSelect"
                 :key="item.value"
-                :label="item.label"
+                :label="item.value === 5 ? `${item.label} (推荐免费)` : item.value === 4 ? `${item.label} (无限制使用)` : item.label"
                 :value="item.value"
-              />
+              >
+                <template v-if="item.value === 5">
+                  <div class="free-api-option">
+                    <span>{{ item.label }}</span>
+                    <el-tag size="small" type="success" effect="dark">推荐免费</el-tag>
+                  </div>
+                </template>
+                <template v-else-if="item.value === 4">
+                  <div class="free-api-option">
+                    <span>{{ item.label }}</span>
+                    <el-tag size="small" type="info" effect="plain">无限制使用</el-tag>
+                  </div>
+                </template>
+                <template v-else>
+                  <span>{{ item.label }}</span>
+                </template>
+              </el-option>
             </el-select>
           </div>
           
@@ -61,14 +77,19 @@
               @change="voiceSelectChange"
               filterable
             >
+              <template v-if="formConfig.voiceSelect" #trigger>
+                <div class="el-select__selection">
+                  {{ getChineseName(formConfig.voiceSelect) || formConfig.voiceSelect }}
+                </div>
+              </template>
               <el-option
                 v-for="item in voiceSelectList"
                 :key="item.ShortName"
-                :label="item.DisplayName"
+                :label="getChineseName(item.ShortName) || item.DisplayName"
                 :value="item.ShortName"
               >
                 <div class="voice-option">
-                  <span>{{ item.DisplayName + "-" + item.LocalName }}</span>
+                  <span>{{ getChineseName(item.ShortName) || item.DisplayName }}</span>
                   <el-button
                     size="small"
                     type="primary"
@@ -245,8 +266,15 @@
       
       <!-- 本地TTS服务设置卡片 -->
       <div v-if="formConfig.api === 5" class="option-section">
-        <h3 class="section-title">免费TTS服务</h3>
+        <h3 class="section-title">
+          免费TTS服务
+          <el-tag type="success" effect="plain" size="small" class="free-tag">无需API密钥</el-tag>
+        </h3>
         <div class="free-service-info">
+          <div class="free-service-highlight">
+            <el-icon color="#67C23A"><Check /></el-icon>
+            <span>推荐使用免费TTS服务，无需配置API密钥即可开始使用</span>
+          </div>
           <LocalTTSSettings />
         </div>
       </div>
@@ -347,6 +375,7 @@ import {
   Search, Avatar, Check, Close
 } from '@element-plus/icons-vue';
 import LocalTTSSettings from '../aside/LocalTTSSettings.vue';
+import { getChineseName } from "@/voice-utils"; // 导入声音工具函数
 
 // 定义props
 const props = defineProps({
@@ -384,7 +413,7 @@ const applySelectedAnchor = () => {
     const anchor = voiceAnchors.find(a => a.id === selectedAnchor.value);
     if (anchor) {
       // 保存当前选择的样式，以便可能需要重用
-      const selectedStyle = anchor.config.voiceStyleSelect || 'Default';
+      const selectedStyle = formConfig.value.voiceStyleSelect || 'Default';
       
       // 应用主播配置
       formConfig.value = {...anchor.config};
@@ -568,9 +597,8 @@ onMounted(() => {
     formConfig.value.volume = "default";
   }
   
-  if (!formConfig.value.api) {
-    formConfig.value.api = 5; // 默认使用免费TTS服务
-  }
+  // 设置默认API为免费TTS服务
+  formConfig.value.api = 5;
   
   // 如果当前使用的是免费TTS服务，自动检查连接和获取额度
   if (formConfig.value.api === 5) {
@@ -578,6 +606,13 @@ onMounted(() => {
       if (connected) {
         // 获取免费额度信息
         localTTSStore.getFreeLimitInfo();
+        
+        // 提示用户正在使用免费服务
+        ElMessage({
+          message: "您正在使用免费TTS服务，无需API密钥即可开始使用",
+          type: "success",
+          duration: 3000,
+        });
       }
     });
   }
@@ -638,6 +673,13 @@ const apiChange = (res: number) => {
     // 如果没有配置 API 地址，自动切换回免费TTS服务
     formConfig.value.api = 5;
     return;
+  } else if (res === 4 && config.value.thirdPartyApi !== "") {
+    // TTS88 API提示
+    ElMessage({
+      message: "您已选择TTS88 API，可以无限制使用",
+      type: "success",
+      duration: 3000,
+    });
   } else if (res === 5) {
     // 免费TTS服务
     if (!localTTSStore.config.enabled) {
@@ -965,13 +1007,19 @@ const voiceSelectChange = (value: string) => {
   // 获取可用的角色列表
   rolePlayList.value = voice?.VoiceRoleNames?.split(",") || [];
   
-  // 检查当前选择的样式是否在可用列表中
+  // 保存当前选择的样式
   const currentStyle = formConfig.value.voiceStyleSelect;
-  if (!availableStyles.includes(currentStyle) || !currentStyle) {
-    // 如果不在可用列表中或未设置，则选择第一个可用样式或Default
-    formConfig.value.voiceStyleSelect = availableStyles.length > 0 ? 
-      availableStyles[0] : 
-      'Default';
+  
+  // 检查当前选择的样式是否在可用列表中
+  if (availableStyles.length > 0) {
+    if (!availableStyles.includes(currentStyle) || !currentStyle) {
+      // 如果当前样式不可用或未设置，则选择第一个可用样式
+      formConfig.value.voiceStyleSelect = availableStyles[0];
+    }
+    // 如果当前样式可用，保持不变
+  } else {
+    // 如果没有可用样式，使用Default
+    formConfig.value.voiceStyleSelect = 'Default';
   }
   
   // 如果角色不在可用列表中，选择第一个可用角色或清空
@@ -1109,7 +1157,7 @@ const voiceAnchors = reactive([
   },
   {
     id: 'yunxi',
-    name: '云溪',
+    name: '云熙',
     isPro: false,
     description: '热门女声，火爆全网，方言版',
     category: ['hot', 'female'],
@@ -1160,7 +1208,7 @@ const voiceAnchors = reactive([
   },
   {
     id: 'yunye',
-    name: '云野',
+    name: '云叶',
     isPro: false,
     description: '情感女声',
     category: ['emotion', 'female'],
@@ -1245,7 +1293,7 @@ const voiceAnchors = reactive([
   },
   {
     id: 'yunfeng',
-    name: '云峰',
+    name: '云枫',
     isPro: false,
     description: '亲切大方姐姐，亲和女声',
     category: ['female'],
@@ -1349,7 +1397,7 @@ const selectAnchor = async (anchor: any) => {
   selectedAnchor.value = anchor.id;
   
   // 保存当前选择的样式，以便可能需要重用
-  const selectedStyle = anchor.config.voiceStyleSelect || 'Default';
+  const selectedStyle = formConfig.value.voiceStyleSelect || 'Default';
   
   // 应用主播配置
   formConfig.value = {...anchor.config};
@@ -1601,6 +1649,23 @@ const previewVoice = async (anchor: any) => {
   padding: 0;
 }
 
+.free-service-highlight {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 16px;
+  padding: 12px;
+  background-color: rgba(103, 194, 58, 0.1);
+  border-radius: 6px;
+  color: #67C23A;
+  font-weight: 500;
+}
+
+.free-tag {
+  margin-left: 10px;
+  vertical-align: middle;
+}
+
 /* 主播对话框样式 */
 .voice-anchor-dialog {
   height: 500px;
@@ -1785,6 +1850,21 @@ const previewVoice = async (anchor: any) => {
   justify-content: space-between;
   align-items: center;
   width: 100%;
+}
+
+.free-api-option {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+}
+
+.free-api-option .el-tag {
+  margin-left: 10px;
+  font-size: 11px;
+  padding: 0 6px;
+  height: 20px;
+  line-height: 18px;
 }
 
 /* 响应式设计 */

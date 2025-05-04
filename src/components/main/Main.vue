@@ -11,7 +11,8 @@
         <div class="header-controls">
           <!-- 免费额度提示 -->
           <div v-if="formConfig.api === 5 && localTTSStore.serverStatus.freeLimit" class="free-quota-badge">
-            <span>本次最多可输入 {{ localTTSStore.serverStatus.freeLimit.free_limit }} 剩余 {{ localTTSStore.serverStatus.freeLimit.remaining }} 可输入</span>
+            <el-icon color="#409eff"><InfoFilled /></el-icon>
+            <span>本次最多可输入 <b>{{ localTTSStore.serverStatus.freeLimit.free_limit }}</b> 剩余 <b>{{ localTTSStore.serverStatus.freeLimit.remaining }}</b> 可输入</span>
           </div>
           
         <el-button @click="dialogVisible = true" type="primary" class="ai-button">
@@ -34,14 +35,14 @@
           <!-- 免费额度进度条 -->
           <div v-if="formConfig.api === 5 && localTTSStore.serverStatus.freeLimit" class="quota-progress-wrapper">
             <div class="quota-text">
-              <span v-if="localTTSStore.serverStatus.freeLimit.remaining <= 0">每周限制 {{ localTTSStore.serverStatus.freeLimit.free_limit }} 个字符 (额度已用完)</span>
-              <span v-else>每周限制 {{ localTTSStore.serverStatus.freeLimit.free_limit }} 个字符 (部分声音可持无限制)</span>
+              <span v-if="localTTSStore.serverStatus.freeLimit.remaining <= 0" class="quota-warning">每周限制 {{ localTTSStore.serverStatus.freeLimit.free_limit }} 个字符 (额度已用完)</span>
+              <span v-else>每周限制 <b>{{ localTTSStore.serverStatus.freeLimit.free_limit }}</b> 个字符 <span class="quota-highlight">(部分声音可无限制使用)</span></span>
             </div>
             <el-progress 
               :percentage="localTTSStore.freeLimitUsagePercent" 
               :status="localTTSStore.freeLimitUsagePercent > 90 ? 'exception' : 'success'"
-              :stroke-width="4"
-              :show-text="false"
+              :stroke-width="6"
+              :show-text="true"
             />
           </div>
         </div>
@@ -72,9 +73,25 @@
             <el-option
               v-for="item in apiOptions"
               :key="item.value"
-              :label="item.label"
+              :label="item.value === 5 ? `${item.label} (推荐免费)` : item.value === 4 ? `${item.label} (无限制使用)` : item.label"
               :value="item.value"
-            />
+            >
+              <template v-if="item.value === 5">
+                <div class="free-api-option">
+                  <span>{{ item.label }}</span>
+                  <el-tag size="small" type="success" effect="dark">推荐免费</el-tag>
+                </div>
+              </template>
+              <template v-else-if="item.value === 4">
+                <div class="free-api-option">
+                  <span>{{ item.label }}</span>
+                  <el-tag size="small" type="info" effect="plain">无限制使用</el-tag>
+                </div>
+              </template>
+              <template v-else>
+                <span>{{ item.label }}</span>
+              </template>
+            </el-option>
           </el-select>
           
           <el-select
@@ -107,12 +124,27 @@
             <template #prefix>
               <el-icon><Microphone /></el-icon>
             </template>
+            <template v-if="formConfig.voiceSelect" #trigger>
+              <div class="el-select__selection">
+                {{ getChineseName(formConfig.voiceSelect) || formConfig.voiceSelect }}
+              </div>
+            </template>
             <el-option
               v-for="item in voiceSelectList"
               :key="item.ShortName"
-              :label="item.DisplayName"
+              :label="getChineseName(item.ShortName) || item.DisplayName"
               :value="item.ShortName"
-            />
+            >
+              <div class="voice-option">
+                <span>{{ getChineseName(item.ShortName) || item.DisplayName }}</span>
+                <el-button 
+                  size="small" 
+                  type="primary" 
+                  circle
+                  @click.stop="audition(item.ShortName)"
+                ><el-icon><CaretRight /></el-icon></el-button>
+              </div>
+            </el-option>
           </el-select>
     </div>
         
@@ -308,9 +340,25 @@
             <el-option
               v-for="item in apiOptions"
               :key="item.value"
-              :label="item.label"
+              :label="item.value === 5 ? `${item.label} (推荐免费)` : item.value === 4 ? `${item.label} (无限制使用)` : item.label"
               :value="item.value"
-            />
+            >
+              <template v-if="item.value === 5">
+                <div class="free-api-option">
+                  <span>{{ item.label }}</span>
+                  <el-tag size="small" type="success" effect="dark">推荐免费</el-tag>
+                </div>
+              </template>
+              <template v-else-if="item.value === 4">
+                <div class="free-api-option">
+                  <span>{{ item.label }}</span>
+                  <el-tag size="small" type="info" effect="plain">无限制使用</el-tag>
+                </div>
+              </template>
+              <template v-else>
+                <span>{{ item.label }}</span>
+              </template>
+            </el-option>
           </el-select>
           
           <el-select
@@ -343,12 +391,27 @@
             <template #prefix>
               <el-icon><Microphone /></el-icon>
             </template>
+            <template v-if="formConfig.voiceSelect" #trigger>
+              <div class="el-select__selection">
+                {{ getChineseName(formConfig.voiceSelect) || formConfig.voiceSelect }}
+              </div>
+            </template>
             <el-option
               v-for="item in voiceSelectList"
               :key="item.ShortName"
-              :label="item.DisplayName"
+              :label="getChineseName(item.ShortName) || item.DisplayName"
               :value="item.ShortName"
-            />
+            >
+              <div class="voice-option">
+                <span>{{ getChineseName(item.ShortName) || item.DisplayName }}</span>
+                <el-button 
+                  size="small" 
+                  type="primary" 
+                  circle
+                  @click.stop="audition(item.ShortName)"
+                ><el-icon><CaretRight /></el-icon></el-button>
+              </div>
+            </el-option>
           </el-select>
     </div>
     
@@ -448,6 +511,7 @@ import { ref, watch, onMounted, nextTick, onUnmounted } from "vue";
 import { useTtsStore } from "@/store/store";
 import { useLocalTTSStore } from "@/store/local-tts-store";
 import { storeToRefs } from "pinia";
+import { getTTSData } from "@/store/play";
 
 // 导入图标
 import { 
@@ -464,15 +528,16 @@ import {
   ChatDotRound,
   Microphone,
   Setting,
-  Avatar
+  Avatar,
+  InfoFilled
 } from '@element-plus/icons-vue';
 
 // 获取i18n实例
 const { t } = useI18n();  
-const store = useTtsStore();
+const ttsStore = useTtsStore();
 const localTTSStore = useLocalTTSStore();
 const { inputs, page, tableData, currMp3Url, config, formConfig, audioPlayer } =
-  storeToRefs(store);
+  storeToRefs(ttsStore);
 
 // iframe refs 和加载状态
 const docIframe = ref(null);
@@ -815,6 +880,9 @@ const handleKeyDown = (e) => {
 onMounted(() => {
   console.log('Main 组件已挂载, 当前页面索引:', page.value.asideIndex);
   
+  // 设置默认API为免费TTS服务
+  formConfig.value.api = 5;
+  
   // 初始化抽屉状态
   openSettingsDrawer.value = false;
   
@@ -827,6 +895,12 @@ onMounted(() => {
   // 如果当前使用的是免费TTS服务，自动检查连接和获取额度
   if (formConfig.value.api === 5) {
     checkTTSServiceStatus();
+    // 提示用户正在使用免费服务
+    ElMessage({
+      message: "您正在使用免费TTS服务，无需API密钥即可开始使用",
+      type: "success",
+      duration: 3000,
+    });
   }
   
   // 初始化状态
@@ -885,7 +959,7 @@ const updateComponent = () => {
 watch(
   () => inputs.value.inputValue,
   (newValue) => {
-    store.setSSMLValue(newValue);
+    ttsStore.setSSMLValue(newValue);
   }
 );
 
@@ -916,7 +990,7 @@ const sendToChatGPT = async () => {
   
   dialogLoading.value = true;
   try {
-    await store.startChatGPT(modalInput.value);
+    await ttsStore.startChatGPT(modalInput.value);
     dialogVisible.value = false;
   } catch (error) {
     console.error("GPT生成失败:", error);
@@ -1095,6 +1169,168 @@ const voiceSelectList = ref(
   optionsConfig.findVoicesByLocaleName(formConfig.value.languageSelect)
 );
 
+// 移除原来的 getChineseName 函数
+const getChineseName = (shortName: string) => {
+  if (!shortName) return '';
+  
+  // 从ShortName中提取名称部分
+  const nameParts = shortName.split('-');
+  
+  // 处理特殊情况
+  if (nameParts.length < 3) {
+    // 处理特殊情况，如shandong
+    if (shortName.toLowerCase() === 'shandong') {
+      return 'Shandong-山东';
+    }
+    return shortName;
+  }
+  
+  // 提取区域和名称
+  const region = nameParts[0] + '-' + nameParts[1]; // 如zh-CN, zh-TW, zh-HK
+  const name = nameParts[2].replace('Neural', '');
+  
+  // 中文名称映射
+  const nameMap: {[key: string]: string} = {
+    // 中国大陆 (zh-CN)
+    'Xiaoxuan': '晓萱', 
+    'Xiaochen': '晓辰',
+    'Xiaoxiao': '晓晓',
+    'Xiaohan': '晓涵',
+    'Xiaozhen': '晓甄',
+    'Yunjian': '云健',
+    'Xiaoyan': '晓颜',
+    'Xiaoyi': '晓伊',
+    'Yunxi': '云熙',
+    'Xiaomo': '晓墨',
+    'Yunye': '云叶',
+    'Yunxia': '云霞',
+    'Xiaorui': '晓瑞',
+    'Xiaoshuang': '晓双',
+    'Yunfeng': '云枫',
+    'Yunhan': '云翰',
+    'Kangkang': '康康',
+    'Zhangyu': '章宇',
+    'Yunhao': '云皓',
+    'Xiaomeng': '晓梦',
+    'Yunze': '云泽',
+    'Xiaoqiu': '晓秋',
+    'Xiaoyou': '晓悠',
+    'Yunyang': '云阳',
+    'Yundeng': '云登',
+    'YunJhe': '云杰',
+    'Yunxiang': '云翔',
+    'HsiaoYu': '小语',
+    'WanLung': '万龙',
+    'HiuMaan': '晓曼',
+    'HiuGaai': '晓佳',
+    'Xiaoni': '晓妮',
+    'HsiaoChen': '小陈',
+    'Xiaobei': '晓贝',
+    'Yunni': '云妮',
+    'Yunyi': '云怡',
+    'Yunxuan': '云轩',
+    'Xiaohui': '晓慧',
+    
+    // 方言
+    'Honghu': '洪湖',
+    'Liaoning': '辽宁',
+    'Shaanxi': '陕西',
+    'Henan': '河南',
+    'Yunnan': '云南',
+    'Sichuan': '四川',
+    'Tianjin': '天津',
+    'Shanxi': '山西',
+    'Hebei': '河北',
+    'Gansu': '甘肃',
+    'Anhui': '安徽',
+    
+    // 台湾地区 (zh-TW) - 使用繁体中文名称
+    'HsiaoChen': '曉臻',
+    'HsiaoYu': '曉雨',
+    'YunJhe': '雲哲',
+    
+    // 香港地区 (zh-HK) - 使用繁体中文名称
+    'HiuMaan': '曉曼',
+    'HiuGaai': '曉佳',
+    'WanLung': '雲龍'
+  };
+  
+  if (nameMap[name]) {
+    return `${name}-${nameMap[name]}`;
+  }
+  
+  return shortName;
+};
+
+// 调用试听函数
+const audition = async (value: string) => {
+  // 如果有抽屉打开，则关闭
+  openSettingsDrawer.value = false;
+  
+  // 创建临时的SSML用于试听
+  const tempInput = inputs.value.inputValue;
+  const tempSSML = inputs.value.ssmlValue;
+  
+  try {
+    // 使用试听文本生成SSML
+    inputs.value.inputValue = "你好，这是一段试听文本。";
+    formConfig.value.voiceSelect = value;
+    ttsStore.setSSMLValue();
+    
+    // 开始转换并播放
+    const voiceData = {
+      activeIndex: page.value.tabIndex,
+      ssmlContent: inputs.value.ssmlValue,
+      inputContent: inputs.value.inputValue,
+      retryCount: config.value.retryCount,
+      retryInterval: config.value.retryInterval,
+    };
+    
+    // 检查API URL是否为空
+    if (!config.value.thirdPartyApi && formConfig.value.api === 4) {
+      ElMessage({
+        message: "请先在设置中配置TTS88 API地址",
+        type: "error",
+        duration: 3000,
+      });
+      return;
+    }
+    
+    // 获取TTS数据
+    isLoading.value = true;
+    const res = await getTTSData({
+      api: formConfig.value.api,
+      voiceData,
+      speechKey: config.value.speechKey,
+      region: config.value.serviceRegion,
+      thirdPartyApi: config.value.thirdPartyApi,
+      tts88Key: config.value.tts88Key,
+    });
+    
+    if (res) {
+      if (res.buffer) {
+        const audioBlob = new Blob([res.buffer], { type: 'audio/mpeg' });
+        const audioUrl = URL.createObjectURL(audioBlob);
+        ttsStore.audition(audioUrl);
+      } else if (res.audibleUrl) {
+        ttsStore.audition(res.audibleUrl);
+      }
+    }
+  } catch (err) {
+    console.error('试听失败:', err);
+    ElMessage({
+      message: "试听失败: " + (err instanceof Error ? err.message : String(err)),
+      type: "error",
+      duration: 2000,
+    });
+  } finally {
+    // 恢复原始输入
+    inputs.value.inputValue = tempInput;
+    inputs.value.ssmlValue = tempSSML;
+    isLoading.value = false;
+  }
+};
+
 // API变更处理
 const apiChange = (value: number) => {
   // 检查API密钥是否已配置
@@ -1125,6 +1361,13 @@ const apiChange = (value: number) => {
     // 如果没有配置API地址，自动切换回免费TTS服务
     formConfig.value.api = 5;
     return;
+  } else if (value === 4 && config.value.thirdPartyApi !== "") {
+    // TTS88 API提示
+    ElMessage({
+      message: "您已选择TTS88 API，可以无限制使用",
+      type: "success",
+      duration: 3000,
+    });
   } else if (value === 5) {
     // 免费TTS服务
     if (!localTTSStore.config.enabled) {
@@ -1181,7 +1424,7 @@ const startBtn = () => {
   }
   
   // 启动转换过程
-  store.start();
+  ttsStore.start();
 };
 
 const isLoading = ref(false);
@@ -1290,6 +1533,11 @@ const onSelectAnchor = (anchor) => {
     });
   }
   showVoiceAnchorsDialog.value = false;
+};
+
+// 获取显示名称
+const getDisplayLabel = (value: string) => {
+  return getChineseName(value) || value;
 };
 </script>
 
@@ -1415,22 +1663,34 @@ const onSelectAnchor = (anchor) => {
   white-space: nowrap;
   display: flex;
   align-items: center;
-  height: 28px;
+  gap: 6px;
+  height: 32px;
 }
 
 .quota-progress-wrapper {
-  margin-top: 8px;
-  padding: 4px 8px;
-  border-radius: 4px;
-  background-color: rgba(230, 235, 245, 0.2);
+  margin-top: 12px;
+  padding: 8px 12px;
+  border-radius: 6px;
+  background-color: rgba(64, 158, 255, 0.1);
+  border: 1px dashed #b3d8ff;
 }
 
 .quota-text {
   display: flex;
   justify-content: space-between;
-  font-size: 12px;
-  color: #909399;
-  margin-bottom: 5px;
+  font-size: 13px;
+  color: #606266;
+  margin-bottom: 8px;
+}
+
+.quota-warning {
+  color: #f56c6c;
+  font-weight: 500;
+}
+
+.quota-highlight {
+  color: #67c23a;
+  font-weight: 500;
 }
 
 /* 简洁控制栏样式 */
@@ -1452,14 +1712,15 @@ const onSelectAnchor = (anchor) => {
   flex: 1;
 }
 
-.compact-select {
+.compact-select, .voice-select {
   width: 120px;
   min-width: 100px;
+  border-radius: 6px;
 }
 
 .voice-select {
-  width: 160px;
-  min-width: 120px;
+  width: 200px;
+  min-width: 180px;
 }
 
 .compact-actions {
@@ -1798,5 +2059,178 @@ const onSelectAnchor = (anchor) => {
 .voice-anchors-button:hover {
   background-color: #ffad33;
   border-color: #ff9900;
+}
+
+.free-api-option {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+}
+
+.free-api-option .el-tag {
+  margin-left: 10px;
+  font-size: 10px;
+  padding: 0 4px;
+  height: 18px;
+  line-height: 16px;
+}
+
+.voice-option {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+  padding: 4px 0;
+  min-height: 32px;
+}
+
+.voice-option span {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text-primary);
+  margin-right: 8px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: calc(100% - 40px);
+  line-height: 1.4;
+}
+
+/* 为中文名称添加特殊样式 */
+.voice-option span .chinese-name {
+  color: var(--text-secondary);
+  font-weight: normal;
+}
+
+.voice-option .el-button {
+  margin-left: 10px;
+  transition: all 0.3s ease;
+  flex-shrink: 0;
+  box-shadow: 0 2px 6px rgba(64, 158, 255, 0.25);
+  position: relative;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 22px;
+  width: 22px;
+  padding: 0;
+  font-size: 12px;
+}
+
+.voice-option .el-button:hover {
+  transform: scale(1.1);
+  box-shadow: 0 4px 12px rgba(64, 158, 255, 0.5);
+}
+
+.voice-option .el-button :deep(.el-icon) {
+  font-size: 11px;
+  width: 11px;
+  height: 11px;
+}
+
+:deep(.el-select-dropdown__item .el-icon) {
+  font-size: 11px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+}
+
+:deep(.el-select-dropdown__item) {
+  padding: 6px 12px !important;
+  height: auto !important;
+  min-height: 38px !important;
+  line-height: 1.5 !important;
+  transition: background-color 0.2s ease;
+  margin: 2px 0;
+}
+
+:deep(.el-select-dropdown__item:hover) {
+  background-color: rgba(64, 158, 255, 0.1);
+}
+
+:deep(.el-select-dropdown__item.selected) {
+  font-weight: 600;
+  color: var(--primary-color);
+  background-color: rgba(64, 158, 255, 0.15);
+}
+
+:deep(.el-select-dropdown__list) {
+  padding: 8px 0;
+}
+
+:deep(.el-popper.is-light) {
+  border-radius: 8px;
+}
+
+:deep(.el-button) {
+  transition: all 0.3s ease;
+}
+
+:deep(.el-button:active) {
+  transform: scale(0.95);
+}
+
+:deep(.el-input__wrapper) {
+  border-radius: 6px;
+  box-shadow: 0 0 0 1px var(--border-color) inset;
+  transition: all 0.2s;
+}
+
+:deep(.el-input__wrapper:hover) {
+  box-shadow: 0 0 0 1px var(--primary-color) inset;
+}
+
+:deep(.el-input__wrapper.is-focus) {
+  box-shadow: 0 0 0 1px var(--primary-color) inset !important;
+}
+
+:deep(.el-select .el-input__suffix) {
+  transition: all 0.3s;
+}
+
+:deep(.el-select.is-focus .el-input__suffix) {
+  transform: rotate(180deg);
+}
+
+:deep(.el-select-dropdown) {
+  border-radius: 8px !important;
+  padding: 6px 0;
+  max-height: 350px;
+  overflow-y: auto;
+  box-shadow: 0 3px 15px rgba(0, 0, 0, 0.1);
+  min-width: 200px !important;
+}
+
+:deep(.el-scrollbar__thumb) {
+  background-color: rgba(144, 147, 153, 0.3);
+  border-radius: 10px;
+}
+
+:deep(.el-popper[role="tooltip"]) {
+  z-index: 3000 !important;
+}
+
+/* 选择器样式改写，显示中文名称 */
+.voice-select :deep(.el-select__wrapper) {
+  display: flex;
+  align-items: center;
+}
+
+.voice-select :deep(.el-select-v2__selected) {
+  position: relative;
+}
+
+.voice-select :deep(.el-select-v2__placeholder) {
+  position: absolute;
+}
+
+/* 自定义选中值显示 */
+.voice-select-value {
+  display: flex;
+  align-items: center;
 }
 </style>
