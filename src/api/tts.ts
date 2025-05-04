@@ -77,7 +77,7 @@ export async function getTTSData(params: TTSParams): Promise<TTSResponse> {
           audibleUrl: audioUrl
         };
       } catch (localError: any) {
-        throw new Error(`本地TTS服务错误: ${localError.message}`);
+        throw new Error(`FreeTTS服务错误: ${localError.message}`);
       }
     } else {
       apiUrl = `https://${region}.tts.speech.microsoft.com/cognitiveservices/v1`;

@@ -12,7 +12,7 @@
           <!-- 免费额度提示 -->
           <div v-if="formConfig.api === 5 && localTTSStore.serverStatus.freeLimit" class="free-quota-badge">
             <el-icon color="#409eff"><InfoFilled /></el-icon>
-            <span>本次最多可输入 <b>{{ localTTSStore.serverStatus.freeLimit.free_limit }}</b> 剩余 <b>{{ localTTSStore.serverStatus.freeLimit.remaining }}</b> 可输入</span>
+            <span>本次最多可输入 <b>{{ localTTSStore.serverStatus.freeLimit.remaining }}</b> 剩余 <b>{{ localTTSStore.serverStatus.freeLimit.remaining }}</b> 可输入</span>
           </div>
           
         <el-button @click="dialogVisible = true" type="primary" class="ai-button">
@@ -35,8 +35,8 @@
           <!-- 免费额度进度条 -->
           <div v-if="formConfig.api === 5 && localTTSStore.serverStatus.freeLimit" class="quota-progress-wrapper">
             <div class="quota-text">
-              <span v-if="localTTSStore.serverStatus.freeLimit.remaining <= 0" class="quota-warning">每周限制 {{ localTTSStore.serverStatus.freeLimit.free_limit }} 个字符 (额度已用完)</span>
-              <span v-else>每周限制 <b>{{ localTTSStore.serverStatus.freeLimit.free_limit }}</b> 个字符 <span class="quota-highlight">(部分声音可无限制使用)</span></span>
+              <span v-if="localTTSStore.serverStatus.freeLimit.remaining <= 0" class="quota-warning">每天限制 {{ localTTSStore.serverStatus.freeLimit.free_limit }} 个字符 (额度已用完)</span>
+              <span v-else>每天限制 <b>{{ localTTSStore.serverStatus.freeLimit.free_limit }}</b> 个字符 <span class="quota-highlight">(部分声音可无限制使用)</span></span>
             </div>
             <el-progress 
               :percentage="localTTSStore.freeLimitUsagePercent" 

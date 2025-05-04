@@ -139,7 +139,7 @@ async function getTTSData(params: TTSParams): Promise<TTSResponse> {
             audibleUrl: audioUrl
           };
         } catch (localError: any) {
-          throw new Error(`本地TTS服务错误: ${localError.message}`);
+          throw new Error(`FreeTTS服务错误: ${localError.message}`);
         }
       
       default:

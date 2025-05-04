@@ -22,6 +22,8 @@ export interface FreeLimitInfo {
   used: number;  // 已使用
   remaining: number;  // 剩余
   reset_date: string;  // 重置日期
+  days_streak?: number; // 连续使用天数
+  debug?: any;  // 调试信息
 }
 
 /**
@@ -31,11 +33,54 @@ export interface FreeLimitInfo {
  */
 export async function checkServerConnection(config: LocalTTSConfig): Promise<boolean> {
   try {
-    const response = await axios.get(`${config.baseUrl}/api/v1/health`);
+    const response = await axios.get(`${config.baseUrl}/api/v1/health`, {
+      timeout: 5000 // 5秒超时
+    });
     return response.status === 200 && response.data?.status === 'ok';
   } catch (error) {
     console.error('无法连接到TTS服务器:', error);
     return false;
+  }
+}
+
+/**
+ * 生成浏览器指纹
+ * 虽然最终在服务器端会重新生成更可靠的指纹，但前端仍提供一个初始值以便服务器端比对
+ */
+export function generateBrowserFingerprint(): string {
+  try {
+    const screenInfo = `${window.screen.width}x${window.screen.height}x${window.screen.colorDepth}`;
+    const timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+    const languages = navigator.languages ? navigator.languages.join(',') : navigator.language;
+    const canvas = document.createElement('canvas');
+    const gl = canvas.getContext('webgl');
+    const glInfo = gl ? gl.getParameter(gl.RENDERER) : 'no-webgl';
+    
+    // 组合所有信息
+    const components = [
+      navigator.userAgent,
+      screenInfo,
+      timeZone,
+      languages,
+      glInfo,
+      navigator.platform,
+      new Date().getTimezoneOffset()
+    ];
+    
+    // 创建一个简单的哈希
+    let hash = 0;
+    const str = components.join('|');
+    for (let i = 0; i < str.length; i++) {
+      const char = str.charCodeAt(i);
+      hash = ((hash << 5) - hash) + char;
+      hash = hash & hash; // 转换为32位整数
+    }
+    
+    return hash.toString(16);
+  } catch (e) {
+    // 如果发生任何错误，返回一个随机值
+    console.error('生成浏览器指纹时出错:', e);
+    return Math.random().toString(36).substring(2, 15);
   }
 }
 
@@ -46,92 +91,121 @@ export async function checkServerConnection(config: LocalTTSConfig): Promise<boo
  */
 export async function getFreeLimitInfo(config: LocalTTSConfig): Promise<FreeLimitInfo> {
   try {
-    const response = await axios.get(`${config.baseUrl}/api/v1/free-limit`);
+    // 请求配置，添加浏览器指纹头
+    const requestConfig = {
+      headers: {
+        'X-Browser-Fingerprint': generateBrowserFingerprint()
+      },
+      timeout: 5000 // 5秒超时
+    };
+    
+    console.log('查询免费额度信息');
+    
+    const response = await axios.get(
+      `${config.baseUrl}/api/v1/free-limit`,
+      requestConfig
+    );
+    
     if (response.status === 200 && response.data?.data) {
       return response.data.data as FreeLimitInfo;
     }
     throw new Error('获取免费额度信息失败');
-  } catch (error) {
+  } catch (error: any) {
     console.error('获取免费额度信息失败:', error);
+    
+    // 添加更详细的错误处理
+    if (error.response) {
+      // 服务器返回了错误状态码
+      if (error.response.status === 429) {
+        throw new Error('请求过于频繁，请稍后再试');
+      } else if (error.response.data && error.response.data.message) {
+        throw new Error(`服务器错误: ${error.response.data.message}`);
+      }
+    } else if (error.request) {
+      // 请求发出但没有收到响应
+      throw new Error('服务器未响应，请检查连接');
+    }
+    
+    // 如果是其他错误，直接抛出
     throw error;
   }
 }
 
 /**
- * 使用免费TTS流API获取音频（二进制流）
+ * 获取TTS音频流
  * @param config 服务器配置
  * @param params TTS请求参数
- * @returns 音频数据的ArrayBuffer
+ * @returns 音频数据的Blob对象
  */
-export async function getFreeTTSStream(
-  config: LocalTTSConfig, 
-  params: TTSRequestParams
-): Promise<ArrayBuffer> {
+export async function getFreeTTSStream(config: LocalTTSConfig, params: TTSRequestParams): Promise<Blob> {
   try {
-    console.log('调用本地TTS服务器免费流API:', params);
-    console.log('语音参数:', params.voice || '未指定 (将使用默认值)');
-    
-    // 设置默认值
-    const requestParams: TTSRequestParams = {
-      voice: params.voice || config.defaultVoice,
-      language: params.language || config.defaultLanguage,
-      format: params.format || 'mp3',
-      text: params.text,
-      ssml: params.ssml
-    };
-    
-    console.log('最终请求参数:', requestParams);
-    
-    // 请求配置
+    // 请求配置，添加浏览器指纹头和设置响应类型为blob
     const requestConfig = {
       headers: {
-        'Content-Type': 'application/json',
-        'X-Browser-Fingerprint': generateBrowserFingerprint()
+        'X-Browser-Fingerprint': generateBrowserFingerprint(),
+        'Content-Type': 'application/json'
       },
-      responseType: 'arraybuffer' as 'arraybuffer'
+      responseType: 'blob' as 'blob',
+      timeout: 10000 // 10秒超时，合成语音可能需要更长时间
     };
     
-    // 发送请求
+    // 确保参数中有text或ssml
+    if (!params.text && !params.ssml) {
+      throw new Error('必须提供text或ssml参数');
+    }
+    
+    console.log('请求TTS音频流');
+    
     const response = await axios.post(
       `${config.baseUrl}/api/v1/free-tts-stream`,
-      requestParams,
+      params,
       requestConfig
     );
     
-    // 输出额度信息
-    console.log('免费配额信息:', {
-      used: response.headers['x-free-usage'],
-      remaining: response.headers['x-remaining-quota'],
-      dailyLimit: response.headers['x-daily-limit']
-    });
-    
-    return response.data;
-  } catch (error: any) {
-    console.error('获取TTS音频流失败:', error);
-    
-    // 提供更详细的错误信息
-    if (error.response) {
-      // 如果有响应，尝试解析错误信息
-      try {
-        const decoder = new TextDecoder();
-        const errorData = decoder.decode(error.response.data);
-        console.error('服务器返回的错误信息:', errorData);
-        
-        // 尝试解析JSON
-        try {
-          const jsonError = JSON.parse(errorData);
-          if (jsonError.message) {
-            throw new Error(jsonError.message);
-          }
-        } catch {
-          // 非JSON格式，直接使用文本
-        }
-      } catch {
-        // 解码失败，使用状态码
-        throw new Error(`服务器返回错误: ${error.response.status}`);
+    if (response.status === 200) {
+      // 从响应头中获取剩余配额信息
+      const usedQuota = response.headers['x-free-usage'];
+      const remainingQuota = response.headers['x-remaining-quota'];
+      const dailyLimit = response.headers['x-daily-limit'];
+      
+      if (usedQuota && remainingQuota && dailyLimit) {
+        console.log(`TTS请求成功 - 本次使用: ${usedQuota}字符, 剩余: ${remainingQuota}/${dailyLimit}字符`);
       }
+      
+      return response.data as Blob;
     }
     
+    throw new Error('获取TTS音频失败');
+  } catch (error: any) {
+    console.error('获取TTS音频失败:', error);
+    
+    // 添加更详细的错误处理
+    if (error.response) {
+      // 服务器返回了错误状态码
+      if (error.response.status === 402) {
+        throw new Error('免费额度不足，请明天再试');
+      } else if (error.response.status === 429) {
+        throw new Error('请求过于频繁，请稍后再试');
+      } else if (error.response.data) {
+        // 尝试读取blob中的错误信息
+        try {
+          const errorBlob = error.response.data as Blob;
+          const errorText = await errorBlob.text();
+          const errorJson = JSON.parse(errorText);
+          if (errorJson.message) {
+            throw new Error(`服务器错误: ${errorJson.message}`);
+          }
+        } catch (e) {
+          // 无法解析错误内容，使用通用错误信息
+          throw new Error(`服务器返回错误: ${error.response.status}`);
+        }
+      }
+    } else if (error.request) {
+      // 请求发出但没有收到响应
+      throw new Error('服务器未响应，请检查连接');
+    }
+    
+    // 如果是其他错误，直接抛出
     throw error;
   }
 }
@@ -187,29 +261,9 @@ export async function getFreeTTS(
   }
 }
 
-/**
- * 生成浏览器指纹用于跟踪免费额度使用
- * @returns 浏览器指纹
- */
-function generateBrowserFingerprint(): string {
-  const userAgent = navigator.userAgent;
-  const screenWidth = window.screen.width;
-  const screenHeight = window.screen.height;
-  const language = navigator.language;
-  const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
-  
-  // 使用这些信息创建一个简单的指纹
-  const fingerprint = btoa(`${userAgent}|${screenWidth}x${screenHeight}|${language}|${timezone}`);
-  
-  // 如果有持久化存储，可以将其存储起来重复使用
-  localStorage.setItem('tts_fingerprint', fingerprint);
-  
-  return fingerprint;
-}
-
 // 默认配置
 export const DEFAULT_LOCAL_TTS_CONFIG: LocalTTSConfig = {
-  baseUrl: 'https://tts-api.example.com', // 修改为您的实际服务器地址
+  baseUrl: 'http://localhost:8080', // 修改为您的实际服务器地址
   defaultVoice: 'zh-CN-XiaoxiaoNeural',
   defaultLanguage: 'zh-CN'
 }; 
