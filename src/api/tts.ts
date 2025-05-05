@@ -41,34 +41,79 @@ export async function getTTSData(params: TTSParams): Promise<TTSResponse> {
       if (tts88Key) {
         headers['Authorization'] = `Bearer ${tts88Key}`;
       }
+    } else if (api === 5) {
+      // 导入本地TTS服务相关功能
+      const { useLocalTTSStore } = await import('@/store/local-tts-store');
+      const localTTSStore = useLocalTTSStore();
+      
+      if (!localTTSStore.config.enabled || !localTTSStore.config.baseUrl) {
+        throw new Error("本地TTS服务未启用或未配置");
+      }
+      
+      // 使用本地TTS服务的getAudioStream方法
+      const isSSML = voiceData.activeIndex === "1"; // 判断是否为SSML内容
+      const content = isSSML ? voiceData.ssmlContent : voiceData.inputContent;
+      
+      if (!content) {
+        throw new Error("没有可转换的内容");
+      }
+      
+      try {
+        // 获取音频URL
+        const audioUrl = await localTTSStore.getAudioStream(
+          content,
+          undefined, // 使用默认voice
+          undefined, // 使用默认language
+          "mp3",
+          isSSML
+        );
+        
+        if (!audioUrl) {
+          throw new Error("获取本地TTS音频失败");
+        }
+        
+        // 返回可播放的URL
+        return {
+          audibleUrl: audioUrl
+        };
+      } catch (localError: any) {
+        throw new Error(`FreeTTS服务错误: ${localError.message}`);
+      }
     } else {
       apiUrl = `https://${region}.tts.speech.microsoft.com/cognitiveservices/v1`;
       // Azure API 直接使用 speechKey
       headers['Ocp-Apim-Subscription-Key'] = speechKey;
     }
 
-    // 发送请求
-    const response = await axios.post(
-      apiUrl,
-      voiceData.ssmlContent,
-      {
-        headers,
-        responseType: 'arraybuffer'
-      }
-    );
+    // 只有API类型1-4才需要发送HTTP请求
+    if (api !== 5) {
+      // 发送请求
+      const response = await axios.post(
+        apiUrl,
+        voiceData.ssmlContent,
+        {
+          headers,
+          responseType: 'arraybuffer'
+        }
+      );
 
-    // 将 ArrayBuffer 转换为 base64 字符串
-    const audioData = new Uint8Array(response.data);
-    const base64Audio = btoa(
-      audioData.reduce((data, byte) => data + String.fromCharCode(byte), '')
-    );
+      // 将 ArrayBuffer 转换为 base64 字符串
+      const audioData = new Uint8Array(response.data);
+      const base64Audio = btoa(
+        audioData.reduce((data, byte) => data + String.fromCharCode(byte), '')
+      );
 
-    // 返回音频数据
+      // 返回音频数据
+      return {
+        buffer: response.data,
+        audioContent: base64Audio
+      };
+    }
+
+    // 如果执行到这里且未返回，返回一个默认错误
     return {
-      buffer: response.data,
-      audioContent: base64Audio
+      error: "未知错误，无法处理API请求"
     };
-
   } catch (error: any) {
     console.error('TTS API Error:', error);
     return {

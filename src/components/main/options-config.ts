@@ -45,6 +45,10 @@ const findVoicesByLocaleName = (localeName: any) => {
 
 const apiSelect = [
   {
+    value: 5,
+    label: "免费TTS服务",
+  },
+  {
     value: 4,
     label: "TTS88 API",
   },

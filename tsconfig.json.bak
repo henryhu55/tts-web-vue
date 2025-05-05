@@ -2,13 +2,13 @@
   "compilerOptions": {
     "target": "esnext",
     "module": "esnext",
-    "moduleResolution": "bundler",
+    "moduleResolution": "node",
     "jsx": "preserve",
     "sourceMap": true,
     "resolveJsonModule": true,
     "esModuleInterop": true,
     "lib": ["esnext", "dom"],
-    "types": ["vite/client"],
+    "types": ["vite/client", "element-plus/global", "@vue/runtime-core", "pinia"],
     "baseUrl": ".",
     "paths": {
       "@/*": ["./src/*"]

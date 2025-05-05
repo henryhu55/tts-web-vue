@@ -41,47 +41,109 @@ async function getTTSData(params: TTSParams): Promise<TTSResponse> {
           throw new Error("Azure Speech API密钥或区域未配置");
         }
         
-        // 确保使用 SSML 内容，如果 ssmlContent 存在则优先使用
-        let azureContent = ssmlContent;
-        
-        // 如果没有 SSML 内容但有普通文本，则生成简单的 SSML
-        if (!azureContent && inputContent) {
-          azureContent = `<speak version="1.0" xmlns="http://www.w3.org/2001/10/synthesis" xmlns:mstts="http://www.w3.org/2001/mstts" xml:lang="zh-CN">
-            <voice name="zh-CN-XiaoxiaoNeural">
-              ${inputContent}
-            </voice>
-          </speak>`;
+        // 获取当前选中的声音
+        {
+          const { useTtsStore } = await import('@/store/store');
+          const ttsStore = useTtsStore();
+          const selectedVoice = ttsStore.formConfig.voiceSelect;
+          console.log("Azure API - 当前选择的声音:", selectedVoice);
+          
+          // 确保使用 SSML 内容，如果 ssmlContent 存在则优先使用
+          let azureContent = ssmlContent;
+          
+          // 如果没有 SSML 内容但有普通文本，则生成简单的 SSML
+          if (!azureContent && inputContent) {
+            azureContent = `<speak version="1.0" xmlns="http://www.w3.org/2001/10/synthesis" xmlns:mstts="http://www.w3.org/2001/mstts" xml:lang="zh-CN">
+              <voice name="${selectedVoice}">
+                ${inputContent}
+              </voice>
+            </speak>`;
+          }
+          
+          // 确保有内容可发送
+          if (!azureContent) {
+            throw new Error("没有可以发送的内容");
+          }
+          
+          return await callAzureSpeechRestAPI(azureContent, speechKey, region, retryCount, retryInterval);
         }
-        
-        // 确保有内容可发送
-        if (!azureContent) {
-          throw new Error("没有可以发送的内容");
-        }
-        
-        return await callAzureSpeechRestAPI(azureContent, speechKey, region, retryCount, retryInterval);
         
       case 4: // TTS88 API
-        // 确保使用 SSML 内容，如果 ssmlContent 存在则优先使用
-        let content = ssmlContent;
+        // 获取当前选中的声音
+        {
+          const { useTtsStore } = await import('@/store/store');
+          const ttsStore = useTtsStore();
+          const selectedVoice = ttsStore.formConfig.voiceSelect;
+          console.log("TTS88 API - 当前选择的声音:", selectedVoice);
+          
+          // 确保使用 SSML 内容，如果 ssmlContent 存在则优先使用
+          let content = ssmlContent;
+          
+          // 如果没有 SSML 内容但有普通文本，则生成简单的 SSML
+          if (!content && inputContent) {
+            content = `<speak version="1.0" xmlns="http://www.w3.org/2001/10/synthesis" xmlns:mstts="http://www.w3.org/2001/mstts" xml:lang="zh-CN">
+              <voice name="${selectedVoice}">
+                ${inputContent}
+              </voice>
+            </speak>`;
+          }
+          
+          // 确保有内容可发送
+          if (!content) {
+            throw new Error("没有可以发送的内容");
+          }
+          
+          return await callTTS88Api(content, tts88Key, thirdPartyApi, retryCount, retryInterval);
+        }
+      
+      case 5: // 本地TTS服务
+        console.log("使用本地TTS服务");
+        // 导入本地TTS服务相关功能
+        const { useLocalTTSStore } = await import('@/store/local-tts-store');
+        const localTTSStore = useLocalTTSStore();
         
-        // 如果没有 SSML 内容但有普通文本，则生成简单的 SSML
-        if (!content && inputContent) {
-          content = `<speak version="1.0" xmlns="http://www.w3.org/2001/10/synthesis" xmlns:mstts="http://www.w3.org/2001/mstts" xml:lang="zh-CN">
-            <voice name="zh-CN-XiaoxiaoNeural">
-              ${inputContent}
-            </voice>
-          </speak>`;
+        if (!localTTSStore.config.enabled || !localTTSStore.config.baseUrl) {
+          throw new Error("本地TTS服务未启用或未配置");
         }
         
-        // 确保有内容可发送
-        if (!content) {
-          throw new Error("没有可以发送的内容");
+        // 使用本地TTS服务的getAudioStream方法
+        const isSSML = activeIndex === "2"; // 判断是否为SSML内容
+        const localContent = isSSML ? ssmlContent : inputContent;
+        
+        if (!localContent) {
+          throw new Error("没有可转换的内容");
         }
         
-        return await callTTS88Api(content, tts88Key, thirdPartyApi, retryCount, retryInterval);
+        // 获取当前选中的声音
+        const { useTtsStore } = await import('@/store/store');
+        const ttsStore = useTtsStore();
+        const selectedVoice = ttsStore.formConfig.voiceSelect;
+        console.log("当前选择的声音:", selectedVoice);
+        
+        try {
+          // 获取音频URL，显式传递所选择的voice
+          const audioUrl = await localTTSStore.getAudioStream(
+            localContent,
+            selectedVoice, // 使用用户选择的声音
+            undefined, // 使用默认language
+            "mp3",
+            isSSML
+          );
+          
+          if (!audioUrl) {
+            throw new Error("获取本地TTS音频失败");
+          }
+          
+          // 返回可播放的URL
+          return {
+            audibleUrl: audioUrl
+          };
+        } catch (localError: any) {
+          throw new Error(`FreeTTS服务错误: ${localError.message}`);
+        }
       
       default:
-        throw new Error(`不支持的API类型: ${api}，Web版本仅支持Azure Speech API和TTS88 API`);
+        throw new Error(`不支持的API类型: ${api}，Web版本仅支持Azure Speech API、TTS88 API和本地TTS服务`);
     }
   } catch (error) {
     console.error("TTS转换失败:", error);

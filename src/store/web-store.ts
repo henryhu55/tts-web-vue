@@ -40,14 +40,14 @@ class WebStore {
   private initDefaultConfig(): void {
     // 设置默认API - 允许用户选择其他API
     if (!this.get("api")) {
-      this.set("api", 4); // 保留TTS88作为默认API，但不强制使用
+      this.set("api", 5); // 默认使用免费TTS服务
     }
 
     // 确保FormConfig.默认存在
     let defaultFormConfig = this.get("FormConfig.默认");
     if (!defaultFormConfig) {
       defaultFormConfig = {
-        api: 4, // 默认值，但可以修改
+        api: 5, // 默认使用免费TTS服务
         languageSelect: "zh-CN",
         voiceSelect: "zh-CN-XiaoxiaoNeural",
         voiceStyleSelect: "Default",
@@ -57,9 +57,9 @@ class WebStore {
       };
       this.set("FormConfig.默认", defaultFormConfig);
     } else {
-      // 不再强制转换api为TTS88
+      // 修复布尔值问题
       if (defaultFormConfig.api === true || defaultFormConfig.api === 'true') {
-        defaultFormConfig.api = 4; // 修复布尔值问题
+        defaultFormConfig.api = 5; // 设为免费TTS服务
         this.set("FormConfig.默认", defaultFormConfig);
       }
     }
