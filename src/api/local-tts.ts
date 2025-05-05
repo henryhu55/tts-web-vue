@@ -263,7 +263,7 @@ export async function getFreeTTS(
 
 // 默认配置
 export const DEFAULT_LOCAL_TTS_CONFIG: LocalTTSConfig = {
-  baseUrl: 'http://localhost:8080', // 修改为您的实际服务器地址
+  baseUrl: 'https://free.tts88.top', // 修改为您的实际服务器地址
   defaultVoice: 'zh-CN-XiaoxiaoNeural',
   defaultLanguage: 'zh-CN'
 }; 
