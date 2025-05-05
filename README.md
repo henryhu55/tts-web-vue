@@ -5,7 +5,10 @@
 ## 网站示例
 
 https://web.tts88.top
+### 新版本界面
+![image](https://github.com/user-attachments/assets/177c8c0d-33d1-48e7-81e3-778f36d8fedd)
 
+### 旧版本界面
 ![image](https://github.com/user-attachments/assets/67cafd2c-7b0f-4b0d-b14b-bf402aaff0cd)
 
 ## 功能特点
