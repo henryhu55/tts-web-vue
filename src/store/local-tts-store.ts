@@ -120,7 +120,15 @@ export const useLocalTTSStore = Pinia.defineStore('localTTSStore', {
     },
     
     // 使用免费TTS流API获取音频
-    async getAudioStream(text: string, voice?: string, language?: string, format?: string, isSSML: boolean = false) {
+    async getAudioStream(
+      text: string, 
+      voice?: string, 
+      language?: string, 
+      format?: string, 
+      isSSML: boolean = false,
+      speed: number = 1.0,
+      pitch: number = 1.0
+    ) {
       try {
         this.audio.error = null;
         this.audio.buffer = null;
@@ -132,7 +140,9 @@ export const useLocalTTSStore = Pinia.defineStore('localTTSStore', {
           ...(isSSML ? { ssml: text } : { text }),
           voice: voice || this.config.defaultVoice,
           language: language || this.config.defaultLanguage,
-          format: format || 'mp3'
+          format: format || 'mp3',
+          speed: speed,
+          pitch: pitch
         };
         
         // 获取音频流

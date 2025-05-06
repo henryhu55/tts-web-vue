@@ -14,6 +14,8 @@ export interface TTSRequestParams {
   voice: string;  // 语音
   language: string;  // 语言
   format?: string;  // 格式，默认mp3
+  speed?: number;  // 语速
+  pitch?: number;  // 音调
 }
 
 // 免费额度信息接口
@@ -154,11 +156,18 @@ export async function getFreeTTSStream(config: LocalTTSConfig, params: TTSReques
       throw new Error('必须提供text或ssml参数');
     }
     
-    console.log('请求TTS音频流');
+    // 设置默认值
+    const requestParams = {
+      ...params,
+      speed: params.speed || 1.0,
+      pitch: params.pitch || 1.0
+    };
+    
+    console.log('请求TTS音频流，参数:', requestParams);
     
     const response = await axios.post(
       `${config.baseUrl}/api/v1/free-tts-stream`,
-      params,
+      requestParams,
       requestConfig
     );
     

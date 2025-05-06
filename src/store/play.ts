@@ -114,20 +114,24 @@ async function getTTSData(params: TTSParams): Promise<TTSResponse> {
           throw new Error("没有可转换的内容");
         }
         
-        // 获取当前选中的声音
+        // 获取当前选中的声音和配置
         const { useTtsStore } = await import('@/store/store');
         const ttsStore = useTtsStore();
         const selectedVoice = ttsStore.formConfig.voiceSelect;
-        console.log("当前选择的声音:", selectedVoice);
+        const speed = ttsStore.formConfig.speed;
+        const pitch = ttsStore.formConfig.pitch;
+        console.log("当前选择的声音:", selectedVoice, "语速:", speed, "音调:", pitch);
         
         try {
-          // 获取音频URL，显式传递所选择的voice
+          // 获取音频URL，传递所有参数
           const audioUrl = await localTTSStore.getAudioStream(
             localContent,
             selectedVoice, // 使用用户选择的声音
             undefined, // 使用默认language
             "mp3",
-            isSSML
+            isSSML,
+            speed, // 传递语速
+            pitch  // 传递音调
           );
           
           if (!audioUrl) {

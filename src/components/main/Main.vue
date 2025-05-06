@@ -325,7 +325,7 @@
             :auto-upload="false"
             :on-change="fileChange"
             :on-remove="fileRemove"
-            show-file-list="false"
+            :show-file-list="false"
             accept=".txt"
             multiple
           >
@@ -353,18 +353,18 @@
           <el-table-column
             prop="fileName"
             :label="t('main.fileName')"
-            show-overflow-tooltip="true"
+            :show-overflow-tooltip="true"
           />
           <el-table-column
             prop="filePath"
             :label="t('main.filePath')"
-            show-overflow-tooltip="true"
+            :show-overflow-tooltip="true"
           />
           <el-table-column
             prop="fileSize"
             :label="t('main.fileSize')"
             width="80"
-            show-overflow-tooltip="true"
+            :show-overflow-tooltip="true"
           />
           <el-table-column prop="status" :label="t('main.status')"
           width="100">

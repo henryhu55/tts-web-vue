@@ -50,8 +50,8 @@
                 </div>
                 <div class="header-actions">
                   <el-radio-group v-model="currentView" size="small">
-                    <el-radio-button label="quota">额度信息</el-radio-button>
-                    <el-radio-button label="settings">高级配置</el-radio-button>
+                    <el-radio-button value="quota">额度信息</el-radio-button>
+                    <el-radio-button value="settings">高级配置</el-radio-button>
                   </el-radio-group>
                 </div>
               </div>
@@ -719,7 +719,7 @@
 
 <script setup lang="ts">
 // @ts-nocheck
-import { ref, reactive, watch, onMounted, computed, defineProps } from "vue";
+import { ref, reactive, watch, onMounted, computed } from "vue";
 import { optionsConfig as oc } from "./options-config";
 import { getStyleDes, getRoleDes } from "./emoji-config";
 import Loading from "./Loading.vue";
