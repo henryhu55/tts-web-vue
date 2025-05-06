@@ -57,6 +57,11 @@ export const useTtsStore = defineStore("ttsStore", {
       batchTaskId: "",
       batchTaskStatus: "",
       batchProgress: 0,
+      audioOutput: {
+        generatedFiles: [], // 已生成的音频文件列表
+        cloudSaved: [], // 已保存到云端的文件列表
+        currentPreview: null // 当前预览的音频文件
+      },
     };
   },
   // 定义getters，类似于computed，具有缓存g功能
@@ -78,7 +83,6 @@ export const useTtsStore = defineStore("ttsStore", {
       
       if (!voice) {
         console.error("警告: 没有选择声音，将使用默认声音");
-        // 为避免出错，设置一个默认声音
         this.formConfig.voiceSelect = "zh-CN-XiaoxiaoNeural";
         console.log("已设置默认声音:", this.formConfig.voiceSelect);
       }
@@ -91,12 +95,11 @@ export const useTtsStore = defineStore("ttsStore", {
       // 准备强度和音量属性
       let intensityAttr = "";
       if (this.formConfig.intensity && this.formConfig.intensity !== "default") {
-        // 将字符串强度值转换为对应的数值
         let intensityValue = "";
         if (this.formConfig.intensity === "weak") intensityValue = "0.5";
         else if (this.formConfig.intensity === "strong") intensityValue = "1.5";
         else if (this.formConfig.intensity === "extraStrong") intensityValue = "2";
-        else intensityValue = this.formConfig.intensity; // 如果已经是数值则直接使用
+        else intensityValue = this.formConfig.intensity;
         
         intensityAttr = ` styledegree="${intensityValue}"`;
       }
@@ -104,10 +107,10 @@ export const useTtsStore = defineStore("ttsStore", {
       // 准备音量属性
       let volumeAttr = "";
       if (this.formConfig.volume && this.formConfig.volume !== "default") {
-        // 定义音量值映射
-        let volumeMapping: {[key: string]: string} = {
+        let volumeMapping = {
           "extraWeak": "x-soft",
           "weak": "soft", 
+          "medium": "medium",
           "strong": "loud",
           "extraStrong": "x-loud"
         };
@@ -115,22 +118,24 @@ export const useTtsStore = defineStore("ttsStore", {
         volumeAttr = ` volume="${volumeMapping[this.formConfig.volume] || this.formConfig.volume}"`;
       }
 
-      // 使用当前选择的声音
-      const currentVoice = this.formConfig.voiceSelect;
-      
+      // 准备静音配置
+      let silenceConfig = "";
+      if (this.formConfig.silence && this.formConfig.silence !== "default") {
+        silenceConfig = `<break time="${this.formConfig.silence}" />`;
+      }
+
       const ssmlContent = `<speak xmlns="http://www.w3.org/2001/10/synthesis" xmlns:mstts="https://www.w3.org/2001/mstts" xmlns:emo="http://www.w3.org/2009/10/emotionml" version="1.0" xml:lang="en-US">
-        <voice name="${currentVoice}">
+        <voice name="${voice}">
             <mstts:express-as ${express != "General" ? 'style="' + express + '"' : ""}${role != "Default" ? ' role="' + role + '"' : ""}${intensityAttr}>
                 <prosody rate="${rate}%" pitch="${pitch}%"${volumeAttr}>
-                ${text}
+                ${silenceConfig}${text}
                 </prosody>
             </mstts:express-as>
         </voice>
-      </speak>
-      `;
+      </speak>`;
       
       this.inputs.ssmlValue = ssmlContent;
-      console.log("生成的SSML使用声音:", currentVoice);
+      console.log("生成的SSML使用声音:", voice);
     },
     setLanguage() {
       store.set("language", this.config.language);
@@ -689,6 +694,85 @@ export const useTtsStore = defineStore("ttsStore", {
         // 恢复SSML
         this.setSSMLValue();
         this.isLoading = false;
+      }
+    },
+    async generateAudio(text = "", config = null) {
+      // 实现音频生成逻辑
+      const audioConfig = config || this.formConfig;
+      // 根据选择的格式和质量生成音频
+      // 返回生成的音频文件信息
+    },
+    async previewAudio(audioFile) {
+      // 实现音频预览逻辑
+      this.audioOutput.currentPreview = audioFile;
+      // 播放音频
+    },
+    async batchDownload() {
+      // 实现批量下载逻辑
+      const files = this.audioOutput.generatedFiles;
+      // 打包并下载所有文件
+    },
+    async saveToCloud() {
+      // 实现保存到云端逻辑
+      const files = this.audioOutput.generatedFiles;
+      // 上传文件到云存储
+      // 更新已保存文件列表
+    },
+    // 自动预览功能
+    async autoPreview() {
+      if (!this.formConfig.autoPreview) return;
+      
+      // 使用预设的试听文本
+      const previewText = "这是一段预览文本，您可以通过它来确认当前的语音效果。";
+      
+      try {
+        // 保存当前的输入内容
+        const originalInput = this.inputs.inputValue;
+        const originalSSML = this.inputs.ssmlValue;
+        
+        // 设置预览文本
+        this.inputs.inputValue = previewText;
+        this.setSSMLValue();
+        
+        // 生成预览音频
+        const voiceData = {
+          activeIndex: this.page.tabIndex,
+          ssmlContent: this.inputs.ssmlValue,
+          inputContent: this.inputs.inputValue,
+          retryCount: this.config.retryCount,
+          retryInterval: this.config.retryInterval,
+        };
+        
+        const res = await getTTSData({
+          api: this.formConfig.api,
+          voiceData,
+          speechKey: this.config.speechKey,
+          region: this.config.serviceRegion,
+          thirdPartyApi: this.config.thirdPartyApi,
+          tts88Key: this.config.tts88Key,
+        });
+        
+        if (res) {
+          if (res.buffer) {
+            const audioBlob = new Blob([res.buffer], { type: 'audio/mpeg' });
+            const audioUrl = URL.createObjectURL(audioBlob);
+            this.audition(audioUrl);
+          } else if (res.audibleUrl) {
+            this.audition(res.audibleUrl);
+          }
+        }
+        
+        // 恢复原始输入
+        this.inputs.inputValue = originalInput;
+        this.inputs.ssmlValue = originalSSML;
+        
+      } catch (error) {
+        console.error('自动预览失败:', error);
+        ElMessage({
+          message: "自动预览失败，请稍后再试",
+          type: "error",
+          duration: 2000,
+        });
       }
     },
   },
