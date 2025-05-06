@@ -2732,229 +2732,141 @@ const cancelConversion = () => {
 @media screen and (max-width: 768px) {
   .compact-controls-bar {
     flex-direction: column;
-    gap: 12px;
+    gap: 10px;
     padding: 12px;
   }
   
   .compact-selects {
     width: 100%;
-    justify-content: space-between;
+    flex-direction: column;
+    gap: 8px;
   }
   
   .compact-select, .voice-select {
-    width: calc(50% - 6px);
+    width: 100% !important;
+    max-width: none !important;
   }
   
   .compact-actions {
     width: 100%;
     margin-left: 0;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+  }
+  
+  .start-button {
+    grid-column: 1 / -1;  /* 让开始按钮占据整行 */
+  }
+  
+  .text-area-container {
+    margin: 8px 0;
+  }
+  
+  .text-area-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+  
+  .text-area-hint {
+    font-size: 13px;
+  }
+  
+  .modern-textarea {
+    min-height: 150px;
+  }
+  
+  .card-header {
+    padding: 12px;
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+  
+  .header-controls {
+    width: 100%;
     justify-content: space-between;
   }
   
-  .free-quota-badge {
-    font-size: 11px;
-    padding: 2px 8px;
-    margin-bottom: 5px;
+  .ai-button {
     width: 100%;
-    justify-content: center;
-  }
-}
-
-@media screen and (min-width: 1440px) {
-  .compact-select {
-    width: 140px;
   }
   
-  .voice-select {
-    width: 200px;
+  .free-quota-badge {
+    width: 100%;
+    justify-content: center;
+    font-size: 12px;
+    height: auto;
+    padding: 6px;
   }
 }
 
-/* 语音主播按钮样式 */
-.voice-anchors-button {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  background-color: #ff9900;
-  color: white;
-  border-color: #e68a00;
+@media screen and (min-width: 769px) and (max-width: 1024px) {
+  .modern-main {
+    padding: 15px !important;
+  }
+
+  .control-panel {
+    gap: 15px;
+  }
+
+  .settings-panel {
+    padding: 20px;
+  }
+
+  .el-dialog {
+    width: 80% !important;
+  }
+
+  .el-drawer {
+    width: 70% !important;
+  }
 }
 
-.voice-anchors-button:hover {
-  background-color: #ffad33;
-  border-color: #ff9900;
+/* 触摸设备交互优化 */
+@media (hover: none) {
+  .el-button:active {
+    transform: scale(0.98);
+  }
+
+  .voice-card:active {
+    transform: scale(0.98);
+  }
+
+  .settings-item:active {
+    background-color: var(--hover-color);
+  }
 }
 
-.free-api-option {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  width: 100%;
+/* 深色模式移动端优化 */
+.dark-theme .mobile-view {
+  .text-area {
+    background-color: var(--card-background);
+    border-color: var(--border-color);
+  }
+
+  .settings-panel {
+    background-color: var(--card-background);
+  }
+
+  .upload-area {
+    background-color: var(--card-background);
+    border-color: var(--border-color);
+  }
 }
 
-.free-api-option .el-tag {
-  margin-left: 10px;
-  font-size: 10px;
-  padding: 0 4px;
-  height: 18px;
-  line-height: 16px;
-}
+/* 优化加载动画在移动端的显示 */
+@media (max-width: 768px) {
+  .loading-animation {
+    transform: scale(0.8);
+  }
 
-.voice-option {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  width: 100%;
-  padding: 4px 0;
-  min-height: 32px;
-}
+  .loading-text {
+    font-size: 14px;
+  }
 
-.voice-option span {
-  font-size: 14px;
-  font-weight: 500;
-  color: var(--text-primary);
-  margin-right: 8px;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  max-width: calc(100% - 40px);
-  line-height: 1.4;
-}
-
-/* 为中文名称添加特殊样式 */
-.voice-option span .chinese-name {
-  color: var(--text-secondary);
-  font-weight: normal;
-}
-
-.voice-option .el-button {
-  margin-left: 10px;
-  transition: all 0.3s ease;
-  flex-shrink: 0;
-  box-shadow: 0 2px 6px rgba(64, 158, 255, 0.25);
-  position: relative;
-  z-index: 10;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  height: 22px;
-  width: 22px;
-  padding: 0;
-  font-size: 12px;
-}
-
-.voice-option .el-button:hover {
-  transform: scale(1.1);
-  box-shadow: 0 4px 12px rgba(64, 158, 255, 0.5);
-}
-
-.voice-option .el-button :deep(.el-icon) {
-  font-size: 11px;
-  width: 11px;
-  height: 11px;
-}
-
-:deep(.el-select-dropdown__item .el-icon) {
-  font-size: 11px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 100%;
-  height: 100%;
-}
-
-:deep(.el-select-dropdown__item) {
-  padding: 6px 12px !important;
-  height: auto !important;
-  min-height: 38px !important;
-  line-height: 1.5 !important;
-  transition: background-color 0.2s ease;
-  margin: 2px 0;
-}
-
-:deep(.el-select-dropdown__item:hover) {
-  background-color: rgba(64, 158, 255, 0.1);
-}
-
-:deep(.el-select-dropdown__item.selected) {
-  font-weight: 600;
-  color: var(--primary-color);
-  background-color: rgba(64, 158, 255, 0.15);
-}
-
-:deep(.el-select-dropdown__list) {
-  padding: 8px 0;
-}
-
-:deep(.el-popper.is-light) {
-  border-radius: 8px;
-}
-
-:deep(.el-button) {
-  transition: all 0.3s ease;
-}
-
-:deep(.el-button:active) {
-  transform: scale(0.95);
-}
-
-:deep(.el-input__wrapper) {
-  border-radius: 6px;
-  box-shadow: 0 0 0 1px var(--border-color) inset;
-  transition: all 0.2s;
-}
-
-:deep(.el-input__wrapper:hover) {
-  box-shadow: 0 0 0 1px var(--primary-color) inset;
-}
-
-:deep(.el-input__wrapper.is-focus) {
-  box-shadow: 0 0 0 1px var(--primary-color) inset !important;
-}
-
-:deep(.el-select .el-input__suffix) {
-  transition: all 0.3s;
-}
-
-:deep(.el-select.is-focus .el-input__suffix) {
-  transform: rotate(180deg);
-}
-
-:deep(.el-select-dropdown) {
-  border-radius: 8px !important;
-  padding: 6px 0;
-  max-height: 350px;
-  overflow-y: auto;
-  box-shadow: 0 3px 15px rgba(0, 0, 0, 0.1);
-  min-width: 200px !important;
-}
-
-:deep(.el-scrollbar__thumb) {
-  background-color: rgba(144, 147, 153, 0.3);
-  border-radius: 10px;
-}
-
-:deep(.el-popper[role="tooltip"]) {
-  z-index: 3000 !important;
-}
-
-/* 选择器样式改写，显示中文名称 */
-.voice-select :deep(.el-select__wrapper) {
-  display: flex;
-  align-items: center;
-}
-
-.voice-select :deep(.el-select-v2__selected) {
-  position: relative;
-}
-
-.voice-select :deep(.el-select-v2__placeholder) {
-  position: absolute;
-}
-
-/* 自定义选中值显示 */
-.voice-select-value {
-  display: flex;
-  align-items: center;
+  .progress-bar {
+    height: 8px;
+  }
 }
 </style>

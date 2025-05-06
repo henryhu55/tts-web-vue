@@ -172,4 +172,95 @@ const setFormatType = () => {
 .dark-theme audio::-webkit-media-controls-panel {
   background-color: var(--card-background);
 }
+
+/* 移动端响应式样式 */
+@media (max-width: 768px) {
+  .modern-footer {
+    height: auto;
+    padding: 10px;
+  }
+
+  .player-container {
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .format-selection {
+    width: 100%;
+    justify-content: space-between;
+  }
+
+  .format-select {
+    width: 100px;
+  }
+
+  .audio-player {
+    width: 100%;
+  }
+
+  .modern-audio-player {
+    width: 100%;
+    height: 32px;
+  }
+
+  .download-button {
+    margin: 0;
+    width: 100%;
+    display: flex;
+    justify-content: center;
+  }
+
+  .download-button .el-button {
+    width: 100%;
+    border-radius: var(--border-radius-medium);
+  }
+
+  /* 优化音频控制器在移动端的显示 */
+  :deep(audio::-webkit-media-controls-panel) {
+    padding: 0 5px;
+  }
+
+  :deep(audio::-webkit-media-controls-play-button) {
+    padding: 0 10px;
+  }
+
+  :deep(audio::-webkit-media-controls-time-remaining-display),
+  :deep(audio::-webkit-media-controls-current-time-display) {
+    font-size: 12px;
+  }
+}
+
+/* 平板设备响应式样式 */
+@media (min-width: 769px) and (max-width: 1024px) {
+  .modern-footer {
+    padding: 0 15px;
+  }
+
+  .format-selection {
+    min-width: 160px;
+  }
+
+  .format-select {
+    width: 100px;
+  }
+}
+
+/* 触摸设备交互优化 */
+@media (hover: none) {
+  .download-button .el-button:active {
+    transform: scale(0.98);
+  }
+}
+
+/* 深色模式移动端优化 */
+.dark-theme .mobile-view {
+  .modern-footer {
+    background-color: var(--card-background);
+    border-top-color: var(--border-color);
+  }
+
+  :deep(audio::-webkit-media-controls-panel) {
+    background-color: var(--card-background);
+  }
+}
 </style>

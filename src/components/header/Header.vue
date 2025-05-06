@@ -1,5 +1,10 @@
 <template>
   <div class="modern-header">
+    <!-- 移动端菜单按钮 -->
+    <div class="mobile-menu-button" @click="$emit('toggle-sidebar')">
+      <el-icon><Menu /></el-icon>
+    </div>
+
     <div class="app-branding">
       <span class="app-title">TTS web vue</span>
     </div>
@@ -49,12 +54,12 @@
 import { ref } from "vue";
 import { useTtsStore } from "@/store/store";
 import { storeToRefs } from "pinia";
-import { Link, QuestionFilled, InfoFilled } from '@element-plus/icons-vue';
+import { Link, QuestionFilled, InfoFilled, Menu, MoonNight, More } from '@element-plus/icons-vue';
 
 const ttsStore = useTtsStore();
 const { config } = storeToRefs(ttsStore);
 
-defineEmits(['toggle-theme']);
+defineEmits(['toggle-theme', 'toggle-sidebar']);
 
 const openApiSite = () => {
   window.open("https://api.tts88.top", "_blank");
@@ -141,5 +146,98 @@ const showUserGuide = () => {
 
 .dark-theme .modern-header {
   background: var(--card-background);
+}
+
+/* 移动端菜单按钮样式 */
+.mobile-menu-button {
+  display: none;
+  padding: 8px;
+  cursor: pointer;
+  color: var(--text-primary);
+  transition: all var(--transition-fast);
+}
+
+.mobile-menu-button:hover {
+  color: var(--primary-color);
+}
+
+.mobile-menu-button .el-icon {
+  font-size: 24px;
+}
+
+/* 移动端响应式样式 */
+@media (max-width: 768px) {
+  .modern-header {
+    padding: 0 12px;
+    height: 56px;
+  }
+
+  .mobile-menu-button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    border-radius: 8px;
+    transition: all 0.3s ease;
+  }
+
+  .mobile-menu-button:hover {
+    background-color: rgba(0, 0, 0, 0.05);
+  }
+
+  .dark-theme .mobile-menu-button:hover {
+    background-color: rgba(255, 255, 255, 0.05);
+  }
+
+  .app-branding {
+    margin-left: 8px;
+  }
+
+  .app-title {
+    font-size: 18px;
+  }
+
+  .api-badge {
+    display: none;
+  }
+
+  .control-buttons {
+    gap: 4px;
+  }
+
+  .control-buttons .el-button {
+    width: 36px;
+    height: 36px;
+    padding: 8px;
+  }
+
+  .el-dropdown-menu {
+    min-width: 160px;
+  }
+}
+
+/* 平板设备响应式样式 */
+@media (min-width: 769px) and (max-width: 1024px) {
+  .modern-header {
+    padding: 0 15px;
+  }
+
+  .app-title {
+    font-size: 20px;
+  }
+
+  .control-buttons {
+    gap: 6px;
+  }
+}
+
+/* 深色模式适配 */
+.dark-theme .mobile-menu-button {
+  color: var(--text-primary);
+}
+
+.dark-theme .mobile-menu-button:hover {
+  color: var(--primary-color);
 }
 </style>

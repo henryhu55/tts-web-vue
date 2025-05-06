@@ -25,31 +25,36 @@ const guideSteps = ref([
     element: 'div.modern-aside',
     title: '侧边栏导航',
     content: '在这里切换不同的功能页面，例如文本转语音、批量处理等',
-    hint: '点击不同的菜单项可以访问不同的功能'
+    hint: '点击不同的菜单项可以访问不同的功能',
+    mobileElement: 'button.mobile-menu-button' // 移动端时指向菜单按钮
   },
   {
     element: 'div.text-area-container',
     title: '输入文本',
     content: '在这里输入您想要转换为语音的文本内容',
-    hint: '您可以输入普通文本或使用SSML标记增强控制'
+    hint: '您可以输入普通文本或使用SSML标记增强控制',
+    skipSidebarClose: true // 标记这一步不需要关闭侧边栏
   },
   {
     element: 'div.compact-selects',
     title: '选择语音',
     content: '选择语言、声音和发音风格，自定义您的语音输出',
-    hint: '不同的声音和风格会产生不同的语音效果'
+    hint: '不同的声音和风格会产生不同的语音效果',
+    skipSidebarClose: true
   },
   {
     element: 'button.settings-button',
     title: '高级设置',
     content: '调整语速、音调等高级参数，进一步定制语音效果',
-    hint: '您可以微调这些参数来获得最理想的语音输出'
+    hint: '您可以微调这些参数来获得最理想的语音输出',
+    skipSidebarClose: true
   },
   {
     element: 'button.start-button',
     title: '开始转换',
     content: '点击此按钮将文本转换为语音，完成后可以播放或下载',
-    hint: '转换过程需要一点时间，请耐心等待'
+    hint: '转换过程需要一点时间，请耐心等待',
+    skipSidebarClose: true
   }
 ]);
 
@@ -211,13 +216,28 @@ const updateGuidePosition = () => {
   if (!showUserGuide.value) return;
   
   const step = currentGuideStep.value;
-  const targetSelector = guideSteps.value[step].element;
+  const currentStepData = guideSteps.value[step];
+  let targetSelector = currentStepData.element;
+  
+  // 在移动端时使用特定的选择器
+  if (isMobileView.value && currentStepData.mobileElement && step !== 0) {
+    targetSelector = currentStepData.mobileElement;
+  }
+  
+  // 如果是移动端且不是需要跳过关闭侧边栏的步骤，则确保侧边栏收起
+  if (isMobileView.value && !currentStepData.skipSidebarClose) {
+    isSidebarCollapsed.value = false;
+  } else if (isMobileView.value) {
+    isSidebarCollapsed.value = true;
+  }
+  
   const targetElement = findTargetElement(targetSelector);
   
   console.log('引导定位调试:', { 
     step, 
     targetSelector, 
     targetElementExists: !!targetElement,
+    isMobileView: isMobileView.value
   });
   
   if (!targetElement) {
@@ -236,7 +256,14 @@ const updateGuidePosition = () => {
     left: `${targetRect.left}px`,
     width: `${targetRect.width}px`,
     height: `${targetRect.height}px`,
-    borderRadius: '4px'
+    borderRadius: isMobileView.value ? '12px' : '4px',
+    // 为移动端侧边栏添加特殊样式
+    ...(isMobileView.value && step === 0 ? {
+      borderRadius: '0',
+      borderLeft: 'none',
+      borderTop: 'none',
+      borderBottom: 'none'
+    } : {})
   };
   
   // 找到底部工具栏
@@ -391,12 +418,14 @@ const toggleTheme = () => {
 };
 
 // 监听引导步骤变化
-watch(() => currentGuideStep.value, () => {
-  console.log('引导步骤变化:', currentGuideStep.value);
+watch(() => currentGuideStep.value, (newStep) => {
+  console.log('引导步骤变化:', newStep);
   
-  // 使用nextTick确保DOM更新后再进行定位
   nextTick(() => {
-    updateGuidePosition();
+    // 确保DOM更新后再进行定位
+    setTimeout(() => {
+      updateGuidePosition();
+    }, 300); // 给予足够的时间让过渡动画完成
   });
 });
 
@@ -578,35 +607,50 @@ const findTargetElement = (selector) => {
         element = document.querySelector(`[class*="${className}"]`);
       }
     }
-    
-    // 尝试查找可能的 ID
-    if (!element && selector.includes('#')) {
-      const idName = selector.split('#')[1];
-      element = document.querySelector(`#${idName}`);
+  }
+
+  // 特殊处理移动端侧边栏的情况
+  if (selector === 'div.modern-aside' && isMobileView.value) {
+    // 如果是第一步且在移动端，返回整个侧边栏元素
+    const sidebarElement = document.querySelector('.modern-aside');
+    if (sidebarElement) {
+      return {
+        getBoundingClientRect: () => {
+          const rect = sidebarElement.getBoundingClientRect();
+          return {
+            ...rect,
+            // 确保宽度和高度覆盖整个侧边栏
+            width: rect.width,
+            height: window.innerHeight,
+            top: 0,
+            bottom: window.innerHeight
+          };
+        }
+      };
     }
-    
-    // 对特定步骤进行特殊处理
-    if (!element) {
-      if (selector === 'div.text-area-container') {
-        // 尝试查找文本区域
-        element = document.querySelector('.text-area') || 
-                  document.querySelector('textarea') || 
-                  document.querySelector('.text-input-area');
-      } else if (selector === 'div.compact-selects') {
-        // 尝试查找选择器区域
-        element = document.querySelector('.voice-selects') || 
-                  document.querySelector('.voice-options') || 
-                  document.querySelector('.settings-row');
-      } else if (selector === 'button.settings-button') {
-        // 尝试查找设置按钮
-        element = document.querySelector('[class*="settings"]') || 
-                  document.querySelector('.el-button');
-      } else if (selector === 'button.start-button') {
-        // 尝试查找开始按钮
-        element = document.querySelector('.start') || 
-                  document.querySelector('[class*="start"]') || 
-                  document.querySelector('.el-button');
-      }
+  }
+  
+  // 对特定步骤进行特殊处理
+  if (!element) {
+    if (selector === 'div.text-area-container') {
+      // 尝试查找文本区域
+      element = document.querySelector('.text-area') || 
+                document.querySelector('textarea') || 
+                document.querySelector('.text-input-area');
+    } else if (selector === 'div.compact-selects') {
+      // 尝试查找选择器区域
+      element = document.querySelector('.voice-selects') || 
+                document.querySelector('.voice-options') || 
+                document.querySelector('.settings-row');
+    } else if (selector === 'button.settings-button') {
+      // 尝试查找设置按钮
+      element = document.querySelector('[class*="settings"]') || 
+                document.querySelector('.el-button');
+    } else if (selector === 'button.start-button') {
+      // 尝试查找开始按钮
+      element = document.querySelector('.start') || 
+                document.querySelector('[class*="start"]') || 
+                document.querySelector('.el-button');
     }
   }
   
@@ -652,14 +696,86 @@ const setGuideStep = (index, event) => {
   // 处理设置引导步骤逻辑
   currentGuideStep.value = index;
 };
+
+// 添加移动端视图相关的响应式状态
+const isMobileView = ref(false);
+const isSidebarCollapsed = ref(false);
+
+// 切换侧边栏
+const toggleSidebar = () => {
+  isSidebarCollapsed.value = !isSidebarCollapsed.value;
+};
+
+// 检测移动端视图
+const checkMobileView = () => {
+  isMobileView.value = window.innerWidth <= 768;
+  if (isMobileView.value) {
+    // 在移动端默认收起侧边栏
+    isSidebarCollapsed.value = true;
+  } else {
+    isSidebarCollapsed.value = false;
+  }
+};
+
+// 添加触摸事件相关变量
+const touchStartX = ref(0);
+const touchEndX = ref(0);
+const MIN_SWIPE_DISTANCE = 70;
+
+// 处理触摸开始
+const handleTouchStart = (event) => {
+  touchStartX.value = event.touches[0].clientX;
+};
+
+// 处理触摸结束
+const handleTouchEnd = (event) => {
+  touchEndX.value = event.changedTouches[0].clientX;
+  const swipeDistance = touchEndX.value - touchStartX.value;
+  
+  // 从左向右滑动超过阈值，显示侧边栏
+  if (swipeDistance > MIN_SWIPE_DISTANCE && isSidebarCollapsed.value) {
+    isSidebarCollapsed.value = false;
+  }
+  // 从右向左滑动超过阈值，隐藏侧边栏
+  else if (swipeDistance < -MIN_SWIPE_DISTANCE && !isSidebarCollapsed.value) {
+    isSidebarCollapsed.value = true;
+  }
+};
+
+// 在组件挂载时添加视窗检测
+onMounted(() => {
+  // ... existing code ...
+  
+  checkMobileView();
+  window.addEventListener('resize', checkMobileView);
+  
+  // 添加触摸事件监听
+  document.addEventListener('touchstart', handleTouchStart);
+  document.addEventListener('touchend', handleTouchEnd);
+});
+
+// 组件卸载时移除事件监听
+onBeforeUnmount(() => {
+  // ... existing code ...
+  
+  window.removeEventListener('resize', checkMobileView);
+  
+  // 移除触摸事件监听
+  document.removeEventListener('touchstart', handleTouchStart);
+  document.removeEventListener('touchend', handleTouchEnd);
+});
 </script>
 
 <template>
-  <div class="app" :class="{ 'dark-theme': isDarkTheme }">
+  <div class="app" :class="{ 'dark-theme': isDarkTheme, 'mobile-view': isMobileView }">
     <el-container class="modern-container">
-      <el-header class="modern-header"><Header @toggle-theme="toggleTheme" /></el-header>
+      <el-header class="modern-header">
+        <Header @toggle-theme="toggleTheme" @toggle-sidebar="toggleSidebar" />
+      </el-header>
       <el-container class="modern-body-container">
-        <el-aside class="modern-aside"><Aside /></el-aside>
+        <el-aside class="modern-aside" :class="{ 'sidebar-collapsed': isSidebarCollapsed }">
+          <Aside />
+        </el-aside>
         <el-container class="modern-main-footer">
           <el-main class="modern-main"><Main /></el-main>
           <el-footer class="modern-footer"><Footer /></el-footer>
@@ -667,6 +783,13 @@ const setGuideStep = (index, event) => {
       </el-container>
     </el-container>
     
+    <!-- 移动端侧边栏遮罩层 -->
+    <div v-if="isMobileView" 
+         class="mobile-sidebar-overlay"
+         :class="{ 'visible': !isSidebarCollapsed }"
+         @click="toggleSidebar">
+    </div>
+
     <!-- 使用全新的引导实现 -->
     <div v-if="showUserGuide" class="guide-system">
       <!-- 半透明背景层 -->
@@ -1109,40 +1232,333 @@ body {
   }
 }
 
-/* 响应式调整 */
+/* 移动端响应式样式 */
 @media (max-width: 768px) {
   .modern-aside {
-    width: 180px !important;
+    position: fixed !important;
+    left: 0;
+    top: 0; /* 改为从顶部开始 */
+    bottom: 0;
+    z-index: 1000;
+    transform: translateX(-100%);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+    width: 280px !important;
+    max-width: 85% !important;
+    background-color: var(--card-background);
+    border-right: none;
+    box-shadow: var(--shadow-large);
+    display: flex;
+    flex-direction: column;
+    padding-top: 60px; /* 为顶部导航栏留出空间 */
   }
-  
+
+  .modern-aside:not(.sidebar-collapsed) {
+    transform: translateX(0);
+  }
+
+  /* 侧边栏内容样式优化 */
+  .modern-aside .el-menu {
+    border-right: none !important;
+    background: transparent !important;
+    padding: 12px 0;
+  }
+
+  .modern-aside .el-menu-item {
+    height: 56px;
+    line-height: 56px;
+    margin: 4px 12px;
+    padding: 0 16px !important;
+    border-radius: 12px;
+    transition: all 0.3s ease;
+  }
+
+  .modern-aside .el-menu-item.is-active {
+    background: var(--primary-color) !important;
+    color: white !important;
+    transform: scale(1.02);
+    box-shadow: 0 4px 12px rgba(var(--primary-color-rgb), 0.35);
+  }
+
+  .modern-aside .el-menu-item:not(.is-active):hover {
+    background: var(--hover-color);
+    transform: translateX(4px);
+  }
+
+  .modern-aside .el-menu-item i {
+    font-size: 20px;
+    margin-right: 12px;
+    transition: all 0.3s ease;
+  }
+
+  .modern-aside .el-menu-item:hover i {
+    transform: scale(1.1);
+  }
+
+  /* 遮罩层样式优化 */
+  .mobile-sidebar-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.3);
+    z-index: 999;
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .mobile-sidebar-overlay.visible {
+    opacity: 1;
+    visibility: visible;
+  }
+
+  /* 深色模式适配 */
+  .dark-theme .modern-aside {
+    background-color: var(--card-background);
+    box-shadow: var(--shadow-large-dark);
+  }
+
+  .dark-theme .modern-aside .el-menu-item:not(.is-active):hover {
+    background: rgba(255, 255, 255, 0.05);
+  }
+
+  .dark-theme .mobile-sidebar-overlay {
+    background-color: rgba(0, 0, 0, 0.5);
+  }
+
+  /* 优化菜单项文字样式 */
+  .modern-aside .el-menu-item span {
+    font-size: 16px;
+    font-weight: 500;
+    margin-left: 8px;
+    transition: all 0.3s ease;
+  }
+
+  /* 添加底部装饰 */
+  .modern-aside::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 100px;
+    background: linear-gradient(to bottom, transparent, var(--card-background));
+    pointer-events: none;
+    opacity: 0.8;
+  }
+
+  .modern-main {
+    padding: 12px !important;
+    width: 100% !important;
+    box-sizing: border-box;
+  }
+
+  .modern-body-container {
+    margin-left: 0 !important;
+    height: calc(100vh - 60px);
+    overflow-x: hidden;
+  }
+
+  .modern-footer {
+    padding: 10px !important;
+  }
+
+  .el-form-item {
+    margin-bottom: 12px !important;
+  }
+
+  .el-input, .el-select {
+    width: 100% !important;
+  }
+
+  .text-area-container {
+    margin: 8px 0 !important;
+    width: 100% !important;
+  }
+
+  .settings-panel {
+    padding: 12px !important;
+    width: 100% !important;
+    box-sizing: border-box;
+  }
+
+  .button-group {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    width: 100%;
+  }
+
+  .button-group .el-button {
+    flex: 1;
+    min-width: calc(50% - 4px);
+    margin: 0 !important;
+  }
+
   .guide-card {
-    width: 90%;
-    max-height: 90vh;
+    position: fixed;
+    left: 16px !important;
+    right: 16px !important;
+    bottom: 20px !important;
+    top: auto !important;
+    width: auto !important;
+    max-width: none !important;
+    margin: 0;
+    border-radius: 20px;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2), 0 2px 8px rgba(0, 0, 0, 0.1);
+    transform: translateY(0) !important;
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.3s ease !important;
+  }
+
+  .guide-card[style*="opacity: 0"] {
+    transform: translateY(100%) !important;
+  }
+
+  .guide-card-header {
+    padding: 16px;
+    border-radius: 20px 20px 0 0;
+  }
+
+  .guide-card-header h2 {
+    font-size: 18px;
+    margin-bottom: 4px;
+  }
+
+  .guide-card-header p {
+    font-size: 14px;
+  }
+
+  .guide-card-content {
+    padding: 16px;
+    max-height: 40vh;
+    overflow-y: auto;
+  }
+
+  .guide-step {
+    padding-top: 0;
+  }
+
+  .guide-step-number {
+    position: relative;
+    top: auto;
+    right: auto;
+    display: inline-block;
+    margin-bottom: 12px;
+    font-size: 12px;
+    padding: 4px 8px;
+    border-radius: 12px;
+    background: rgba(var(--primary-color-rgb), 0.1);
+    color: var(--primary-color);
+    font-weight: 600;
+  }
+
+  .guide-step h3 {
+    font-size: 16px;
+    margin-bottom: 8px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .guide-step p {
+    font-size: 14px;
+    line-height: 1.5;
+    margin-bottom: 12px;
+  }
+
+  .guide-hint {
+    padding: 10px;
+    border-radius: 12px;
+    font-size: 13px;
+    background: rgba(var(--primary-color-rgb), 0.05);
+    border-left: none;
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+  }
+
+  .guide-hint i {
+    margin-top: 2px;
+  }
+
+  .guide-card-footer {
+    padding: 12px 16px;
+    border-radius: 0 0 20px 20px;
+    background: var(--card-background);
+    border-top: 1px solid rgba(var(--border-color-rgb), 0.1);
+  }
+
+  .guide-actions-left {
+    gap: 12px;
+  }
+
+  .guide-indicators {
+    position: absolute;
+    top: -24px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(0, 0, 0, 0.2);
+    padding: 4px 8px;
+    border-radius: 12px;
+    backdrop-filter: blur(4px);
+  }
+
+  .guide-indicator {
+    width: 6px;
+    height: 6px;
+    background: rgba(255, 255, 255, 0.5);
+  }
+
+  .guide-indicator.active {
+    background: white;
+  }
+
+  .guide-highlight-area {
+    border-width: 2px;
+    border-radius: 12px;
+  }
+
+  /* 优化按钮样式 */
+  .guide-card-footer .el-button {
+    font-size: 14px;
+    padding: 8px 16px;
+    border-radius: 12px;
+  }
+
+  .guide-card-footer .el-button--primary {
+    background: var(--primary-color) !important;
+    font-weight: 600;
+  }
+
+  /* 深色模式适配 */
+  .dark-theme .guide-card {
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4), 0 2px 8px rgba(0, 0, 0, 0.2);
+  }
+
+  .dark-theme .guide-indicators {
+    background: rgba(255, 255, 255, 0.1);
+  }
+
+  /* 添加安全区域适配 */
+  @supports(padding: max(0px)) {
+    .guide-card {
+      bottom: max(20px, env(safe-area-inset-bottom)) !important;
+      padding-bottom: env(safe-area-inset-bottom);
+    }
   }
 }
 
-.guide-icon {
-  margin-right: 6px;
-  color: var(--primary-color);
-  font-size: 18px;
-  vertical-align: middle;
-}
+/* 平板设备响应式样式 */
+@media (min-width: 769px) and (max-width: 1024px) {
+  .el-dialog__body {
+    padding: 15px !important;
+  }
 
-.guide-hint {
-  margin-top: 12px;
-  padding: 8px 12px;
-  background-color: rgba(74, 108, 247, 0.05);
-  border-left: 3px solid var(--primary-color);
-  border-radius: 0 4px 4px 0;
-  font-size: 14px;
-  color: var(--text-secondary);
-  display: flex;
-  align-items: center;
-}
-
-.guide-hint i {
-  margin-right: 8px;
-  color: var(--primary-color);
-  font-size: 16px;
+  .el-dialog__footer {
+    padding: 10px 15px !important;
+  }
 }
 </style>
