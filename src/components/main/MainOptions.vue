@@ -43,41 +43,129 @@
 
             <!-- 免费TTS服务信息卡片 -->
             <div v-if="formConfig.api === 5" class="free-tts-card">
-              <div class="free-tts-header" @click="toggleFreeTTSInfo">
-                <span class="free-tts-title">
+              <div class="free-tts-header">
+                <div class="header-left">
                   <el-tag size="small" type="success" effect="plain">无需API密钥</el-tag>
-                  免费TTS服务
-                </span>
-                <el-icon class="toggle-icon" :class="{ 'is-active': showFreeTTSInfo }">
-                  <ArrowDown />
-                </el-icon>
+                  <span class="free-tts-title">免费TTS服务</span>
+                </div>
+                <div class="header-actions">
+                  <el-radio-group v-model="currentView" size="small">
+                    <el-radio-button label="quota">额度信息</el-radio-button>
+                    <el-radio-button label="settings">高级配置</el-radio-button>
+                  </el-radio-group>
+                </div>
               </div>
               
-              <div v-show="showFreeTTSInfo" class="free-tts-content">
+              <div class="free-tts-content">
                 <div class="free-service-highlight">
                   <el-icon color="#67C23A"><Check /></el-icon>
                   <span>推荐使用免费TTS服务，无需配置API密钥即可开始使用</span>
                 </div>
 
-                <div class="quota-info">
-                  <h4>免费额度信息</h4>
-                  <div class="quota-progress">
-                    <span class="quota-text">已使用: {{ localTTSStore.freeLimit?.used || 0 }} / {{ localTTSStore.freeLimit?.total || 5000 }}</span>
+                <!-- 额度信息视图 -->
+                <div v-if="currentView === 'quota'" class="quota-info">
+                  <div class="quota-header">
+                    <h4>免费额度信息</h4>
+                    <div class="quota-actions">
+                      <el-button 
+                        type="success" 
+                        size="small" 
+                        plain 
+                        :loading="checkingConnection"
+                        @click="handleCheckConnection"
+                      >检查连接</el-button>
+                      <el-button 
+                        type="primary" 
+                        size="small" 
+                        plain 
+                        @click="handleTestPlay"
+                        :loading="isTestPlaying"
+                      >测试播放</el-button>
+                    </div>
+                  </div>
+                  <div class="quota-progress-wrapper">
+                    <div class="quota-text-row">
+                      <span class="quota-label">已使用: {{ localTTSStore.serverStatus.freeLimit?.used || 0 }} / {{ localTTSStore.serverStatus.freeLimit?.free_limit || 50000 }}</span>
+                      <span class="quota-percentage">{{ ((localTTSStore.serverStatus.freeLimit?.used || 0) / (localTTSStore.serverStatus.freeLimit?.free_limit || 50000) * 100).toFixed(1) }}%</span>
+                    </div>
                     <el-progress 
-                      :percentage="((localTTSStore.freeLimit?.used || 0) / (localTTSStore.freeLimit?.total || 5000) * 100).toFixed(1)"
-                      :stroke-width="8"
+                      :percentage="((localTTSStore.serverStatus.freeLimit?.used || 0) / (localTTSStore.serverStatus.freeLimit?.free_limit || 50000) * 100)"
+                      :format="(percentage) => ''"
+                      :stroke-width="10"
                       :show-text="false"
+                      :color="quotaProgressColor"
                     />
                   </div>
                   <div class="quota-details">
                     <div class="quota-item">
-                      <span class="label">剩余:</span>
-                      <span class="value">{{ localTTSStore.freeLimit?.remaining || 0 }} 字符</span>
+                      <span class="label">剩余额度:</span>
+                      <span class="value">{{ localTTSStore.serverStatus.freeLimit?.remaining || 0 }} 字符</span>
                     </div>
                     <div class="quota-item">
-                      <span class="label">重置日期:</span>
-                      <span class="value">{{ localTTSStore.freeLimit?.resetDate || '-' }}</span>
+                      <span class="label">重置时间:</span>
+                      <span class="value">{{ localTTSStore.serverStatus.freeLimit?.reset_date || '-' }}</span>
                     </div>
+                  </div>
+                </div>
+
+                <!-- 高级配置视图 -->
+                <div v-else class="settings-info">
+                  <div class="settings-section">
+                    <h4>服务配置</h4>
+                    <div class="settings-item">
+                      <span class="settings-label">服务地址</span>
+                      <el-input 
+                        v-model="localTTSStore.config.serverUrl" 
+                        placeholder="请输入服务地址"
+                        size="default"
+                      />
+                    </div>
+                    <div class="settings-item">
+                      <span class="settings-label">重试次数</span>
+                      <el-input-number
+                        v-model="localTTSStore.config.retryCount"
+                        :min="0"
+                        :max="5"
+                        size="default"
+                      />
+                    </div>
+                    <div class="settings-item">
+                      <span class="settings-label">重试间隔(ms)</span>
+                      <el-input-number
+                        v-model="localTTSStore.config.retryInterval"
+                        :min="1000"
+                        :max="5000"
+                        :step="500"
+                        size="default"
+                      />
+                    </div>
+                  </div>
+                  
+                  <div class="settings-section">
+                    <h4>音频设置</h4>
+                    <div class="settings-item">
+                      <span class="settings-label">默认音频格式</span>
+                      <el-select
+                        v-model="localTTSStore.config.defaultAudioFormat"
+                        size="default"
+                      >
+                        <el-option label="MP3" value="mp3" />
+                        <el-option label="WAV" value="wav" />
+                        <el-option label="OGG" value="ogg" />
+                      </el-select>
+                    </div>
+                    <div class="settings-item">
+                      <span class="settings-label">自动播放</span>
+                      <el-switch
+                        v-model="localTTSStore.config.autoPlay"
+                      />
+                    </div>
+                  </div>
+
+                  <div class="settings-actions">
+                    <el-button type="primary" @click="saveAdvancedSettings">
+                      保存设置
+                    </el-button>
                   </div>
                 </div>
 
@@ -86,22 +174,6 @@
                     <el-icon><Check /></el-icon>
                     已连接到免费服务
                   </el-tag>
-                  <div class="status-actions">
-                    <el-button 
-                      type="success" 
-                      size="small" 
-                      plain 
-                      :loading="checkingConnection"
-                      @click="handleCheckConnection"
-                    >检查连接</el-button>
-                    <el-button 
-                      type="warning" 
-                      size="small" 
-                      plain 
-                      :loading="refreshingQuota"
-                      @click="handleRefreshQuota"
-                    >刷新额度</el-button>
-                  </div>
                 </div>
               </div>
             </div>
@@ -414,7 +486,136 @@
             <el-icon color="#67C23A"><Check /></el-icon>
             <span>推荐使用免费TTS服务，无需配置API密钥即可开始使用</span>
           </div>
-          <LocalTTSSettings />
+          <div class="free-tts-card">
+            <div class="free-tts-header">
+              <div class="header-left">
+                <el-tag size="small" type="success" effect="plain">无需API密钥</el-tag>
+                <span class="free-tts-title">免费TTS服务</span>
+              </div>
+              <div class="header-actions">
+                <el-radio-group v-model="currentView" size="small">
+                  <el-radio-button label="quota">额度信息</el-radio-button>
+                  <el-radio-button label="settings">高级配置</el-radio-button>
+                </el-radio-group>
+              </div>
+            </div>
+            
+            <div class="free-tts-content">
+              <!-- 额度信息视图 -->
+              <div v-if="currentView === 'quota'" class="quota-info">
+                <div class="quota-header">
+                  <h4>免费额度信息</h4>
+                  <div class="quota-actions">
+                    <el-button 
+                      type="success" 
+                      size="small" 
+                      plain 
+                      :loading="checkingConnection"
+                      @click="handleCheckConnection"
+                    >检查连接</el-button>
+                    <el-button 
+                      type="primary" 
+                      size="small" 
+                      plain 
+                      @click="handleTestPlay"
+                      :loading="isTestPlaying"
+                    >测试播放</el-button>
+                  </div>
+                </div>
+                <div class="quota-progress-wrapper">
+                  <div class="quota-text-row">
+                    <span class="quota-label">已使用: {{ localTTSStore.serverStatus.freeLimit?.used || 0 }} / {{ localTTSStore.serverStatus.freeLimit?.free_limit || 50000 }}</span>
+                    <span class="quota-percentage">{{ ((localTTSStore.serverStatus.freeLimit?.used || 0) / (localTTSStore.serverStatus.freeLimit?.free_limit || 50000) * 100).toFixed(1) }}%</span>
+                  </div>
+                  <el-progress 
+                    :percentage="((localTTSStore.serverStatus.freeLimit?.used || 0) / (localTTSStore.serverStatus.freeLimit?.free_limit || 50000) * 100)"
+                    :format="(percentage) => ''"
+                    :stroke-width="10"
+                    :show-text="false"
+                    :color="quotaProgressColor"
+                  />
+                </div>
+                <div class="quota-details">
+                  <div class="quota-item">
+                    <span class="label">剩余额度:</span>
+                    <span class="value">{{ localTTSStore.serverStatus.freeLimit?.remaining || 0 }} 字符</span>
+                  </div>
+                  <div class="quota-item">
+                    <span class="label">重置时间:</span>
+                    <span class="value">{{ localTTSStore.serverStatus.freeLimit?.reset_date || '-' }}</span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- 高级配置视图 -->
+              <div v-else class="settings-info">
+                <div class="settings-section">
+                  <h4>服务配置</h4>
+                  <div class="settings-item">
+                    <span class="settings-label">服务地址</span>
+                    <el-input 
+                      v-model="localTTSStore.config.serverUrl" 
+                      placeholder="请输入服务地址"
+                      size="default"
+                    />
+                  </div>
+                  <div class="settings-item">
+                    <span class="settings-label">重试次数</span>
+                    <el-input-number
+                      v-model="localTTSStore.config.retryCount"
+                      :min="0"
+                      :max="5"
+                      size="default"
+                    />
+                  </div>
+                  <div class="settings-item">
+                    <span class="settings-label">重试间隔(ms)</span>
+                    <el-input-number
+                      v-model="localTTSStore.config.retryInterval"
+                      :min="1000"
+                      :max="5000"
+                      :step="500"
+                      size="default"
+                    />
+                  </div>
+                </div>
+                
+                <div class="settings-section">
+                  <h4>音频设置</h4>
+                  <div class="settings-item">
+                    <span class="settings-label">默认音频格式</span>
+                    <el-select
+                      v-model="localTTSStore.config.defaultAudioFormat"
+                      size="default"
+                    >
+                      <el-option label="MP3" value="mp3" />
+                      <el-option label="WAV" value="wav" />
+                      <el-option label="OGG" value="ogg" />
+                    </el-select>
+                  </div>
+                  <div class="settings-item">
+                    <span class="settings-label">自动播放</span>
+                    <el-switch
+                      v-model="localTTSStore.config.autoPlay"
+                    />
+                  </div>
+                </div>
+
+                <div class="settings-actions">
+                  <el-button type="primary" @click="saveAdvancedSettings">
+                    保存设置
+                  </el-button>
+                </div>
+              </div>
+
+              <div class="connection-status">
+                <el-tag v-if="localTTSStore.isConnected" size="small" type="success">
+                  <el-icon><Check /></el-icon>
+                  已连接到免费服务
+                </el-tag>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
 
@@ -577,6 +778,78 @@
         </div>
       </div>
     </el-dialog>
+
+    <!-- 高级设置对话框 -->
+    <el-dialog
+      v-model="showAdvancedSettings"
+      title="高级设置"
+      width="500px"
+      :close-on-click-modal="false"
+      destroy-on-close
+    >
+      <div class="advanced-settings-content">
+        <div class="settings-section">
+          <h4>服务配置</h4>
+          <div class="settings-item">
+            <span class="settings-label">服务地址</span>
+            <el-input 
+              v-model="localTTSStore.config.serverUrl" 
+              placeholder="请输入服务地址"
+              size="default"
+            />
+          </div>
+          <div class="settings-item">
+            <span class="settings-label">重试次数</span>
+            <el-input-number
+              v-model="localTTSStore.config.retryCount"
+              :min="0"
+              :max="5"
+              size="default"
+            />
+          </div>
+          <div class="settings-item">
+            <span class="settings-label">重试间隔(ms)</span>
+            <el-input-number
+              v-model="localTTSStore.config.retryInterval"
+              :min="1000"
+              :max="5000"
+              :step="500"
+              size="default"
+            />
+          </div>
+        </div>
+        
+        <div class="settings-section">
+          <h4>音频设置</h4>
+          <div class="settings-item">
+            <span class="settings-label">默认音频格式</span>
+            <el-select
+              v-model="localTTSStore.config.defaultAudioFormat"
+              size="default"
+            >
+              <el-option label="MP3" value="mp3" />
+              <el-option label="WAV" value="wav" />
+              <el-option label="OGG" value="ogg" />
+            </el-select>
+          </div>
+          <div class="settings-item">
+            <span class="settings-label">自动播放</span>
+            <el-switch
+              v-model="localTTSStore.config.autoPlay"
+            />
+          </div>
+        </div>
+      </div>
+      
+      <template #footer>
+        <div class="dialog-footer">
+          <el-button @click="showAdvancedSettings = false">取消</el-button>
+          <el-button type="primary" @click="saveAdvancedSettings">
+            保存设置
+          </el-button>
+        </div>
+      </template>
+    </el-dialog>
   </div>
 </template>
 
@@ -634,12 +907,29 @@ const toggleFreeTTSInfo = () => {
 
 // 保存高级设置
 const saveAdvancedSettings = () => {
-  showAdvancedSettings.value = false;
-  ElMessage({
-    message: '高级设置已应用',
-    type: 'success',
-    duration: 2000
-  });
+  try {
+    // 保存配置到本地存储
+    localTTSStore.saveConfig();
+    
+    // 关闭对话框
+    showAdvancedSettings.value = false;
+    
+    // 显示成功提示
+    ElMessage({
+      message: '设置已保存',
+      type: 'success',
+      duration: 2000
+    });
+    
+    // 重新检查连接
+    handleCheckConnection();
+  } catch (error) {
+    ElMessage({
+      message: '保存设置失败: ' + (error instanceof Error ? error.message : String(error)),
+      type: 'error',
+      duration: 3000
+    });
+  }
 };
 
 // 应用选中的主播
@@ -877,6 +1167,44 @@ const applyPreset = (presetId: string) => {
 };
 
 const apiEdge = ref(false);
+
+// 当前视图（额度信息/高级配置）
+const currentView = ref('quota'); // 默认显示额度信息
+
+// 设置默认配置值
+onMounted(() => {
+  // 如果配置为空，设置默认值
+  if (!localTTSStore.config) {
+    localTTSStore.config = {
+      serverUrl: 'https://free.tts88.top',  // 使用local-tts.ts中的默认地址
+      retryCount: 3,
+      retryInterval: 2000,
+      defaultAudioFormat: 'mp3',
+      autoPlay: true,
+      enabled: true,
+      defaultVoice: 'zh-CN-XiaoxiaoNeural',
+      defaultLanguage: 'zh-CN'
+    };
+  }
+  
+  // 确保所有必要的配置项都有默认值
+  localTTSStore.config = {
+    ...{
+      serverUrl: 'https://free.tts88.top',  // 使用local-tts.ts中的默认地址
+      retryCount: 3,
+      retryInterval: 2000,
+      defaultAudioFormat: 'mp3',
+      autoPlay: true,
+      enabled: true,
+      defaultVoice: 'zh-CN-XiaoxiaoNeural',
+      defaultLanguage: 'zh-CN'
+    },
+    ...localTTSStore.config
+  };
+  
+  // 保存默认配置
+  localTTSStore.saveConfig();
+});
 
 onMounted(() => {
   // 初始化新增配置项的默认值
@@ -1827,6 +2155,55 @@ const handleRefreshQuota = async () => {
     refreshingQuota.value = false;
   }
 };
+
+const quotaProgressColor = computed(() => {
+  const percentage = ((localTTSStore.serverStatus.freeLimit?.used || 0) / (localTTSStore.serverStatus.freeLimit?.free_limit || 50000) * 100);
+  if (percentage >= 90) return '#F56C6C';
+  if (percentage >= 70) return '#E6A23C';
+  return '#67C23A';
+});
+
+const isTestPlaying = ref(false);
+
+// 测试播放功能
+const handleTestPlay = async () => {
+  if (isTestPlaying.value) return;
+  
+  isTestPlaying.value = true;
+  try {
+    const testText = "这是一段测试语音，用于测试免费TTS服务的效果。";
+    
+    // 使用本地TTS服务的getAudioStream方法
+    const audioUrl = await localTTSStore.getAudioStream(
+      testText,
+      undefined, // 使用默认voice
+      undefined, // 使用默认language
+      "mp3",
+      false
+    );
+    
+    if (!audioUrl) {
+      throw new Error("获取测试音频失败");
+    }
+    
+    // 播放音频
+    ttsStore.audition(audioUrl);
+    
+    ElMessage({
+      message: "正在播放测试音频",
+      type: "success",
+      duration: 2000
+    });
+  } catch (error: any) {
+    ElMessage({
+      message: `测试播放失败: ${error.message}`,
+      type: "error",
+      duration: 3000
+    });
+  } finally {
+    isTestPlaying.value = false;
+  }
+};
 </script>
 
 <style scoped>
@@ -2297,102 +2674,83 @@ const handleRefreshQuota = async () => {
 .free-tts-card {
   margin-top: 12px;
   border: 1px solid var(--border-color);
-  border-radius: 6px;
+  border-radius: 8px;
   overflow: hidden;
+  background-color: var(--card-background);
 }
 
 .free-tts-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 8px 12px;
+  padding: 12px 16px;
   background-color: var(--card-background-light);
-  cursor: pointer;
-  transition: background-color 0.2s;
+  border-bottom: 1px solid var(--border-color-light);
 }
 
 .free-tts-header:hover {
   background-color: var(--hover-color);
 }
 
-.free-tts-title {
+.header-left {
   display: flex;
   align-items: center;
   gap: 8px;
+}
+
+.free-tts-title {
   font-size: 14px;
-  font-weight: 500;
-}
-
-.toggle-icon {
-  transition: transform 0.3s;
-}
-
-.toggle-icon.is-active {
-  transform: rotate(180deg);
-}
-
-.free-tts-content {
-  padding: 12px;
-  background-color: var(--card-background);
-}
-
-.quota-info {
-  margin: 12px 0;
-}
-
-.quota-info h4 {
-  margin: 0 0 8px 0;
-  font-size: 14px;
-  color: var(--text-secondary);
-}
-
-.quota-progress {
-  margin-bottom: 8px;
-}
-
-.quota-text {
-  display: block;
-  margin-bottom: 4px;
-  font-size: 12px;
-  color: var(--text-secondary);
-}
-
-.quota-details {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-  margin-top: 8px;
-}
-
-.quota-item {
-  display: flex;
-  justify-content: space-between;
-  font-size: 12px;
-  color: var(--text-secondary);
-}
-
-.quota-item .label {
-  color: var(--text-secondary);
-}
-
-.quota-item .value {
   font-weight: 500;
   color: var(--text-primary);
 }
 
-.connection-status {
-  margin-top: 12px;
+.header-actions {
   display: flex;
-  justify-content: space-between;
   align-items: center;
 }
 
-.status-actions {
-  display: flex;
-  gap: 8px;
+.free-tts-content {
+  padding: 16px;
+  background-color: var(--card-background);
 }
 
-.status-actions .el-button {
-  padding: 4px 8px;
+.settings-info {
+  background-color: rgba(103, 194, 58, 0.05);
+  border-radius: 8px;
+  padding: 16px;
+}
+
+.settings-section {
+  margin-bottom: 20px;
+}
+
+.settings-section h4 {
+  margin: 0 0 12px 0;
+  font-size: 14px;
+  color: var(--text-primary);
+}
+
+.settings-item {
+  display: flex;
+  align-items: center;
+  margin-bottom: 12px;
+  gap: 12px;
+}
+
+.settings-label {
+  min-width: 100px;
+  color: var(--text-secondary);
+}
+
+.settings-actions {
+  margin-top: 20px;
+  display: flex;
+  justify-content: flex-end;
+}
+
+.connection-status {
+  margin-top: 16px;
+  display: flex;
+  justify-content: center;
 }
 </style>

@@ -123,7 +123,7 @@ export const useTtsStore = defineStore("ttsStore", {
       if (this.formConfig.silence && this.formConfig.silence !== "default") {
         silenceConfig = `<break time="${this.formConfig.silence}" />`;
       }
-
+      
       const ssmlContent = `<speak xmlns="http://www.w3.org/2001/10/synthesis" xmlns:mstts="https://www.w3.org/2001/mstts" xmlns:emo="http://www.w3.org/2009/10/emotionml" version="1.0" xml:lang="en-US">
         <voice name="${voice}">
             <mstts:express-as ${express != "General" ? 'style="' + express + '"' : ""}${role != "Default" ? ' role="' + role + '"' : ""}${intensityAttr}>
