@@ -25,16 +25,24 @@
       </el-menu>
     </div>
     <div class="version-container">
+      <div class="help-links">
+        <div class="guide-button" @click="showUserGuide">
+          <el-icon><Help /></el-icon>
+          <span>查看引导</span>
+        </div>
+      </div>
       <Version />
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
+// @ts-nocheck
 import { useTtsStore } from "@/store/store";
 import { storeToRefs } from "pinia";
 import { useI18n } from 'vue-i18n';
 import Version from "./Version.vue";
+import { Document, Files, Setting, Notebook, Help } from '@element-plus/icons-vue';
 
 const { t } = useI18n();
 const ttsStore = useTtsStore();
@@ -44,6 +52,19 @@ const menuChange = (index: number) => {
   console.log(`菜单切换: 索引 ${index} 被点击`);
   page.value.asideIndex = index.toString();
   console.log(`页面索引设置为: ${page.value.asideIndex}`);
+};
+
+// 添加显示引导的方法
+const showUserGuide = () => {
+  // 检查window上是否有启动引导的方法（在App.vue中暴露）
+  if (typeof window.__startGuide === 'function') {
+    // @ts-ignore
+    window.__startGuide();
+  } else {
+    // 如果没有找到方法，显示提示信息
+    console.warn('引导功能未找到');
+    alert('无法启动引导功能，请刷新页面后重试');
+  }
 };
 </script>
 
@@ -70,6 +91,34 @@ const menuChange = (index: number) => {
   font-size: 12px;
   color: var(--text-secondary);
   text-align: center;
+}
+
+.help-links {
+  margin-bottom: 12px;
+}
+
+.guide-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 8px 12px;
+  border-radius: var(--border-radius-small);
+  background-color: rgba(74, 108, 247, 0.1);
+  color: var(--primary-color);
+  font-size: 13px;
+  gap: 8px;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  margin-bottom: 8px;
+}
+
+.guide-button:hover {
+  background-color: rgba(74, 108, 247, 0.2);
+  transform: translateY(-1px);
+}
+
+.guide-button .el-icon {
+  font-size: 16px;
 }
 
 .modern-menu {

@@ -15,15 +15,28 @@
             <span>本次最多可输入 <b>{{ localTTSStore.serverStatus.freeLimit.remaining }}</b> 剩余 <b>{{ localTTSStore.serverStatus.freeLimit.remaining }}</b> 可输入</span>
           </div>
           
-        <el-button @click="dialogVisible = true" type="primary" class="ai-button">
-          <el-icon><MagicStick /></el-icon>
-          <span>AI 生成</span>
-        </el-button>
+          <el-button 
+            @click="dialogVisible = true" 
+            type="primary" 
+            class="ai-button"
+            v-tooltip="{
+              content: '使用AI生成文本内容',
+              placement: 'top',
+              effect: 'light'
+            }"
+          >
+            <el-icon><MagicStick /></el-icon>
+            <span>AI 生成</span>
+          </el-button>
         </div>
       </div>
       
       <div class="card-body">
         <div class="text-area-container" v-show="page.tabIndex === '1'">
+          <div class="text-area-header">
+            <h3>输入文本</h3>
+            <span class="text-area-hint">在此处输入您想要转换为语音的文本内容</span>
+          </div>
           <el-input
             v-model="inputs.inputValue"
             type="textarea"
@@ -47,6 +60,24 @@
           </div>
         </div>
         <div class="text-area-container" v-show="page.tabIndex === '2'">
+          <div class="text-area-header">
+            <h3>SSML 标记语言</h3>
+            <span class="text-area-hint">使用SSML可以更精确地控制语音效果，包括语调、停顿和发音</span>
+            <el-button 
+              size="small" 
+              type="info" 
+              class="ssml-help-button"
+              @click="openSSMLHelp"
+              v-tooltip="{
+                content: '查看SSML使用指南',
+                placement: 'top',
+                effect: 'light'
+              }"
+            >
+              <el-icon><QuestionFilled /></el-icon>
+              SSML帮助
+            </el-button>
+          </div>
           <el-input 
             v-model="inputs.ssmlValue" 
             type="textarea" 
@@ -66,6 +97,11 @@
             placeholder="API"
             class="compact-select"
             @change="apiChange"
+            v-tooltip="{
+              content: '选择语音合成服务提供商',
+              placement: 'top',
+              effect: 'light'
+            }"
           >
             <template #prefix>
               <el-icon><Connection /></el-icon>
@@ -101,6 +137,11 @@
             class="compact-select"
             @change="languageSelectChange"
             filterable
+            v-tooltip="{
+              content: '选择语音合成的语言',
+              placement: 'top',
+              effect: 'light'
+            }"
           >
             <template #prefix>
               <el-icon><ChatDotRound /></el-icon>
@@ -120,6 +161,11 @@
             class="voice-select"
             @change="voiceSelectChange"
             filterable
+            v-tooltip="{
+              content: '选择语音角色',
+              placement: 'top',
+              effect: 'light'
+            }"
           >
             <template #prefix>
               <el-icon><Microphone /></el-icon>
@@ -142,6 +188,11 @@
                   type="primary" 
                   circle
                   @click.stop="audition(item.ShortName)"
+                  v-tooltip="{
+                    content: '试听声音示例',
+                    placement: 'top',
+                    effect: 'light'
+                  }"
                 ><el-icon><CaretRight /></el-icon></el-button>
               </div>
             </el-option>
@@ -153,6 +204,11 @@
             size="small" 
             @click="openVoiceAnchors"
             class="voice-anchors-button"
+            v-tooltip="{
+              content: '选择预设语音主播角色',
+              placement: 'top',
+              effect: 'light'
+            }"
           >
             <el-icon><Avatar /></el-icon>
             语音主播
@@ -162,6 +218,11 @@
             size="small" 
             @click="openSettingsPanel"
             class="settings-button"
+            v-tooltip="{
+              content: '调整语速、音调等高级设置',
+              placement: 'top',
+              effect: 'light'
+            }"
           >
             <el-icon><Setting /></el-icon>
             高级设置
@@ -173,6 +234,11 @@
             :loading="isLoading"
             size="small"
             class="start-button"
+            v-tooltip="{
+              content: '开始转换文本为语音',
+              placement: 'top',
+              effect: 'light'
+            }"
           >
             <el-icon><CaretRight /></el-icon>
             转换
@@ -197,6 +263,12 @@
       @open="onDrawerOpen"
       @close="onDrawerClose"
     >
+      <template #header>
+        <div class="drawer-header">
+          <h3>语音高级设置</h3>
+          <p class="drawer-description">调整语音的语速、音调和情感等高级参数</p>
+        </div>
+      </template>
       <template #default>
         <div class="settings-drawer-content">
           <MainOptions class="drawer-options" ref="drawerOptions" :in-drawer="true" />
@@ -333,6 +405,11 @@
             placeholder="API"
             class="compact-select"
             @change="apiChange"
+            v-tooltip="{
+              content: '选择语音合成服务提供商',
+              placement: 'top',
+              effect: 'light'
+            }"
           >
             <template #prefix>
               <el-icon><Connection /></el-icon>
@@ -368,6 +445,11 @@
             class="compact-select"
             @change="languageSelectChange"
             filterable
+            v-tooltip="{
+              content: '选择语音合成的语言',
+              placement: 'top',
+              effect: 'light'
+            }"
           >
             <template #prefix>
               <el-icon><ChatDotRound /></el-icon>
@@ -387,6 +469,11 @@
             class="voice-select"
             @change="voiceSelectChange"
             filterable
+            v-tooltip="{
+              content: '选择语音角色',
+              placement: 'top',
+              effect: 'light'
+            }"
           >
             <template #prefix>
               <el-icon><Microphone /></el-icon>
@@ -409,6 +496,11 @@
                   type="primary" 
                   circle
                   @click.stop="audition(item.ShortName)"
+                  v-tooltip="{
+                    content: '试听声音示例',
+                    placement: 'top',
+                    effect: 'light'
+                  }"
                 ><el-icon><CaretRight /></el-icon></el-button>
               </div>
             </el-option>
@@ -420,6 +512,11 @@
             size="small" 
             @click="openVoiceAnchors"
             class="voice-anchors-button"
+            v-tooltip="{
+              content: '选择预设语音主播角色',
+              placement: 'top',
+              effect: 'light'
+            }"
           >
             <el-icon><Avatar /></el-icon>
             语音主播
@@ -429,6 +526,11 @@
             size="small" 
             @click="openSettingsPanel"
             class="settings-button"
+            v-tooltip="{
+              content: '调整语速、音调等高级设置',
+              placement: 'top',
+              effect: 'light'
+            }"
           >
             <el-icon><Setting /></el-icon>
             高级设置
@@ -440,6 +542,11 @@
             :loading="isLoading"
             size="small"
             class="start-button"
+            v-tooltip="{
+              content: '开始转换文本为语音',
+              placement: 'top',
+              effect: 'light'
+            }"
           >
             <el-icon><CaretRight /></el-icon>
             转换
@@ -495,6 +602,66 @@
     >
       <VoiceSelector @select-anchor="onSelectAnchor" />
     </el-dialog>
+
+    <!-- SSML帮助对话框 -->
+    <el-dialog
+      v-model="ssmlHelpVisible"
+      title="SSML 标记语言使用指南"
+      width="600px"
+      draggable
+      class="modern-dialog ssml-help-dialog"
+    >
+      <div class="ssml-help-content">
+        <h3>什么是SSML？</h3>
+        <p>语音合成标记语言(SSML)是一种用于控制语音合成的标准化标记语言，可以精确控制语音的语调、停顿、重音等。</p>
+        
+        <div class="ssml-examples">
+          <h3>常用SSML标签</h3>
+          
+          <div class="ssml-example-item">
+            <h4>调整语速</h4>
+            <pre>&lt;prosody rate="slow"&gt;这段文字会以较慢的速度播放&lt;/prosody&gt;</pre>
+            <p>rate属性可以为: x-slow, slow, medium, fast, x-fast，或者是相对值如 +10% 或 -20%</p>
+          </div>
+          
+          <div class="ssml-example-item">
+            <h4>调整音调</h4>
+            <pre>&lt;prosody pitch="high"&gt;这段文字会以较高的音调播放&lt;/prosody&gt;</pre>
+            <p>pitch属性可以为: x-low, low, medium, high, x-high，或者是相对值如 +10% 或 -20%</p>
+          </div>
+          
+          <div class="ssml-example-item">
+            <h4>添加停顿</h4>
+            <pre>&lt;break time="2s"/&gt;</pre>
+            <p>time属性可以使用具体时间如 1s, 500ms，或者使用预定义值如 none, x-weak, weak, medium, strong, x-strong</p>
+          </div>
+          
+          <div class="ssml-example-item">
+            <h4>强调某个词</h4>
+            <pre>&lt;emphasis level="strong"&gt;特别强调&lt;/emphasis&gt;这个词</pre>
+            <p>level属性可以为: strong, moderate, none</p>
+          </div>
+        </div>
+        
+        <div class="ssml-template">
+          <h3>完整SSML示例</h3>
+          <pre>&lt;speak version="1.0" xmlns="http://www.w3.org/2001/10/synthesis" xml:lang="zh-CN"&gt;
+今天天气&lt;emphasis level="strong"&gt;非常好&lt;/emphasis&gt;，
+&lt;break time="300ms"/&gt;
+我们可以&lt;prosody rate="+20%"&gt;一起出去玩&lt;/prosody&gt;。
+&lt;/speak&gt;</pre>
+        </div>
+      </div>
+    </el-dialog>
+
+    <!-- Loading组件 -->
+    <Loading 
+      :visible="isLoading" 
+      :progress="convertProgress" 
+      :title="loadingTitle"
+      :message="loadingMessage"
+      @cancel="cancelConversion"
+    />
   </div>
 </template>
 
@@ -513,6 +680,7 @@ import { useTtsStore } from "@/store/store";
 import { useLocalTTSStore } from "@/store/local-tts-store";
 import { storeToRefs } from "pinia";
 import { getTTSData } from "@/store/play";
+import Loading from "./Loading.vue";  // 添加Loading组件引用
 
 // 导入图标
 import { 
@@ -530,7 +698,8 @@ import {
   Microphone,
   Setting,
   Avatar,
-  InfoFilled
+  InfoFilled,
+  QuestionFilled
 } from '@element-plus/icons-vue';
 
 // 获取i18n实例
@@ -1645,11 +1814,43 @@ const startBtn = () => {
   // 确保更新配置到本地存储
   ttsStore.addFormConfig();
   
+  // 显示Loading组件
+  isLoading.value = true;
+  convertProgress.value = 0;
+  loadingTitle.value = '正在生成语音';
+  loadingMessage.value = '请稍候，正在处理您的请求...';
+  
+  // 模拟进度更新
+  const progressInterval = setInterval(() => {
+    if (convertProgress.value < 90) {
+      convertProgress.value += Math.random() * 5;
+    }
+  }, 300);
+  
   // 启动转换过程
-  ttsStore.start();
+  ttsStore.start().then(() => {
+    // 转换完成
+    clearInterval(progressInterval);
+    convertProgress.value = 100;
+    
+    // 短暂显示100%后隐藏Loading
+    setTimeout(() => {
+      isLoading.value = false;
+      convertProgress.value = 0;
+    }, 500);
+  }).catch(error => {
+    // 转换出错
+    clearInterval(progressInterval);
+    isLoading.value = false;
+    convertProgress.value = 0;
+    
+    ElMessage({
+      message: "转换失败: " + (error instanceof Error ? error.message : String(error)),
+      type: "error",
+      duration: 3000,
+    });
+  });
 };
-
-const isLoading = ref(false);
 
 // 添加函数用于打开设置抽屉
 const openSettingsPanel = () => {
@@ -1780,6 +1981,31 @@ const onSelectAnchor = (anchor) => {
 const getDisplayLabel = (value: string) => {
   return getChineseName(value) || value;
 };
+
+// 添加SSML帮助对话框
+const ssmlHelpVisible = ref(false);
+
+// 打开SSML帮助
+const openSSMLHelp = () => {
+  ssmlHelpVisible.value = true;
+};
+
+// 添加相关的变量和方法
+const isLoading = ref(false);
+const convertProgress = ref(0);
+const loadingTitle = ref('正在生成语音');
+const loadingMessage = ref('请稍候，正在处理您的请求...');
+
+// 取消转换
+const cancelConversion = () => {
+  isLoading.value = false;
+  convertProgress.value = 0;
+  ElMessage({
+    message: "已取消转换",
+    type: "info",
+    duration: 2000,
+  });
+};
 </script>
 
 <style>
@@ -1809,6 +2035,243 @@ const getDisplayLabel = (value: string) => {
 
 .el-overlay {
   z-index: 2000 !important;
+}
+
+/* 文本区域样式增强 */
+.text-area-container {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.text-area-header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  margin-bottom: 8px;
+  gap: 12px;
+}
+
+.text-area-header h3 {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.text-area-hint {
+  color: var(--text-secondary);
+  font-size: 14px;
+  margin-right: auto;
+}
+
+.ssml-help-button {
+  margin-left: auto;
+}
+
+.modern-textarea {
+  border-radius: var(--border-radius-medium) !important;
+  transition: all var(--transition-normal);
+  border: 1px solid var(--border-color);
+  background-color: var(--card-background);
+  box-shadow: var(--shadow-light);
+}
+
+.modern-textarea:focus-within {
+  box-shadow: 0 0 0 3px rgba(74, 108, 247, 0.15);
+  border-color: var(--primary-color);
+}
+
+.modern-textarea .el-textarea__inner {
+  font-family: 'Inter', 'Helvetica Neue', Helvetica, 'PingFang SC', sans-serif;
+  font-size: 15px;
+  line-height: 1.6;
+  color: var(--text-primary);
+  background-color: transparent;
+}
+
+/* 控制栏样式增强 */
+.compact-controls-bar {
+  background-color: rgba(0, 0, 0, 0.03);
+  padding: 16px;
+  border-top: 1px solid var(--border-color);
+  display: flex;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+.dark-theme .compact-controls-bar {
+  background-color: rgba(255, 255, 255, 0.03);
+}
+
+.compact-selects {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.compact-actions {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.voice-option {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+}
+
+.start-button {
+  font-weight: 600;
+  min-width: 90px;
+}
+
+/* 抽屉样式增强 */
+.drawer-header h3 {
+  margin: 0 0 8px 0;
+  font-size: 20px;
+  font-weight: 600;
+}
+
+.drawer-description {
+  margin: 0;
+  color: var(--text-secondary);
+  font-size: 14px;
+}
+
+.settings-drawer-content {
+  padding: 16px;
+}
+
+/* SSML帮助对话框样式 */
+.ssml-help-content {
+  padding: 0 16px;
+}
+
+.ssml-help-content h3 {
+  margin: 0 0 12px 0;
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--primary-color);
+}
+
+.ssml-examples {
+  margin: 24px 0;
+}
+
+.ssml-example-item {
+  margin-bottom: 20px;
+  padding: 12px;
+  border-radius: var(--border-radius-medium);
+  background-color: rgba(0, 0, 0, 0.02);
+  border: 1px solid var(--border-color);
+}
+
+.dark-theme .ssml-example-item {
+  background-color: rgba(255, 255, 255, 0.02);
+}
+
+.ssml-example-item h4 {
+  margin: 0 0 12px 0;
+  font-size: 16px;
+  font-weight: 500;
+}
+
+.ssml-example-item pre {
+  margin: 0 0 8px 0;
+  padding: 12px;
+  background-color: var(--card-background);
+  border-radius: var(--border-radius-small);
+  overflow-x: auto;
+  font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+  font-size: 14px;
+  line-height: 1.5;
+  color: var(--accent-color);
+  border: 1px solid var(--border-color);
+}
+
+.ssml-example-item p {
+  margin: 8px 0 0 0;
+  font-size: 14px;
+  color: var(--text-secondary);
+}
+
+.ssml-template {
+  padding: 16px;
+  background-color: rgba(0, 0, 0, 0.02);
+  border-radius: var(--border-radius-medium);
+  border: 1px solid var(--border-color);
+}
+
+.dark-theme .ssml-template {
+  background-color: rgba(255, 255, 255, 0.02);
+}
+
+.ssml-template pre {
+  margin: 0;
+  padding: 16px;
+  background-color: var(--card-background);
+  border-radius: var(--border-radius-small);
+  overflow-x: auto;
+  font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+  font-size: 14px;
+  line-height: 1.5;
+  color: var(--accent-color);
+  border: 1px solid var(--border-color);
+}
+
+/* 配额进度条样式增强 */
+.quota-progress-wrapper {
+  background-color: rgba(0, 0, 0, 0.02);
+  border-radius: var(--border-radius-medium);
+  padding: 12px 16px;
+  margin-top: 12px;
+  border: 1px solid var(--border-color);
+}
+
+.dark-theme .quota-progress-wrapper {
+  background-color: rgba(255, 255, 255, 0.02);
+}
+
+.quota-text {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 8px;
+  font-size: 14px;
+  color: var(--text-secondary);
+}
+
+.quota-highlight {
+  color: var(--accent-color);
+  font-weight: 500;
+}
+
+.quota-warning {
+  color: var(--error-color);
+  font-weight: 500;
+}
+
+/* 响应式调整 */
+@media (max-width: 768px) {
+  .compact-controls-bar {
+    flex-direction: column;
+  }
+  
+  .compact-selects, .compact-actions {
+    width: 100%;
+  }
+  
+  .text-area-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  
+  .ssml-help-button {
+    margin-left: 0;
+  }
 }
 </style>
 

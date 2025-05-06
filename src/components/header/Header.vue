@@ -25,6 +25,9 @@
           </el-button>
           <template #dropdown>
             <el-dropdown-menu>
+              <el-dropdown-item @click="showUserGuide">
+                <el-icon><QuestionFilled /></el-icon> 查看引导
+              </el-dropdown-item>
               <el-dropdown-item>
                 <el-icon><InfoFilled /></el-icon> 关于应用
               </el-dropdown-item>
@@ -46,7 +49,7 @@
 import { ref } from "vue";
 import { useTtsStore } from "@/store/store";
 import { storeToRefs } from "pinia";
-import { Link } from '@element-plus/icons-vue';
+import { Link, QuestionFilled, InfoFilled } from '@element-plus/icons-vue';
 
 const ttsStore = useTtsStore();
 const { config } = storeToRefs(ttsStore);
@@ -55,6 +58,15 @@ defineEmits(['toggle-theme']);
 
 const openApiSite = () => {
   window.open("https://api.tts88.top", "_blank");
+};
+
+const showUserGuide = () => {
+  if (window.__startGuide) {
+    window.__startGuide();
+  } else {
+    console.warn('引导功能未找到');
+    alert('无法启动引导功能，请刷新页面后重试');
+  }
 };
 </script>
 

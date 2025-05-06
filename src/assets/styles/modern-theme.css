@@ -1,9 +1,12 @@
 :root {
-  /* 亮色主题变量 */
+  /* 亮色主题变量 - 增强版 */
   --primary-color: #4a6cf7;
-  --primary-gradient: linear-gradient(45deg, #4a6cf7, #6a8ff7);
+  --primary-gradient: linear-gradient(135deg, #4a6cf7, #6a8ff7);
   --secondary-color: #6c5ce7;
   --accent-color: #00cec9;
+  --success-color: #10b981;
+  --warning-color: #f59e0b;
+  --error-color: #ef4444;
   --background-color: #f8f9fa;
   --card-background: #ffffff;
   --text-primary: #2d3436;
@@ -17,14 +20,19 @@
   --border-radius-large: 16px;
   --transition-fast: 0.2s ease;
   --transition-normal: 0.3s ease;
+  --card-gradient: linear-gradient(to right bottom, rgba(255, 255, 255, 0.8), rgba(255, 255, 255, 0.4));
+  --backdrop-blur: blur(10px);
 }
 
 .dark-theme {
-  /* 暗色主题变量 */
+  /* 暗色主题变量 - 增强版 */
   --primary-color: #5468ff;
-  --primary-gradient: linear-gradient(45deg, #5468ff, #7b96ff);
+  --primary-gradient: linear-gradient(135deg, #5468ff, #7b96ff);
   --secondary-color: #a29bfe;
   --accent-color: #00b894;
+  --success-color: #10b981;
+  --warning-color: #f59e0b;
+  --error-color: #ef4444;
   --background-color: #1a1b1e;
   --card-background: #2d2e32;
   --text-primary: #f1f2f3;
@@ -33,17 +41,26 @@
   --shadow-light: 0 4px 6px rgba(0, 0, 0, 0.2);
   --shadow-medium: 0 8px 16px rgba(0, 0, 0, 0.3);
   --shadow-large: 0 12px 24px rgba(0, 0, 0, 0.4);
+  --card-gradient: linear-gradient(to right bottom, rgba(45, 46, 50, 0.8), rgba(45, 46, 50, 0.4));
 }
 
 /* 元素样式重置 */
 .el-button {
   border-radius: var(--border-radius-small);
   transition: all var(--transition-fast);
+  font-weight: 500;
+  letter-spacing: 0.3px;
 }
 
 .el-button--primary {
   background: var(--primary-gradient) !important;
   border: none;
+  box-shadow: 0 4px 10px rgba(74, 108, 247, 0.3);
+}
+
+.el-button--primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 15px rgba(74, 108, 247, 0.4);
 }
 
 .el-input, .el-select, .el-textarea {
@@ -52,11 +69,12 @@
 
 .el-input__inner, .el-textarea__inner {
   transition: all var(--transition-fast);
+  font-size: 15px;
 }
 
 .el-input:focus, .el-select:focus, .el-textarea:focus {
   border-color: var(--primary-color);
-  box-shadow: 0 0 0 2px rgba(74, 108, 247, 0.2);
+  box-shadow: 0 0 0 3px rgba(74, 108, 247, 0.15);
 }
 
 .el-card {
@@ -65,6 +83,8 @@
   box-shadow: var(--shadow-medium) !important;
   border: none !important;
   transition: transform var(--transition-normal), box-shadow var(--transition-normal);
+  background: var(--card-gradient);
+  backdrop-filter: var(--backdrop-blur);
 }
 
 .el-card:hover {
@@ -82,6 +102,7 @@
   color: white !important;
   border-radius: var(--border-radius-small);
   margin: 5px 10px;
+  box-shadow: 0 4px 10px rgba(74, 108, 247, 0.2);
 }
 
 .el-menu-item {
@@ -90,6 +111,7 @@
   height: 46px;
   line-height: 46px;
   transition: all var(--transition-fast);
+  font-weight: 500;
 }
 
 .el-menu-item:hover {
@@ -156,4 +178,80 @@
   background-color: var(--card-background);
   color: var(--text-primary);
   border-color: var(--border-color);
+}
+
+/* 新增: 工具提示样式 */
+.el-tooltip__popper {
+  border-radius: var(--border-radius-small);
+  box-shadow: var(--shadow-medium);
+  font-weight: 500;
+  padding: 8px 12px;
+  font-size: 14px;
+  backdrop-filter: var(--backdrop-blur);
+}
+
+/* 新增: 卡片内容样式增强 */
+.input-area-card,
+.batch-area-card {
+  border-radius: var(--border-radius-large);
+  background-color: var(--card-background);
+  box-shadow: var(--shadow-medium);
+  transition: var(--transition-normal);
+  margin-bottom: 20px;
+  border: 1px solid var(--border-color);
+  overflow: hidden;
+}
+
+.input-area-card:hover,
+.batch-area-card:hover {
+  box-shadow: var(--shadow-large);
+}
+
+.card-header {
+  padding: 16px;
+  border-bottom: 1px solid var(--border-color);
+  background-color: rgba(0, 0, 0, 0.02);
+}
+
+.dark-theme .card-header {
+  background-color: rgba(255, 255, 255, 0.02);
+}
+
+.card-body {
+  padding: 20px;
+}
+
+/* 新增: 按钮悬浮强调效果 */
+.el-button {
+  position: relative;
+  overflow: hidden;
+}
+
+.el-button::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 5px;
+  height: 5px;
+  background: rgba(255, 255, 255, 0.5);
+  opacity: 0;
+  border-radius: 100%;
+  transform: scale(1, 1) translate(-50%);
+  transform-origin: 50% 50%;
+}
+
+.el-button:hover::after {
+  animation: ripple 1s ease-out;
+}
+
+@keyframes ripple {
+  0% {
+    transform: scale(0, 0);
+    opacity: 0.5;
+  }
+  100% {
+    transform: scale(30, 30);
+    opacity: 0;
+  }
 } 
