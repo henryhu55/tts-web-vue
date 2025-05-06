@@ -86,15 +86,18 @@
                   <div class="quota-progress-wrapper">
                     <div class="quota-text-row">
                       <span class="quota-label">已使用: {{ localTTSStore.serverStatus.freeLimit?.used || 0 }} / {{ localTTSStore.serverStatus.freeLimit?.free_limit || 50000 }}</span>
+                    </div>
+                    <div class="progress-and-percentage">
+                      <el-progress 
+                        :percentage="((localTTSStore.serverStatus.freeLimit?.used || 0) / (localTTSStore.serverStatus.freeLimit?.free_limit || 50000) * 100)"
+                        :format="(percentage) => ''"
+                        :stroke-width="10"
+                        :show-text="false"
+                        :color="quotaProgressColor"
+                        class="quota-progress"
+                      />
                       <span class="quota-percentage">{{ ((localTTSStore.serverStatus.freeLimit?.used || 0) / (localTTSStore.serverStatus.freeLimit?.free_limit || 50000) * 100).toFixed(1) }}%</span>
                     </div>
-                    <el-progress 
-                      :percentage="((localTTSStore.serverStatus.freeLimit?.used || 0) / (localTTSStore.serverStatus.freeLimit?.free_limit || 50000) * 100)"
-                      :format="(percentage) => ''"
-                      :stroke-width="10"
-                      :show-text="false"
-                      :color="quotaProgressColor"
-                    />
                   </div>
                   <div class="quota-details">
                     <div class="quota-item">
@@ -475,150 +478,6 @@
         </div>
       </div>
       
-      <!-- 本地TTS服务设置卡片 -->
-      <div v-if="formConfig.api === 5" class="option-section">
-        <h3 class="section-title">
-          免费TTS服务
-          <el-tag type="success" effect="plain" size="small" class="free-tag">无需API密钥</el-tag>
-        </h3>
-        <div class="free-service-info">
-          <div class="free-service-highlight">
-            <el-icon color="#67C23A"><Check /></el-icon>
-            <span>推荐使用免费TTS服务，无需配置API密钥即可开始使用</span>
-          </div>
-          <div class="free-tts-card">
-            <div class="free-tts-header">
-              <div class="header-left">
-                <el-tag size="small" type="success" effect="plain">无需API密钥</el-tag>
-                <span class="free-tts-title">免费TTS服务</span>
-              </div>
-              <div class="header-actions">
-                <el-radio-group v-model="currentView" size="small">
-                  <el-radio-button label="quota">额度信息</el-radio-button>
-                  <el-radio-button label="settings">高级配置</el-radio-button>
-                </el-radio-group>
-              </div>
-            </div>
-            
-            <div class="free-tts-content">
-              <!-- 额度信息视图 -->
-              <div v-if="currentView === 'quota'" class="quota-info">
-                <div class="quota-header">
-                  <h4>免费额度信息</h4>
-                  <div class="quota-actions">
-                    <el-button 
-                      type="success" 
-                      size="small" 
-                      plain 
-                      :loading="checkingConnection"
-                      @click="handleCheckConnection"
-                    >检查连接</el-button>
-                    <el-button 
-                      type="primary" 
-                      size="small" 
-                      plain 
-                      @click="handleTestPlay"
-                      :loading="isTestPlaying"
-                    >测试播放</el-button>
-                  </div>
-                </div>
-                <div class="quota-progress-wrapper">
-                  <div class="quota-text-row">
-                    <span class="quota-label">已使用: {{ localTTSStore.serverStatus.freeLimit?.used || 0 }} / {{ localTTSStore.serverStatus.freeLimit?.free_limit || 50000 }}</span>
-                    <span class="quota-percentage">{{ ((localTTSStore.serverStatus.freeLimit?.used || 0) / (localTTSStore.serverStatus.freeLimit?.free_limit || 50000) * 100).toFixed(1) }}%</span>
-                  </div>
-                  <el-progress 
-                    :percentage="((localTTSStore.serverStatus.freeLimit?.used || 0) / (localTTSStore.serverStatus.freeLimit?.free_limit || 50000) * 100)"
-                    :format="(percentage) => ''"
-                    :stroke-width="10"
-                    :show-text="false"
-                    :color="quotaProgressColor"
-                  />
-                </div>
-                <div class="quota-details">
-                  <div class="quota-item">
-                    <span class="label">剩余额度:</span>
-                    <span class="value">{{ localTTSStore.serverStatus.freeLimit?.remaining || 0 }} 字符</span>
-                  </div>
-                  <div class="quota-item">
-                    <span class="label">重置时间:</span>
-                    <span class="value">{{ localTTSStore.serverStatus.freeLimit?.reset_date || '-' }}</span>
-                  </div>
-                </div>
-              </div>
-
-              <!-- 高级配置视图 -->
-              <div v-else class="settings-info">
-                <div class="settings-section">
-                  <h4>服务配置</h4>
-                  <div class="settings-item">
-                    <span class="settings-label">服务地址</span>
-                    <el-input 
-                      v-model="localTTSStore.config.serverUrl" 
-                      placeholder="请输入服务地址"
-                      size="default"
-                    />
-                  </div>
-                  <div class="settings-item">
-                    <span class="settings-label">重试次数</span>
-                    <el-input-number
-                      v-model="localTTSStore.config.retryCount"
-                      :min="0"
-                      :max="5"
-                      size="default"
-                    />
-                  </div>
-                  <div class="settings-item">
-                    <span class="settings-label">重试间隔(ms)</span>
-                    <el-input-number
-                      v-model="localTTSStore.config.retryInterval"
-                      :min="1000"
-                      :max="5000"
-                      :step="500"
-                      size="default"
-                    />
-                  </div>
-                </div>
-                
-                <div class="settings-section">
-                  <h4>音频设置</h4>
-                  <div class="settings-item">
-                    <span class="settings-label">默认音频格式</span>
-                    <el-select
-                      v-model="localTTSStore.config.defaultAudioFormat"
-                      size="default"
-                    >
-                      <el-option label="MP3" value="mp3" />
-                      <el-option label="WAV" value="wav" />
-                      <el-option label="OGG" value="ogg" />
-                    </el-select>
-                  </div>
-                  <div class="settings-item">
-                    <span class="settings-label">自动播放</span>
-                    <el-switch
-                      v-model="localTTSStore.config.autoPlay"
-                    />
-                  </div>
-                </div>
-
-                <div class="settings-actions">
-                  <el-button type="primary" @click="saveAdvancedSettings">
-                    保存设置
-                  </el-button>
-                </div>
-              </div>
-
-              <div class="connection-status">
-                <el-tag v-if="localTTSStore.isConnected" size="small" type="success">
-                  <el-icon><Check /></el-icon>
-                  已连接到免费服务
-                </el-tag>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
       <div class="option-section">
         <h3 class="section-title">音频输出设置</h3>
         <div class="option-grid">
@@ -2746,6 +2605,35 @@ const handleTestPlay = async () => {
   margin-top: 20px;
   display: flex;
   justify-content: flex-end;
+}
+
+/* 进度条与百分比的布局样式 */
+.progress-and-percentage {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.quota-progress {
+  flex: 1;
+}
+
+.quota-percentage {
+  font-weight: bold;
+  color: var(--primary-color);
+  min-width: 50px;
+  text-align: right;
+}
+
+.quota-text-row {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+
+.quota-label {
+  color: var(--text-secondary);
+  font-size: 14px;
 }
 
 .connection-status {
