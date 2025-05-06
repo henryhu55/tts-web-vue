@@ -15,19 +15,20 @@
             <span>本次最多可输入 <b>{{ localTTSStore.serverStatus.freeLimit.remaining }}</b> 剩余 <b>{{ localTTSStore.serverStatus.freeLimit.remaining }}</b> 可输入</span>
           </div>
           
-          <el-button 
-            @click="dialogVisible = true" 
-            type="primary" 
-            class="ai-button"
-            v-tooltip="{
-              content: '使用AI生成文本内容',
-              placement: 'top',
-              effect: 'light'
-            }"
+          <el-tooltip
+            content="使用AI生成文本内容"
+            placement="top"
+            effect="light"
           >
-            <el-icon><MagicStick /></el-icon>
-            <span>AI 生成</span>
-          </el-button>
+            <el-button 
+              @click="dialogVisible = true" 
+              type="primary" 
+              class="ai-button"
+            >
+              <el-icon><MagicStick /></el-icon>
+              <span>AI 生成</span>
+            </el-button>
+          </el-tooltip>
         </div>
       </div>
       
@@ -63,20 +64,21 @@
           <div class="text-area-header">
             <h3>SSML 标记语言</h3>
             <span class="text-area-hint">使用SSML可以更精确地控制语音效果，包括语调、停顿和发音</span>
-            <el-button 
-              size="small" 
-              type="info" 
-              class="ssml-help-button"
-              @click="openSSMLHelp"
-              v-tooltip="{
-                content: '查看SSML使用指南',
-                placement: 'top',
-                effect: 'light'
-              }"
+            <el-tooltip
+              content="查看SSML使用指南"
+              placement="top"
+              effect="light"
             >
-              <el-icon><QuestionFilled /></el-icon>
-              SSML帮助
-            </el-button>
+              <el-button 
+                size="small" 
+                type="info" 
+                class="ssml-help-button"
+                @click="openSSMLHelp"
+              >
+                <el-icon><QuestionFilled /></el-icon>
+                SSML帮助
+              </el-button>
+            </el-tooltip>
           </div>
           <el-input 
             v-model="inputs.ssmlValue" 
@@ -91,158 +93,167 @@
       <!-- 简洁控制栏 - 取代原来的浮动控制条 -->
       <div class="compact-controls-bar">
         <div class="compact-selects">
-          <el-select
-            v-model="formConfig.api"
-            size="small"
-            placeholder="API"
-            class="compact-select"
-            @change="apiChange"
-            v-tooltip="{
-              content: '选择语音合成服务提供商',
-              placement: 'top',
-              effect: 'light'
-            }"
+          <el-tooltip
+            content="选择语音合成服务提供商"
+            placement="top"
+            effect="light"
           >
-            <template #prefix>
-              <el-icon><Connection /></el-icon>
-            </template>
-            <el-option
-              v-for="item in apiOptions"
-              :key="item.value"
-              :label="item.value === 5 ? `${item.label} (推荐免费)` : item.value === 4 ? `${item.label} (无限制使用)` : item.label"
-              :value="item.value"
+            <el-select
+              v-model="formConfig.api"
+              size="small"
+              placeholder="API"
+              class="compact-select"
+              @change="apiChange"
             >
-              <template v-if="item.value === 5">
-                <div class="free-api-option">
+              <template #prefix>
+                <el-icon><Connection /></el-icon>
+              </template>
+              <el-option
+                v-for="item in apiOptions"
+                :key="item.value"
+                :label="item.value === 5 ? `${item.label} (推荐免费)` : item.value === 4 ? `${item.label} (无限制使用)` : item.label"
+                :value="item.value"
+              >
+                <template v-if="item.value === 5">
+                  <div class="free-api-option">
+                    <span>{{ item.label }}</span>
+                    <el-tag size="small" type="success" effect="dark">推荐免费</el-tag>
+                  </div>
+                </template>
+                <template v-else-if="item.value === 4">
+                  <div class="free-api-option">
+                    <span>{{ item.label }}</span>
+                    <el-tag size="small" type="info" effect="plain">无限制使用</el-tag>
+                  </div>
+                </template>
+                <template v-else>
                   <span>{{ item.label }}</span>
-                  <el-tag size="small" type="success" effect="dark">推荐免费</el-tag>
+                </template>
+              </el-option>
+            </el-select>
+          </el-tooltip>
+          
+          <el-tooltip
+            content="选择语音合成的语言"
+            placement="top"
+            effect="light"
+          >
+            <el-select
+              v-model="formConfig.languageSelect"
+              size="small"
+              placeholder="语言"
+              class="compact-select"
+              @change="languageSelectChange"
+              filterable
+            >
+              <template #prefix>
+                <el-icon><ChatDotRound /></el-icon>
+              </template>
+              <el-option
+                v-for="item in languageOptions"
+                :key="item.value"
+                :label="item.label"
+                :value="item.value"
+              />
+            </el-select>
+          </el-tooltip>
+          
+          <el-tooltip
+            content="选择语音角色"
+            placement="top"
+            effect="light"
+          >
+            <el-select
+              v-model="formConfig.voiceSelect"
+              size="small"
+              placeholder="声音"
+              class="voice-select"
+              @change="voiceSelectChange"
+              filterable
+            >
+              <template #prefix>
+                <el-icon><Microphone /></el-icon>
+              </template>
+              <template v-if="formConfig.voiceSelect" #trigger>
+                <div class="el-select__selection">
+                  {{ getChineseName(formConfig.voiceSelect) || formConfig.voiceSelect }}
                 </div>
               </template>
-              <template v-else-if="item.value === 4">
-                <div class="free-api-option">
-                  <span>{{ item.label }}</span>
-                  <el-tag size="small" type="info" effect="plain">无限制使用</el-tag>
+              <el-option
+                v-for="item in voiceSelectList"
+                :key="item.ShortName"
+                :label="getChineseName(item.ShortName) || item.DisplayName"
+                :value="item.ShortName"
+              >
+                <div class="voice-option">
+                  <span>{{ getChineseName(item.ShortName) || item.DisplayName }}</span>
+                  <el-tooltip
+                    content="试听声音示例"
+                    placement="top"
+                    effect="light"
+                  >
+                    <el-button 
+                      size="small" 
+                      type="primary" 
+                      circle
+                      @click.stop="audition(item.ShortName)"
+                    >
+                      <el-icon><CaretRight /></el-icon>
+                    </el-button>
+                  </el-tooltip>
                 </div>
-              </template>
-              <template v-else>
-                <span>{{ item.label }}</span>
-              </template>
-            </el-option>
-          </el-select>
-          
-          <el-select
-            v-model="formConfig.languageSelect"
-            size="small"
-            placeholder="语言"
-            class="compact-select"
-            @change="languageSelectChange"
-            filterable
-            v-tooltip="{
-              content: '选择语音合成的语言',
-              placement: 'top',
-              effect: 'light'
-            }"
-          >
-            <template #prefix>
-              <el-icon><ChatDotRound /></el-icon>
-            </template>
-            <el-option
-              v-for="item in languageOptions"
-              :key="item.value"
-              :label="item.label"
-              :value="item.value"
-            />
-          </el-select>
-          
-          <el-select
-            v-model="formConfig.voiceSelect"
-            size="small"
-            placeholder="声音"
-            class="voice-select"
-            @change="voiceSelectChange"
-            filterable
-            v-tooltip="{
-              content: '选择语音角色',
-              placement: 'top',
-              effect: 'light'
-            }"
-          >
-            <template #prefix>
-              <el-icon><Microphone /></el-icon>
-            </template>
-            <template v-if="formConfig.voiceSelect" #trigger>
-              <div class="el-select__selection">
-                {{ getChineseName(formConfig.voiceSelect) || formConfig.voiceSelect }}
-              </div>
-            </template>
-            <el-option
-              v-for="item in voiceSelectList"
-              :key="item.ShortName"
-              :label="getChineseName(item.ShortName) || item.DisplayName"
-              :value="item.ShortName"
-            >
-              <div class="voice-option">
-                <span>{{ getChineseName(item.ShortName) || item.DisplayName }}</span>
-                <el-button 
-                  size="small" 
-                  type="primary" 
-                  circle
-                  @click.stop="audition(item.ShortName)"
-                  v-tooltip="{
-                    content: '试听声音示例',
-                    placement: 'top',
-                    effect: 'light'
-                  }"
-                ><el-icon><CaretRight /></el-icon></el-button>
-              </div>
-            </el-option>
-          </el-select>
-    </div>
+              </el-option>
+            </el-select>
+          </el-tooltip>
+        </div>
         
         <div class="compact-actions">
-          <el-button 
-            size="small" 
-            @click="openVoiceAnchors"
-            class="voice-anchors-button"
-            v-tooltip="{
-              content: '选择预设语音主播角色',
-              placement: 'top',
-              effect: 'light'
-            }"
+          <el-tooltip
+            content="选择预设语音主播角色"
+            placement="top"
+            effect="light"
           >
-            <el-icon><Avatar /></el-icon>
-            语音主播
-          </el-button>
+            <el-button 
+              size="small" 
+              @click="openVoiceAnchors"
+              class="voice-anchors-button"
+            >
+              <el-icon><Avatar /></el-icon>
+              语音主播
+            </el-button>
+          </el-tooltip>
           
-          <el-button 
-            size="small" 
-            @click="openSettingsPanel"
-            class="settings-button"
-            v-tooltip="{
-              content: '调整语速、音调等高级设置',
-              placement: 'top',
-              effect: 'light'
-            }"
+          <el-tooltip
+            content="调整语速、音调等高级设置"
+            placement="top"
+            effect="light"
           >
-            <el-icon><Setting /></el-icon>
-            高级设置
-          </el-button>
+            <el-button 
+              size="small" 
+              @click="openSettingsPanel"
+              class="settings-button"
+            >
+              <el-icon><Setting /></el-icon>
+              高级设置
+            </el-button>
+          </el-tooltip>
           
-          <el-button 
-            type="primary" 
-            @click="startBtn" 
-            :loading="isLoading"
-            size="small"
-            class="start-button"
-            v-tooltip="{
-              content: '开始转换文本为语音',
-              placement: 'top',
-              effect: 'light'
-            }"
+          <el-tooltip
+            content="开始转换文本为语音"
+            placement="top"
+            effect="light"
           >
-            <el-icon><CaretRight /></el-icon>
-            转换
-          </el-button>
+            <el-button 
+              type="primary" 
+              @click="startBtn" 
+              :loading="isLoading"
+              size="small"
+              class="start-button"
+            >
+              <el-icon><CaretRight /></el-icon>
+              转换
+            </el-button>
+          </el-tooltip>
         </div>
       </div>
     </div>
@@ -399,158 +410,167 @@
       <!-- 批量处理的控制条 -->
       <div class="compact-controls-bar">
         <div class="compact-selects">
-          <el-select
-            v-model="formConfig.api"
-            size="small"
-            placeholder="API"
-            class="compact-select"
-            @change="apiChange"
-            v-tooltip="{
-              content: '选择语音合成服务提供商',
-              placement: 'top',
-              effect: 'light'
-            }"
+          <el-tooltip
+            content="选择语音合成服务提供商"
+            placement="top"
+            effect="light"
           >
-            <template #prefix>
-              <el-icon><Connection /></el-icon>
-            </template>
-            <el-option
-              v-for="item in apiOptions"
-              :key="item.value"
-              :label="item.value === 5 ? `${item.label} (推荐免费)` : item.value === 4 ? `${item.label} (无限制使用)` : item.label"
-              :value="item.value"
+            <el-select
+              v-model="formConfig.api"
+              size="small"
+              placeholder="API"
+              class="compact-select"
+              @change="apiChange"
             >
-              <template v-if="item.value === 5">
-                <div class="free-api-option">
+              <template #prefix>
+                <el-icon><Connection /></el-icon>
+              </template>
+              <el-option
+                v-for="item in apiOptions"
+                :key="item.value"
+                :label="item.value === 5 ? `${item.label} (推荐免费)` : item.value === 4 ? `${item.label} (无限制使用)` : item.label"
+                :value="item.value"
+              >
+                <template v-if="item.value === 5">
+                  <div class="free-api-option">
+                    <span>{{ item.label }}</span>
+                    <el-tag size="small" type="success" effect="dark">推荐免费</el-tag>
+                  </div>
+                </template>
+                <template v-else-if="item.value === 4">
+                  <div class="free-api-option">
+                    <span>{{ item.label }}</span>
+                    <el-tag size="small" type="info" effect="plain">无限制使用</el-tag>
+                  </div>
+                </template>
+                <template v-else>
                   <span>{{ item.label }}</span>
-                  <el-tag size="small" type="success" effect="dark">推荐免费</el-tag>
+                </template>
+              </el-option>
+            </el-select>
+          </el-tooltip>
+          
+          <el-tooltip
+            content="选择语音合成的语言"
+            placement="top"
+            effect="light"
+          >
+            <el-select
+              v-model="formConfig.languageSelect"
+              size="small"
+              placeholder="语言"
+              class="compact-select"
+              @change="languageSelectChange"
+              filterable
+            >
+              <template #prefix>
+                <el-icon><ChatDotRound /></el-icon>
+              </template>
+              <el-option
+                v-for="item in languageOptions"
+                :key="item.value"
+                :label="item.label"
+                :value="item.value"
+              />
+            </el-select>
+          </el-tooltip>
+          
+          <el-tooltip
+            content="选择语音角色"
+            placement="top"
+            effect="light"
+          >
+            <el-select
+              v-model="formConfig.voiceSelect"
+              size="small"
+              placeholder="声音"
+              class="voice-select"
+              @change="voiceSelectChange"
+              filterable
+            >
+              <template #prefix>
+                <el-icon><Microphone /></el-icon>
+              </template>
+              <template v-if="formConfig.voiceSelect" #trigger>
+                <div class="el-select__selection">
+                  {{ getChineseName(formConfig.voiceSelect) || formConfig.voiceSelect }}
                 </div>
               </template>
-              <template v-else-if="item.value === 4">
-                <div class="free-api-option">
-                  <span>{{ item.label }}</span>
-                  <el-tag size="small" type="info" effect="plain">无限制使用</el-tag>
+              <el-option
+                v-for="item in voiceSelectList"
+                :key="item.ShortName"
+                :label="getChineseName(item.ShortName) || item.DisplayName"
+                :value="item.ShortName"
+              >
+                <div class="voice-option">
+                  <span>{{ getChineseName(item.ShortName) || item.DisplayName }}</span>
+                  <el-tooltip
+                    content="试听声音示例"
+                    placement="top"
+                    effect="light"
+                  >
+                    <el-button 
+                      size="small" 
+                      type="primary" 
+                      circle
+                      @click.stop="audition(item.ShortName)"
+                    >
+                      <el-icon><CaretRight /></el-icon>
+                    </el-button>
+                  </el-tooltip>
                 </div>
-              </template>
-              <template v-else>
-                <span>{{ item.label }}</span>
-              </template>
-            </el-option>
-          </el-select>
-          
-          <el-select
-            v-model="formConfig.languageSelect"
-            size="small"
-            placeholder="语言"
-            class="compact-select"
-            @change="languageSelectChange"
-            filterable
-            v-tooltip="{
-              content: '选择语音合成的语言',
-              placement: 'top',
-              effect: 'light'
-            }"
-          >
-            <template #prefix>
-              <el-icon><ChatDotRound /></el-icon>
-            </template>
-            <el-option
-              v-for="item in languageOptions"
-              :key="item.value"
-              :label="item.label"
-              :value="item.value"
-            />
-          </el-select>
-          
-          <el-select
-            v-model="formConfig.voiceSelect"
-            size="small"
-            placeholder="声音"
-            class="voice-select"
-            @change="voiceSelectChange"
-            filterable
-            v-tooltip="{
-              content: '选择语音角色',
-              placement: 'top',
-              effect: 'light'
-            }"
-          >
-            <template #prefix>
-              <el-icon><Microphone /></el-icon>
-            </template>
-            <template v-if="formConfig.voiceSelect" #trigger>
-              <div class="el-select__selection">
-                {{ getChineseName(formConfig.voiceSelect) || formConfig.voiceSelect }}
-              </div>
-            </template>
-            <el-option
-              v-for="item in voiceSelectList"
-              :key="item.ShortName"
-              :label="getChineseName(item.ShortName) || item.DisplayName"
-              :value="item.ShortName"
-            >
-              <div class="voice-option">
-                <span>{{ getChineseName(item.ShortName) || item.DisplayName }}</span>
-                <el-button 
-                  size="small" 
-                  type="primary" 
-                  circle
-                  @click.stop="audition(item.ShortName)"
-                  v-tooltip="{
-                    content: '试听声音示例',
-                    placement: 'top',
-                    effect: 'light'
-                  }"
-                ><el-icon><CaretRight /></el-icon></el-button>
-              </div>
-            </el-option>
-          </el-select>
-    </div>
-    
+              </el-option>
+            </el-select>
+          </el-tooltip>
+        </div>
+        
         <div class="compact-actions">
-          <el-button 
-            size="small" 
-            @click="openVoiceAnchors"
-            class="voice-anchors-button"
-            v-tooltip="{
-              content: '选择预设语音主播角色',
-              placement: 'top',
-              effect: 'light'
-            }"
+          <el-tooltip
+            content="选择预设语音主播角色"
+            placement="top"
+            effect="light"
           >
-            <el-icon><Avatar /></el-icon>
-            语音主播
-          </el-button>
+            <el-button 
+              size="small" 
+              @click="openVoiceAnchors"
+              class="voice-anchors-button"
+            >
+              <el-icon><Avatar /></el-icon>
+              语音主播
+            </el-button>
+          </el-tooltip>
           
-          <el-button 
-            size="small" 
-            @click="openSettingsPanel"
-            class="settings-button"
-            v-tooltip="{
-              content: '调整语速、音调等高级设置',
-              placement: 'top',
-              effect: 'light'
-            }"
+          <el-tooltip
+            content="调整语速、音调等高级设置"
+            placement="top"
+            effect="light"
           >
-            <el-icon><Setting /></el-icon>
-            高级设置
-          </el-button>
+            <el-button 
+              size="small" 
+              @click="openSettingsPanel"
+              class="settings-button"
+            >
+              <el-icon><Setting /></el-icon>
+              高级设置
+            </el-button>
+          </el-tooltip>
           
-          <el-button 
-            type="primary" 
-            @click="startBtn" 
-            :loading="isLoading"
-            size="small"
-            class="start-button"
-            v-tooltip="{
-              content: '开始转换文本为语音',
-              placement: 'top',
-              effect: 'light'
-            }"
+          <el-tooltip
+            content="开始转换文本为语音"
+            placement="top"
+            effect="light"
           >
-            <el-icon><CaretRight /></el-icon>
-            转换
-          </el-button>
+            <el-button 
+              type="primary" 
+              @click="startBtn" 
+              :loading="isLoading"
+              size="small"
+              class="start-button"
+            >
+              <el-icon><CaretRight /></el-icon>
+              转换
+            </el-button>
+          </el-tooltip>
         </div>
       </div>
     </div>

@@ -258,6 +258,7 @@
               :max="2" 
               :step="0.1" 
               class="option-slider"
+              @input="handleVoiceSettingChange"
             />
           </div>
           
@@ -273,6 +274,7 @@
               :max="2" 
               :step="0.1"
               class="option-slider"
+              @input="handleVoiceSettingChange"
             />
           </div>
 
@@ -285,6 +287,7 @@
                 size="default"
                 :placeholder="t('options.selectVolume')"
                 class="full-width-select"
+                @change="handleVoiceSettingChange"
               >
                 <el-option
                   v-for="item in ['default', 'extraWeak', 'weak', 'medium', 'strong', 'extraStrong']"
@@ -309,6 +312,7 @@
                 size="default"
                 :placeholder="t('options.selectIntensity')"
                 class="full-width-select"
+                @change="handleVoiceSettingChange"
               >
                 <el-option
                   v-for="item in ['default', 'weak', 'normal', 'strong', 'extraStrong']"
@@ -333,6 +337,7 @@
                 size="default"
                 :placeholder="t('options.selectSilence')"
                 class="full-width-select"
+                @change="handleVoiceSettingChange"
               >
                 <el-option
                   v-for="item in ['default', '100ms', '200ms', '300ms', '500ms', '1s']"
@@ -797,11 +802,17 @@ const applySelectedAnchor = () => {
   if (selectedAnchor.value) {
     const anchor = voiceAnchors.find(a => a.id === selectedAnchor.value);
     if (anchor) {
-      // 保存当前选择的样式，以便可能需要重用
+      // 保存当前选择的样式、API和自动预览设置
       const selectedStyle = formConfig.value.voiceStyleSelect || 'Default';
+      const currentApi = formConfig.value.api;
+      const currentAutoPreview = formConfig.value.autoPreview; // 保存自动预览设置
       
       // 应用主播配置
       formConfig.value = {...anchor.config};
+      
+      // 恢复当前的API和自动预览设置
+      formConfig.value.api = currentApi;
+      formConfig.value.autoPreview = currentAutoPreview; // 恢复自动预览设置
       
       // 确保更新SSML
       updateSSML();
@@ -1076,6 +1087,9 @@ onMounted(() => {
   if (!formConfig.value.volume) {
     formConfig.value.volume = "default";
   }
+  if (!formConfig.value.autoPreview) {
+    formConfig.value.autoPreview = false; // 设置自动预览的默认值为false
+  }
   
   // 设置默认API为免费TTS服务
   formConfig.value.api = 5;
@@ -1317,8 +1331,8 @@ function updateSSML() {
   }
   
   // 计算速率和音调
-  const rateValue = ((config.speed - 1) * 100).toFixed();
-  const pitchValue = ((config.pitch - 1) * 50).toFixed();
+  const rateValue = (config.speed * 100).toFixed(); // 直接使用速度值乘以100
+  const pitchValue = (config.pitch * 100 - 100).toFixed(); // 将音调值转换为百分比变化
   
   // 生成完整的SSML - 修改命名空间为https
   const ssml = '<speak xmlns="http://www.w3.org/2001/10/synthesis" xmlns:mstts="https://www.w3.org/2001/mstts" xmlns:emo="http://www.w3.org/2009/10/emotionml" version="1.0" xml:lang="en-US">' +
@@ -1339,16 +1353,36 @@ watch(formConfig, (newVal, oldVal) => {
   updateSSML();
   
   // 检查是否是语音相关设置发生变化
-  const voiceSettings = ['speed', 'pitch', 'volume', 'intensity', 'silence', 'voiceStyleSelect', 'role'];
-  const hasVoiceSettingChanged = voiceSettings.some(key => newVal[key] !== oldVal[key]);
+  const voiceSettings = [
+    'speed', 
+    'pitch', 
+    'volume', 
+    'intensity', 
+    'silence', 
+    'voiceStyleSelect', 
+    'role',
+    'languageSelect',
+    'voiceSelect'
+  ];
+  
+  // 更详细的变化检测
+  const hasVoiceSettingChanged = voiceSettings.some(key => {
+    // 特别处理数值类型的参数
+    if (key === 'speed' || key === 'pitch') {
+      return Math.abs(newVal[key] - oldVal[key]) > 0.001; // 使用小数点比较来避免浮点数精度问题
+    }
+    return newVal[key] !== oldVal[key];
+  });
   
   // 如果语音设置发生变化且启用了自动预览，则触发预览
   if (hasVoiceSettingChanged && newVal.autoPreview) {
+    console.log('检测到语音设置变化，准备触发预览');
     // 使用防抖，避免频繁触发预览
     if (previewDebounceTimer) {
       clearTimeout(previewDebounceTimer);
     }
     previewDebounceTimer = setTimeout(() => {
+      console.log('触发自动预览');
       ttsStore.autoPreview();
     }, 1000); // 1秒后触发预览
   }
@@ -1797,16 +1831,22 @@ const getDefaultAvatar = (anchor: any) => {
 const selectAnchor = async (anchor: any) => {
   selectedAnchor.value = anchor.id;
   
-  // 保存当前选择的样式，以便可能需要重用
+  // 保存当前选择的样式、API和自动预览设置
   const selectedStyle = formConfig.value.voiceStyleSelect || 'Default';
+  const currentApi = formConfig.value.api;
+  const currentAutoPreview = formConfig.value.autoPreview; // 保存自动预览设置
   
   // 应用主播配置
   formConfig.value = {...anchor.config};
   
+  // 恢复当前的API和自动预览设置
+  formConfig.value.api = currentApi;
+  formConfig.value.autoPreview = currentAutoPreview; // 恢复自动预览设置
+  
   // 确保更新SSML
   updateSSML();
   
-  // 触发语音选择变更以更新可用的风格和角色列表，注意不要覆盖已选择的样式
+  // 更新可用的风格和角色列表
   const voice = voiceSelectList.value.find(
     (item: any) => item.ShortName === formConfig.value.voiceSelect
   );
@@ -2061,6 +2101,20 @@ const handleTestPlay = async () => {
     });
   } finally {
     isTestPlaying.value = false;
+  }
+};
+
+// 添加处理函数
+const handleVoiceSettingChange = () => {
+  if (formConfig.value.autoPreview) {
+    // 使用防抖，避免频繁触发预览
+    if (previewDebounceTimer) {
+      clearTimeout(previewDebounceTimer);
+    }
+    previewDebounceTimer = setTimeout(() => {
+      console.log('触发自动预览');
+      ttsStore.autoPreview();
+    }, 1000); // 1秒后触发预览
   }
 };
 </script>
@@ -2640,5 +2694,32 @@ const handleTestPlay = async () => {
   margin-top: 16px;
   display: flex;
   justify-content: center;
+}
+
+.quota-details {
+  margin-top: 16px;
+  padding: 12px;
+  background-color: var(--card-background-light);
+  border-radius: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.quota-item {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.quota-item .label {
+  color: var(--text-secondary);
+  font-size: 13px;
+}
+
+.quota-item .value {
+  color: var(--text-primary);
+  font-size: 15px;
+  font-weight: 500;
 }
 </style>
