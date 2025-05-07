@@ -1919,6 +1919,11 @@ const openSettingsPanel = () => {
   setTimeout(() => {
     openSettingsDrawer.value = true;
     
+    // 重新格式化SSML
+    if (inputs.value.ssmlValue) {
+      inputs.value.ssmlValue = formatXML(inputs.value.ssmlValue);
+    }
+    
     // 添加调试信息
     console.log('抽屉状态:', openSettingsDrawer.value);
     
@@ -2064,6 +2069,112 @@ const cancelConversion = () => {
 };
 
 const isSSMLMode = ref(false);
+
+// 添加XML格式化函数
+const formatXML = (xml: string) => {
+  let formatted = '';
+  let indent = '';
+  
+  // 将XML字符串分割成行
+  xml.split(/>\s*</).forEach(function(node) {
+    if (node.match(/^\/\w/)) indent = indent.substring(2);
+    formatted += indent + '<' + node + '>\n';
+    if (!node.match(/^\//) && !node.match(/\/$/)) indent += '  ';
+  });
+  
+  // 处理第一个和最后一个标签
+  return formatted.substring(1, formatted.length - 2);
+};
+
+// 更新SSML内容的函数
+function updateSSML() {
+  if (!formConfig.value || !formConfig.value.voiceSelect) {
+    return;
+  }
+  
+  // 提取所需的值
+  const config = formConfig.value;
+  
+  // 准备样式属性
+  let styleAttr = "";
+  if (config.voiceStyleSelect) {
+    styleAttr = 'style="' + config.voiceStyleSelect + '"';
+  }
+  
+  // 准备角色属性
+  let roleAttr = "";
+  if (config.role) {
+    roleAttr = 'role="' + config.role + '"';
+  }
+  
+  // 准备强度属性
+  let intensityAttr = "";
+  if (config.intensity && config.intensity !== "default") {
+    // 将字符串强度值转换为对应的数值
+    let intensityValue = "";
+    if (config.intensity === "weak") intensityValue = "0.5";
+    else if (config.intensity === "strong") intensityValue = "1.5";
+    else if (config.intensity === "extraStrong") intensityValue = "2";
+    else intensityValue = config.intensity; // 如果已经是数值则直接使用
+    
+    intensityAttr = 'styledegree="' + intensityValue + '"';
+  }
+  
+  // 准备音量属性 - 移至 prosody 元素
+  let volumeAttr = "";
+  if (config.volume && config.volume !== "default") {
+    // 定义音量值映射
+    let volumeMapping: {[key: string]: string} = {
+      "extraWeak": "x-soft",
+      "weak": "soft", 
+      "strong": "loud",
+      "extraStrong": "x-loud"
+    };
+    
+    volumeAttr = 'volume="' + (volumeMapping[config.volume] || config.volume) + '"';
+  }
+  
+  // 准备静音配置
+  let silenceConfig = "";
+  if (config.silence && config.silence !== "default") {
+    silenceConfig = '<break time="' + config.silence + '" />';
+  }
+  
+  // 计算速率和音调
+  const rateValue = (config.speed * 100).toFixed(); // 直接使用速度值乘以100
+  const pitchValue = (config.pitch * 100 - 100).toFixed(); // 将音调值转换为百分比变化
+  
+  // 生成完整的SSML - 修改命名空间为https
+  const ssml = '<speak xmlns="http://www.w3.org/2001/10/synthesis" xmlns:mstts="https://www.w3.org/2001/mstts" xmlns:emo="http://www.w3.org/2009/10/emotionml" version="1.0" xml:lang="en-US">\n' +
+    '  <voice name="' + config.voiceSelect + '">\n' +
+    '    <mstts:express-as ' + styleAttr + ' ' + roleAttr + ' ' + intensityAttr + '>\n' +
+    '      <prosody rate="' + rateValue + '%" pitch="' + pitchValue + '%" ' + volumeAttr + '>\n' +
+    '        ' + silenceConfig + inputs.value.inputValue + '\n' +
+    '      </prosody>\n' +
+    '    </mstts:express-as>\n' +
+    '  </voice>\n' +
+    '</speak>';
+  
+  // 格式化并设置SSML
+  inputs.value.ssmlValue = formatXML(ssml);
+}
+
+// 监听SSML值的变化
+watch(() => inputs.value.ssmlValue, (newValue) => {
+  if (newValue && !newValue.includes('\n')) {  // 只在非格式化的情况下进行格式化
+    inputs.value.ssmlValue = formatXML(newValue);
+  }
+});
+
+// 监听抽屉打开状态
+watch(() => openSettingsDrawer.value, (newValue) => {
+  if (newValue && inputs.value.ssmlValue) {
+    // 当抽屉打开时，确保SSML是格式化的
+    nextTick(() => {
+      inputs.value.ssmlValue = formatXML(inputs.value.ssmlValue);
+    });
+  }
+});
 
 </script>
 
