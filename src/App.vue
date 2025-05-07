@@ -9,6 +9,7 @@ import WebStore from "./store/web-store";
 import { onMounted, ref, watch, nextTick, onBeforeUnmount, computed } from "vue";
 import { useI18n } from 'vue-i18n';
 import i18n from './assets/i18n/i18n';
+import FixedHeader from "./components/header/FixedHeader.vue";
 
 // 引导步骤
 const ttsStore = useTtsStore();
@@ -411,9 +412,10 @@ const updateGuidePosition = () => {
 
 // 切换主题
 const toggleTheme = () => {
+  console.log('App.vue: toggleTheme 方法被调用');
   isDarkTheme.value = !isDarkTheme.value;
   document.documentElement.setAttribute('theme-mode', isDarkTheme.value ? 'dark' : 'light');
-  store.set("darkTheme", isDarkTheme.value);
+  store.set('darkTheme', isDarkTheme.value);
 };
 
 // 监听引导步骤变化
@@ -564,11 +566,35 @@ onMounted(() => {
       });
     }
   };
+  
+  checkMobileView();
+  window.addEventListener('resize', checkMobileView);
+  
+  // 添加触摸事件监听
+  document.addEventListener('touchstart', handleTouchStart);
+  document.addEventListener('touchend', handleTouchEnd);
+  
+  // 添加全局主题切换事件监听作为备份方案
+  window.addEventListener('toggle-theme-event', () => {
+    console.log('App.vue: 收到全局 toggle-theme-event 事件');
+    toggleTheme();
+  });
+  
+  console.log('App.vue 已挂载，isDarkTheme =', isDarkTheme.value);
 });
 
 // 组件卸载时清理
 onBeforeUnmount(() => {
   window.removeEventListener('resize', updateGuidePosition);
+  
+  window.removeEventListener('resize', checkMobileView);
+  
+  // 移除触摸事件监听
+  document.removeEventListener('touchstart', handleTouchStart);
+  document.removeEventListener('touchend', handleTouchEnd);
+  
+  // 移除全局主题切换事件监听
+  window.removeEventListener('toggle-theme-event', () => {});
 });
 
 // 确保语言设置正确
@@ -740,33 +766,19 @@ const handleTouchEnd = (event) => {
     isSidebarCollapsed.value = true;
   }
 };
-
-// 在组件挂载时添加视窗检测
-onMounted(() => {
-  // ... existing code ...
-  
-  checkMobileView();
-  window.addEventListener('resize', checkMobileView);
-  
-  // 添加触摸事件监听
-  document.addEventListener('touchstart', handleTouchStart);
-  document.addEventListener('touchend', handleTouchEnd);
-});
-
-// 组件卸载时移除事件监听
-onBeforeUnmount(() => {
-  // ... existing code ...
-  
-  window.removeEventListener('resize', checkMobileView);
-  
-  // 移除触摸事件监听
-  document.removeEventListener('touchstart', handleTouchStart);
-  document.removeEventListener('touchend', handleTouchEnd);
-});
 </script>
 
 <template>
   <div class="app" :class="{ 'dark-theme': isDarkTheme, 'mobile-view': isMobileView }">
+    <FixedHeader 
+      @toggle-theme="toggleTheme" 
+      @toggle-sidebar="toggleSidebar" 
+    />
+    
+    <!-- 添加调试信息 -->
+    <div v-if="false" style="display: none;">
+      当前主题: {{ isDarkTheme ? 'dark' : 'light' }}
+    </div>
     <el-container class="modern-container">
       <el-container class="modern-body-container">
         <el-aside class="modern-aside" :class="{ 'sidebar-collapsed': isSidebarCollapsed }">

@@ -54,7 +54,7 @@
           <el-tooltip content="切换主题" placement="bottom" effect="light">
             <el-button
               circle
-              @click="$emit('toggle-theme')"
+              @click="handleThemeClick"
             >
               <el-icon><MoonNight /></el-icon>
             </el-button>
@@ -87,8 +87,8 @@
   </div>
 </template>
 
-<script setup lang="ts">
-import { ref, onMounted, onUnmounted, watch } from 'vue';
+<script>
+import { ref, onMounted, onBeforeUnmount, watch } from 'vue';
 import { 
   QuestionFilled, 
   InfoFilled, 
@@ -98,43 +98,81 @@ import {
   Link 
 } from '@element-plus/icons-vue';
 
-const emit = defineEmits(['update:isSSMLMode', 'toggle-theme', 'toggle-sidebar']);
+export default {
+  name: 'FixedHeader',
+  components: {
+    QuestionFilled, 
+    InfoFilled, 
+    Menu, 
+    MoonNight, 
+    More, 
+    Link
+  },
+  emits: ['toggle-theme', 'toggle-sidebar', 'update:isSSMLMode'],
+  setup(props, { emit }) {
+    // 添加调试日志
+    console.log('FixedHeader setup 被调用');
 
-const isSSMLMode = ref(false);
-const isScrolled = ref(false);
+    // 响应式状态
+    const isScrolled = ref(false);
+    const isSSMLMode = ref(false);
 
-const handleScroll = () => {
-  isScrolled.value = window.scrollY > 20;
-};
+    // 方法
+    const handleScroll = () => {
+      isScrolled.value = window.scrollY > 20;
+    };
 
-const openSSMLHelp = () => {
-  window.open('https://learn.microsoft.com/zh-cn/azure/cognitive-services/speech-service/speech-synthesis-markup', '_blank');
-};
+    const openSSMLHelp = () => {
+      window.open('https://learn.microsoft.com/zh-cn/azure/cognitive-services/speech-service/speech-synthesis-markup', '_blank');
+    };
 
-const openApiSite = () => {
-  window.open("https://api.tts88.top", "_blank");
-};
+    const openApiSite = () => {
+      window.open("https://api.tts88.top", "_blank");
+    };
 
-const showUserGuide = () => {
-  if (window.__startGuide) {
-    window.__startGuide();
-  } else {
-    console.warn('引导功能未找到');
-    alert('无法启动引导功能，请刷新页面后重试');
+    const showUserGuide = () => {
+      if (window.__startGuide) {
+        window.__startGuide();
+      } else {
+        console.warn('引导功能未找到');
+        alert('无法启动引导功能，请刷新页面后重试');
+      }
+    };
+
+    // 添加一个直接触发主题切换的方法
+    const handleThemeClick = () => {
+      console.log('FixedHeader: 主题按钮被点击');
+      // 使用 emit 触发事件
+      emit('toggle-theme');
+      // 同时用全局事件作为备份方案
+      window.dispatchEvent(new CustomEvent('toggle-theme-event'));
+    };
+
+    // 生命周期钩子
+    onMounted(() => {
+      console.log('FixedHeader 组件已挂载');
+      window.addEventListener('scroll', handleScroll);
+    });
+
+    onBeforeUnmount(() => {
+      window.removeEventListener('scroll', handleScroll);
+    });
+
+    // 监听器
+    watch(isSSMLMode, (newValue) => {
+      emit('update:isSSMLMode', newValue);
+    });
+
+    return {
+      isScrolled,
+      isSSMLMode,
+      openSSMLHelp,
+      openApiSite,
+      showUserGuide,
+      handleThemeClick
+    };
   }
-};
-
-onMounted(() => {
-  window.addEventListener('scroll', handleScroll);
-});
-
-onUnmounted(() => {
-  window.removeEventListener('scroll', handleScroll);
-});
-
-watch(isSSMLMode, (newValue) => {
-  emit('update:isSSMLMode', newValue);
-});
+}
 </script>
 
 <style scoped>
