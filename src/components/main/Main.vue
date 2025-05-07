@@ -3,10 +3,35 @@
     <!-- 文本编辑区 -->
     <div class="input-area-card" v-show="page.asideIndex === '1'">
       <div class="card-header">
-        <el-tabs @tab-click="handleTabClick" :model-value="page.tabIndex">
-          <el-tab-pane name="1" :label="t('main.textTab')"></el-tab-pane>
-          <el-tab-pane name="2" :label="t('main.ssmlTab')"></el-tab-pane>
-        </el-tabs>
+        <div class="card-title">
+          <h2>文本转语音</h2>
+          <div class="input-mode-toggle">
+            <span class="mode-label">输入模式：</span>
+            <el-switch
+              v-model="isSSMLMode"
+              active-text="SSML"
+              inactive-text="纯文本"
+              inline-prompt
+              class="mode-switch"
+            />
+            <el-tooltip
+              v-if="isSSMLMode"
+              content="查看SSML使用指南"
+              placement="top"
+              effect="light"
+            >
+              <el-button 
+                size="small" 
+                type="info" 
+                class="ssml-help-button"
+                @click="openSSMLHelp"
+              >
+                <el-icon><QuestionFilled /></el-icon>
+                SSML帮助
+              </el-button>
+            </el-tooltip>
+          </div>
+        </div>
         
         <div class="header-controls">
           <!-- 免费额度提示 -->
@@ -33,15 +58,24 @@
       </div>
       
       <div class="card-body">
-        <div class="text-area-container" v-show="page.tabIndex === '1'">
+        <div class="text-area-container">
           <div class="text-area-header">
-            <h3>输入文本</h3>
-            <span class="text-area-hint">在此处输入您想要转换为语音的文本内容</span>
+            <h3>{{ isSSMLMode ? 'SSML 标记语言' : '输入文本' }}</h3>
+            <span class="text-area-hint">{{ isSSMLMode ? '使用SSML可以更精确地控制语音效果，包括语调、停顿和发音' : '在此处输入您想要转换为语音的文本内容' }}</span>
           </div>
           <el-input
+            v-if="!isSSMLMode"
             v-model="inputs.inputValue"
             type="textarea"
             :placeholder="t('main.placeholder')"
+            class="modern-textarea"
+            resize="none"
+            :rows="18"
+          />
+          <el-input 
+            v-else
+            v-model="inputs.ssmlValue" 
+            type="textarea" 
             class="modern-textarea"
             resize="none"
             :rows="18"
@@ -59,34 +93,6 @@
               :show-text="true"
             />
           </div>
-        </div>
-        <div class="text-area-container" v-show="page.tabIndex === '2'">
-          <div class="text-area-header">
-            <h3>SSML 标记语言</h3>
-            <span class="text-area-hint">使用SSML可以更精确地控制语音效果，包括语调、停顿和发音</span>
-            <el-tooltip
-              content="查看SSML使用指南"
-              placement="top"
-              effect="light"
-            >
-              <el-button 
-                size="small" 
-                type="info" 
-                class="ssml-help-button"
-                @click="openSSMLHelp"
-              >
-                <el-icon><QuestionFilled /></el-icon>
-                SSML帮助
-              </el-button>
-            </el-tooltip>
-          </div>
-          <el-input 
-            v-model="inputs.ssmlValue" 
-            type="textarea" 
-            class="modern-textarea"
-            resize="none"
-            :rows="18"
-          />
         </div>
       </div>
       
@@ -2026,6 +2032,8 @@ const cancelConversion = () => {
     duration: 2000,
   });
 };
+
+const isSSMLMode = ref(false);
 </script>
 
 <style>
@@ -2291,6 +2299,193 @@ const cancelConversion = () => {
   
   .ssml-help-button {
     margin-left: 0;
+  }
+}
+
+/* 新界面样式 */
+.input-area-card {
+  background-color: var(--card-background);
+  border-radius: var(--border-radius-large);
+  box-shadow: var(--shadow-medium);
+  overflow: hidden;
+  margin-bottom: 20px;
+  border: 1px solid var(--border-color);
+}
+
+.card-header {
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--border-color);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background-color: var(--card-background);
+}
+
+.card-title {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.card-title h2 {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.input-mode-toggle {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background-color: rgba(var(--primary-color-rgb), 0.05);
+  padding: 6px 10px;
+  border-radius: var(--border-radius-medium);
+}
+
+.mode-label {
+  font-size: 14px;
+  color: var(--text-secondary);
+}
+
+.mode-switch {
+  margin: 0 5px;
+}
+
+.ssml-help-button {
+  margin-left: 5px;
+  padding: 5px 12px;
+  font-size: 12px;
+  height: 28px;
+}
+
+.card-body {
+  padding: 20px;
+  background-color: var(--background-color);
+}
+
+.text-area-container {
+  background-color: var(--card-background);
+  border-radius: var(--border-radius-medium);
+  padding: 20px;
+  box-shadow: var(--shadow-light);
+  margin-bottom: 10px;
+  border: 1px solid var(--border-color);
+}
+
+.text-area-header {
+  margin-bottom: 15px;
+}
+
+.text-area-header h3 {
+  margin: 0 0 8px 0;
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.text-area-hint {
+  font-size: 14px;
+  color: var(--text-secondary);
+}
+
+.modern-textarea {
+  border: 1px solid var(--border-color);
+  border-radius: var(--border-radius-small);
+  font-size: 15px;
+  line-height: 1.6;
+  background-color: var(--card-background);
+}
+
+.modern-textarea .el-textarea__inner {
+  background-color: var(--card-background);
+  color: var(--text-primary);
+  border: none;
+  padding: 15px;
+  font-family: 'Inter', 'Helvetica Neue', Helvetica, 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', '微软雅黑', Arial, sans-serif;
+}
+
+.header-controls {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.free-quota-badge {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  border-radius: var(--border-radius-small);
+  background-color: rgba(64, 158, 255, 0.1);
+  font-size: 13px;
+  color: #409eff;
+}
+
+.compact-controls-bar {
+  padding: 16px 20px;
+  background-color: var(--card-background);
+  border-top: 1px solid var(--border-color);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.compact-selects {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  align-items: center;
+}
+
+.compact-select,
+.voice-select {
+  width: auto;
+  min-width: 120px;
+}
+
+.voice-select {
+  min-width: 180px;
+}
+
+.compact-actions {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+/* 配色增强 */
+.dark-theme .input-area-card {
+  box-shadow: var(--shadow-medium);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.dark-theme .text-area-container {
+  border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.dark-theme .input-mode-toggle {
+  background-color: rgba(255, 255, 255, 0.05);
+}
+
+.dark-theme .free-quota-badge {
+  background-color: rgba(64, 158, 255, 0.15);
+}
+
+@media screen and (max-width: 768px) {
+  .card-title {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+    width: 100%;
+  }
+  
+  .input-mode-toggle {
+    width: 100%;
+    justify-content: space-between;
+    padding: 8px 12px;
   }
 }
 </style>

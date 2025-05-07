@@ -869,6 +869,46 @@ body {
   transition: background-color 0.3s, color 0.3s;
 }
 
+/* 定义CSS变量 */
+:root {
+  --background-color: #f5f8fa;
+  --card-background: #ffffff;
+  --sidebar-background: #eef2f6;
+  --sidebar-background-dark: #1d1e22;
+  --text-primary: #303133;
+  --text-secondary: #606266;
+  --border-color: #e4e7ed;
+  --border-color-rgb: 228, 231, 237;
+  --hover-color: rgba(0, 0, 0, 0.03);
+  --primary-color: #4a6cf7;
+  --primary-color-rgb: 74, 108, 247;
+  --secondary-color: #6484fb;
+  --primary-gradient: linear-gradient(135deg, #4a6cf7, #6484fb);
+  --border-radius-small: 4px;
+  --border-radius-medium: 8px;
+  --border-radius-large: 12px;
+  --shadow-light: 0 2px 12px 0 rgba(0, 0, 0, 0.05);
+  --shadow-medium: 0 4px 16px rgba(0, 0, 0, 0.08);
+  --shadow-large: 0 8px 24px rgba(0, 0, 0, 0.12);
+  --shadow-large-dark: 0 8px 24px rgba(0, 0, 0, 0.25);
+  --transition-fast: 0.2s ease;
+  --transition-normal: 0.3s ease;
+}
+
+.dark-theme {
+  --background-color: #121212;
+  --card-background: #1d1d1d;
+  --sidebar-background-dark: #1d1e22;
+  --text-primary: #e6e6e6;
+  --text-secondary: #aaaaaa;
+  --border-color: #333333;
+  --border-color-rgb: 51, 51, 51;
+  --hover-color: rgba(255, 255, 255, 0.05);
+  --shadow-light: 0 2px 12px 0 rgba(0, 0, 0, 0.2);
+  --shadow-medium: 0 4px 16px rgba(0, 0, 0, 0.3);
+  --shadow-large: 0 8px 24px rgba(0, 0, 0, 0.35);
+}
+
 .app {
   background-color: var(--background-color);
   border-radius: var(--border-radius-large);
@@ -893,20 +933,14 @@ body {
   height: auto !important;
   -webkit-app-region: drag;
   background-color: var(--card-background);
-  box-shadow: var(--shadow-light);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
   z-index: 10;
   position: relative;
+  border-bottom: 1px solid var(--border-color) !important;
 }
 
-.modern-header::after {
-  content: '';
-  position: absolute;
-  bottom: -1px;
-  left: 0;
-  right: 0;
-  height: 1px;
-  background-image: linear-gradient(to right, transparent, var(--border-color), transparent);
-  z-index: 5;
+.dark-theme .modern-header {
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.15);
 }
 
 .modern-body-container {
@@ -948,6 +982,7 @@ body {
   overflow: auto;
   width: 100%;
   box-sizing: border-box;
+  background-color: var(--background-color);
 }
 
 .modern-footer {
@@ -1244,7 +1279,7 @@ body {
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
     width: 280px !important;
     max-width: 85% !important;
-    background-color: var(--card-background);
+    background-color: var(--sidebar-background, #f5f7fa);
     border-right: none;
     box-shadow: var(--shadow-large);
     display: flex;
@@ -1254,6 +1289,11 @@ body {
 
   .modern-aside:not(.sidebar-collapsed) {
     transform: translateX(0);
+  }
+
+  .dark-theme .modern-aside {
+    background-color: var(--sidebar-background-dark, #1d1e22);
+    box-shadow: var(--shadow-large-dark);
   }
 
   /* 侧边栏内容样式优化 */

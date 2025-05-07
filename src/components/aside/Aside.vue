@@ -71,7 +71,7 @@ const showUserGuide = () => {
 <style scoped>
 .modern-aside {
   height: 100%;
-  background-color: var(--card-background);
+  background-color: var(--sidebar-background, #f5f7fa);
   border-right: 1px solid var(--border-color);
   overflow: hidden;
   display: flex;
@@ -79,6 +79,7 @@ const showUserGuide = () => {
   justify-content: space-between;
   border-bottom-left-radius: var(--border-radius-large);
   padding: 10px 0;
+  box-shadow: inset -1px 0 0 rgba(0, 0, 0, 0.05);
 }
 
 .menu-container {
@@ -132,15 +133,18 @@ const showUserGuide = () => {
   border-radius: var(--border-radius-medium);
   margin: 8px 12px;
   transition: all var(--transition-fast);
+  font-weight: 500;
 }
 
 .modern-menu .el-menu-item.is-active {
   background: var(--primary-gradient) !important;
   color: white;
+  box-shadow: 0 4px 8px rgba(74, 108, 247, 0.25);
 }
 
 .modern-menu .el-menu-item:not(.is-active):hover {
   background-color: rgba(74, 108, 247, 0.1);
+  transform: translateX(3px);
 }
 
 .modern-menu .el-menu-item .el-icon {
@@ -149,7 +153,7 @@ const showUserGuide = () => {
 }
 
 .dark-theme .modern-aside {
-  background-color: var(--card-background);
+  background-color: var(--sidebar-background-dark, #1e2025);
   border-right-color: var(--border-color);
 }
 </style>
