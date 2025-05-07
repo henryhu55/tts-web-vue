@@ -2128,20 +2128,20 @@ const handleVoiceSettingChange = () => {
 .drawer-mode {
   display: flex;
   flex-direction: column;
-  gap: 24px;
+  gap: 20px; /* 从24px减小到20px */
 }
 
 .option-section {
   background-color: var(--card-background-light, #f5f7fa);
   border-radius: 8px;
-  padding: 16px;
+  padding: 12px; /* 从16px减小到12px */
 }
 
 .section-title {
   font-size: 16px;
   font-weight: 600;
   color: var(--text-primary);
-  margin: 0 0 16px 0;
+  margin: 0 0 12px 0; /* 从16px减小到12px */
   padding-bottom: 8px;
   border-bottom: 1px solid var(--border-color);
 }
@@ -2149,13 +2149,15 @@ const handleVoiceSettingChange = () => {
 .option-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-  gap: 16px;
+  gap: 12px; /* 从16px减小到12px */
 }
 
 .option-item {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
+  margin-bottom: 8px; /* 减小底部间距 */
+}
+
+.option-label {
+  margin-bottom: 4px; /* 减小标签底部间距 */
 }
 
 .full-width-item {
@@ -2229,7 +2231,7 @@ const handleVoiceSettingChange = () => {
 
 .option-slider {
   width: 100%;
-  margin: 0;
+  margin: 8px 0; /* 减小滑块上下间距 */
 }
 
 .preset-option {

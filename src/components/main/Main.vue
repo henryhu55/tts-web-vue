@@ -281,14 +281,44 @@
       @close="onDrawerClose"
     >
       <template #header>
-        <div class="drawer-header">
-          <h3>语音高级设置</h3>
-          <p class="drawer-description">调整语音的语速、音调和情感等高级参数</p>
+        <div class="drawer-header" style="padding: 20px;">
+          <h3 style="display: flex; align-items: center; gap: 8px; margin: 0 0 8px 0;">
+            <el-icon style="font-size: 20px; color: var(--primary-color);"><Setting /></el-icon>
+            <span>语音高级设置</span>
+          </h3>
+          <p style="margin: 0; color: var(--text-secondary); font-size: 14px; line-height: 1.5;">
+            在这里可以调整语音的语速、音调和情感等高级参数,让语音更符合您的需求
+          </p>
         </div>
       </template>
       <template #default>
         <div class="settings-drawer-content">
-          <MainOptions class="drawer-options" ref="drawerOptions" :in-drawer="true" />
+          <div class="settings-section">
+            <!-- 标题区域 -->
+            <div class="section-header">
+              <div class="title-row">
+                <el-icon style="font-size: 20px; color: var(--primary-color);"><Microphone /></el-icon>
+                <span style="font-size: 16px; font-weight: 600; color: var(--text-primary);">语音参数调整</span>
+              </div>
+              <p style="color: var(--text-secondary); font-size: 14px; margin: 4px 0 0 0;">调整这些参数可以改变语音的表现效果</p>
+            </div>
+            <MainOptions class="drawer-options" ref="drawerOptions" :in-drawer="true" />
+          </div>
+          
+          <div class="settings-tips">
+            <el-alert
+              title="使用技巧"
+              type="info"
+              :closable="false"
+              show-icon
+            >
+              <template #default>
+                <p>1. 语速建议保持在0.8-1.2之间,过快或过慢可能影响效果</p>
+                <p>2. 音调调整范围建议在0.8-1.2之间,过高或过低可能不自然</p>
+                <p>3. 可以使用预设方案快速应用常用场景的参数组合</p>
+              </template>
+            </el-alert>
+          </div>
         </div>
       </template>
     </el-drawer>
@@ -2034,10 +2064,64 @@ const cancelConversion = () => {
 };
 
 const isSSMLMode = ref(false);
+
 </script>
 
 <style>
 /* 全局样式，确保抽屉在所有场景下都能正确显示 */
+
+.option-section {
+  background-color: var(--card-background-light, #f5f7fa);
+  border-radius: 8px;
+  padding: 20px;
+}
+
+.section-title {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin: 0 0 16px 0;
+  padding: 0 0 8px 0; /* 移除左侧padding */
+  border-bottom: 1px solid var(--border-color);
+}
+
+.section-header {
+  padding: 0; /* 移除左侧padding */
+  margin-bottom: 16px;
+}
+
+.title-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 4px;
+}
+
+.title-row .el-icon {
+  font-size: 20px;
+  color: var(--primary-color);
+}
+
+.title-row span {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.section-desc {
+  color: var(--text-secondary);
+  font-size: 14px;
+  margin: 0;
+}
+
+/* 响应式调整 */
+@media screen and (max-width: 768px) {
+  .section-title,
+  .section-header {
+    padding-left: 0; /* 移除左侧padding */
+  }
+}
+
 .el-drawer {
   --el-drawer-padding-primary: 0 !important;
   z-index: 2001 !important;
@@ -2045,7 +2129,7 @@ const isSSMLMode = ref(false);
 
 .el-drawer__header {
   margin-bottom: 0 !important;
-  padding: 16px 20px !important;
+  padding: 2px 20px !important;
   border-bottom: 1px solid var(--el-border-color-lighter) !important;
   font-size: 18px !important;
   font-weight: 600 !important;
@@ -2158,20 +2242,91 @@ const isSSMLMode = ref(false);
 }
 
 /* 抽屉样式增强 */
+.drawer-header {
+  background-color: var(--card-background);
+  border-bottom: 1px solid var(--border-color);
+  padding: 20px;  /* 修改padding与内容区域一致 */
+  margin-bottom: 0;
+}
+
 .drawer-header h3 {
+  display: flex;
+  align-items: center;
+  gap: 8px;
   margin: 0 0 8px 0;
   font-size: 20px;
   font-weight: 600;
+  color: var(--text-primary);
+}
+
+.drawer-header .el-icon {
+  font-size: 20px;
+  color: var(--primary-color);
 }
 
 .drawer-description {
   margin: 0;
   color: var(--text-secondary);
   font-size: 14px;
+  line-height: 1.5;
 }
 
 .settings-drawer-content {
-  padding: 16px;
+  padding: 20px;  /* 保持与header一致的padding */
+  height: 100%;
+  overflow-y: auto;
+  background-color: var(--background-color);
+}
+
+/* 抽屉动画优化 */
+:deep(.el-drawer) {
+  --el-drawer-padding-primary: 0;
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+:deep(.el-drawer__body) {
+  padding: 0;
+  overflow-y: auto;
+  height: calc(100% - 80px); /* 考虑到header高度 */
+}
+
+:deep(.el-drawer__header) {
+  margin: 0;
+  padding: 0;
+}
+
+:deep(.el-drawer.rtl) {
+  box-shadow: -2px 0 8px rgba(0, 0, 0, 0.15);
+}
+
+/* 深色模式适配 */
+.dark-theme :deep(.el-drawer) {
+  background-color: var(--card-background);
+  border-left: 1px solid var(--border-color);
+}
+
+.dark-theme :deep(.el-drawer.rtl) {
+  box-shadow: -2px 0 8px rgba(0, 0, 0, 0.25);
+}
+
+/* 响应式调整 */
+@media screen and (max-width: 768px) {
+  :deep(.el-drawer) {
+    width: 90% !important;
+  }
+  
+  .drawer-header,
+  .settings-drawer-content {
+    padding: 16px;  /* 移动端统一使用更小的padding */
+  }
+  
+  .drawer-header h3 {
+    font-size: 20px;
+  }
+  
+  .settings-drawer-content {
+    padding: 16px;
+  }
 }
 
 /* SSML帮助对话框样式 */
@@ -2324,14 +2479,29 @@ const isSSMLMode = ref(false);
 .card-title {
   display: flex;
   align-items: center;
-  gap: 16px;
+  gap: 8px;
+  margin-bottom: 4px;
 }
 
 .card-title h2 {
+  display: flex;
+  align-items: center;
+  gap: 8px;
   margin: 0;
   font-size: 18px;
   font-weight: 600;
   color: var(--text-primary);
+}
+
+.card-title .el-icon {
+  font-size: 20px;
+  color: var(--primary-color);
+}
+
+.card-description {
+  color: var(--text-secondary);
+  font-size: 14px;
+  margin: 0;
 }
 
 .input-mode-toggle {
@@ -2488,18 +2658,308 @@ const isSSMLMode = ref(false);
     padding: 8px 12px;
   }
 }
+
+/* 按钮样式增强 */
+.start-button {
+  height: 44px !important;
+  padding: 0 24px !important;
+  font-size: 16px !important;
+  font-weight: 600 !important;
+  background: var(--primary-gradient) !important;
+  border: none !important;
+  box-shadow: 0 4px 12px rgba(var(--primary-color-rgb), 0.25) !important;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+  display: flex !important;
+  align-items: center !important;
+  gap: 8px !important;
+}
+
+.start-button:hover {
+  transform: translateY(-2px) !important;
+  box-shadow: 0 6px 16px rgba(var(--primary-color-rgb), 0.35) !important;
+}
+
+.start-button:active {
+  transform: translateY(0) !important;
+  box-shadow: 0 2px 8px rgba(var(--primary-color-rgb), 0.2) !important;
+}
+
+.start-button .el-icon {
+  font-size: 20px !important;
+}
+
+.start-button.is-loading {
+  background: var(--primary-color) !important;
+  opacity: 0.8 !important;
+}
+
+/* 功能按钮样式 */
+.settings-button,
+.voice-anchors-button {
+  height: 44px !important;
+  padding: 0 16px !important;
+  font-size: 14px !important;
+  background: var(--card-background) !important;
+  border: 1px solid var(--border-color) !important;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+  display: flex !important;
+  align-items: center !important;
+  gap: 6px !important;
+}
+
+.settings-button:hover,
+.voice-anchors-button:hover {
+  background: var(--hover-color) !important;
+  border-color: var(--primary-color) !important;
+  color: var(--primary-color) !important;
+}
+
+.settings-button .el-icon,
+.voice-anchors-button .el-icon {
+  font-size: 18px !important;
+}
+
+/* 按钮组布局优化 */
+.compact-actions {
+  display: flex !important;
+  align-items: center !important;
+  gap: 12px !important;
+}
+
+/* 深色模式适配 */
+.dark-theme .start-button {
+  box-shadow: 0 4px 12px rgba(var(--primary-color-rgb), 0.4) !important;
+}
+
+.dark-theme .settings-button,
+.dark-theme .voice-anchors-button {
+  background: rgba(255, 255, 255, 0.05) !important;
+  border-color: rgba(255, 255, 255, 0.1) !important;
+}
+
+.dark-theme .settings-button:hover,
+.dark-theme .voice-anchors-button:hover {
+  background: rgba(255, 255, 255, 0.1) !important;
+  border-color: var(--primary-color) !important;
+}
+
+/* 响应式调整 */
+@media screen and (max-width: 768px) {
+  .start-button {
+    width: 100% !important;
+    justify-content: center !important;
+  }
+  
+  .settings-button,
+  .voice-anchors-button {
+    flex: 1 !important;
+    justify-content: center !important;
+  }
+  
+  .compact-actions {
+    flex-wrap: wrap !important;
+    gap: 8px !important;
+  }
+}
+
+/* 交互反馈样式 */
+.feedback-tooltip {
+  --el-tooltip-padding: 8px 12px;
+  --el-tooltip-font-size: 13px;
+  --el-tooltip-border-radius: 6px;
+  --el-tooltip-box-shadow: 0 3px 6px -4px rgba(0, 0, 0, 0.12),
+    0 6px 16px 0 rgba(0, 0, 0, 0.08),
+    0 9px 28px 8px rgba(0, 0, 0, 0.05);
+}
+
+/* 加载动画优化 */
+.loading-animation {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+}
+
+.loading-spinner {
+  width: 40px;
+  height: 40px;
+  border: 3px solid rgba(var(--primary-color-rgb), 0.2);
+  border-top-color: var(--primary-color);
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+.loading-text {
+  font-size: 16px;
+  color: var(--text-primary);
+  font-weight: 500;
+}
+
+.loading-progress {
+  width: 100%;
+  max-width: 300px;
+  margin-top: 8px;
+}
+
+/* 转换进度条样式 */
+.progress-bar {
+  width: 100%;
+  height: 6px;
+  background-color: rgba(var(--primary-color-rgb), 0.1);
+  border-radius: 3px;
+  overflow: hidden;
+  position: relative;
+}
+
+.progress-bar-inner {
+  position: absolute;
+  left: 0;
+  top: 0;
+  height: 100%;
+  background-color: var(--primary-color);
+  border-radius: 3px;
+  transition: width 0.3s ease;
+}
+
+/* 操作反馈动画 */
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes pulse {
+  0% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.05);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+/* 深色模式适配 */
+.dark-theme .loading-spinner {
+  border-color: rgba(255, 255, 255, 0.1);
+  border-top-color: var(--primary-color);
+}
+
+.dark-theme .progress-bar {
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+/* 响应式调整 */
+@media screen and (max-width: 768px) {
+  .loading-animation {
+    gap: 12px;
+  }
+  
+  .loading-spinner {
+    width: 32px;
+    height: 32px;
+  }
+  
+  .loading-text {
+    font-size: 14px;
+  }
+  
+  .loading-progress {
+    max-width: 250px;
+  }
+}
+
+/* 标题区域样式 */
+.section-header {
+  margin-bottom: 16px;
+}
+
+.title-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 4px;
+}
+
+.title-row .el-icon {
+  font-size: 20px;
+  color: var(--primary-color);
+}
+
+.title-row span {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.section-desc {
+  color: var(--text-secondary);
+  font-size: 14px;
+  margin: 0;
+}
 </style>
 
 <style scoped>
 .modern-main {
-  padding: 10px; /* 减少主容器的内边距 */
+  padding: 20px;
+}
+
+/* 选项区域样式 */
+.option-section {
+  background-color: var(--card-background-light, #f5f7fa);
+  border-radius: 8px;
+  padding: 20px;
+}
+
+.section-title {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin: 0 0 16px 0;
+  padding: 0 0 8px 20px; /* 增加左侧padding */
+  border-bottom: 1px solid var(--border-color);
+}
+
+.section-header {
+  padding: 0 0 0 20px; /* 增加左侧padding */
+  margin-bottom: 16px;
+}
+
+.title-row {
   display: flex;
-  flex-direction: column;
-  gap: 20px;
-  width: 100%;
-  box-sizing: border-box;
-  overflow: hidden;
-  position: relative;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 4px;
+}
+
+.title-row .el-icon {
+  font-size: 20px;
+  color: var(--primary-color);
+}
+
+.title-row span {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.section-desc {
+  color: var(--text-secondary);
+  font-size: 14px;
+  margin: 0;
+}
+
+/* 响应式调整 */
+@media screen and (max-width: 768px) {
+  .section-title,
+  .section-header {
+    padding-left: 16px; /* 移动端减小padding */
+  }
+  
+  .modern-main {
+    padding: 10px;
+  }
 }
 
 .input-area-card, .batch-area-card {
@@ -3064,4 +3524,36 @@ const isSSMLMode = ref(false);
     height: 8px;
   }
 }
+
+.voice-anchors-button,
+.settings-button,
+.start-button {
+  height: 32px !important; /* 减小按钮高度 */
+  line-height: 32px !important;
+  font-size: 13px !important; /* 稍微减小字体大小 */
+  padding: 0 12px !important; /* 减小内边距 */
+}
+
+.voice-anchors-button .el-icon,
+.settings-button .el-icon,
+.start-button .el-icon {
+  font-size: 14px !important; /* 减小图标大小 */
+}
+
+/* 确保图标垂直居中 */
+.voice-anchors-button,
+.settings-button,
+.start-button {
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 4px !important; /* 减小图标和文字的间距 */
+}
+
+/* 保持开始按钮的主要样式 */
+.start-button {
+  min-width: 80px !important; /* 稍微减小最小宽度 */
+  font-weight: 500 !important; /* 稍微调整字重 */
+}
 </style>
+
