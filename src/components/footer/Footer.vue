@@ -101,14 +101,13 @@ const setFormatType = () => {
 
 <style scoped>
 .modern-footer {
-  height: 70px;
-  background-color: var(--card-background);
-  border-bottom-right-radius: var(--border-radius-large);
+  height: 60px;
+  padding: 0 20px;
   display: flex;
   align-items: center;
-  padding: 0 20px;
+  justify-content: space-between;
+  background-color: var(--card-background);
   border-top: 1px solid var(--border-color);
-  box-shadow: var(--shadow-light);
 }
 
 .player-container {
@@ -164,12 +163,11 @@ const setFormatType = () => {
   margin-left: 8px;
 }
 
-/* 暗色主题适配 */
-.dark-theme .modern-footer {
+:root[theme-mode="dark"] .modern-footer {
   background-color: var(--card-background);
 }
 
-.dark-theme audio::-webkit-media-controls-panel {
+:root[theme-mode="dark"] audio::-webkit-media-controls-panel {
   background-color: var(--card-background);
 }
 
@@ -253,7 +251,7 @@ const setFormatType = () => {
 }
 
 /* 深色模式移动端优化 */
-.dark-theme .mobile-view {
+:root[theme-mode="dark"] .mobile-view {
   .modern-footer {
     background-color: var(--card-background);
     border-top-color: var(--border-color);

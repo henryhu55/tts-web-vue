@@ -1,38 +1,15 @@
 <template>
   <div class="modern-main">
+    <!-- 固定标题栏 -->
+    <FixedHeader 
+      v-model:isSSMLMode="isSSMLMode"
+      :title="page.asideIndex === '1' ? '文本转语音' : '批量处理'"
+      :subtitle="page.asideIndex === '1' ? '将文字转换为自然的语音' : '批量处理文本转语音任务'"
+    />
+    
     <!-- 文本编辑区 -->
     <div class="input-area-card" v-show="page.asideIndex === '1'">
       <div class="card-header">
-        <div class="card-title">
-          <h2>文本转语音</h2>
-          <div class="input-mode-toggle">
-            <span class="mode-label">输入模式：</span>
-            <el-switch
-              v-model="isSSMLMode"
-              active-text="SSML"
-              inactive-text="纯文本"
-              inline-prompt
-              class="mode-switch"
-            />
-            <el-tooltip
-              v-if="isSSMLMode"
-              content="查看SSML使用指南"
-              placement="top"
-              effect="light"
-            >
-              <el-button 
-                size="small" 
-                type="info" 
-                class="ssml-help-button"
-                @click="openSSMLHelp"
-              >
-                <el-icon><QuestionFilled /></el-icon>
-                SSML帮助
-              </el-button>
-            </el-tooltip>
-          </div>
-        </div>
-        
         <div class="header-controls">
           <!-- 免费额度提示 -->
           <div v-if="formConfig.api === 5 && localTTSStore.serverStatus.freeLimit" class="free-quota-badge">
@@ -737,6 +714,7 @@ import { useLocalTTSStore } from "@/store/local-tts-store";
 import { storeToRefs } from "pinia";
 import { getTTSData } from "@/store/play";
 import Loading from "./Loading.vue";  // 添加Loading组件引用
+import FixedHeader from "../header/FixedHeader.vue";  // 添加这一行
 
 // 导入图标
 import { 
@@ -2324,7 +2302,7 @@ watch(() => openSettingsDrawer.value, (newValue) => {
   gap: 16px;
 }
 
-.dark-theme .compact-controls-bar {
+:root[theme-mode="dark"] .compact-controls-bar {
   background-color: rgba(255, 255, 255, 0.03);
 }
 
@@ -2574,17 +2552,137 @@ watch(() => openSettingsDrawer.value, (newValue) => {
   border-radius: var(--border-radius-large);
   box-shadow: var(--shadow-medium);
   overflow: hidden;
-  margin-bottom: 20px;
+  margin-top: 0;
   border: 1px solid var(--border-color);
+  position: sticky;
+  top: 0;  /* 改为0，让它紧贴顶部 */
+  z-index: 10;
 }
 
 .card-header {
-  padding: 16px 20px;
+  padding: 12px 16px;  /* 减少内边距 */
   border-bottom: 1px solid var(--border-color);
   display: flex;
   justify-content: space-between;
   align-items: center;
   background-color: var(--card-background);
+}
+
+.card-body {
+  padding: 16px;  /* 减少内边距 */
+  background-color: var(--background-color);
+}
+
+.text-area-container {
+  background-color: var(--card-background);
+  border-radius: var(--border-radius-medium);
+  padding: 16px;  /* 减少内边距 */
+  box-shadow: var(--shadow-light);
+  border: 1px solid var(--border-color);
+}
+
+.compact-controls-bar {
+  position: sticky;
+  bottom: 0;
+  background-color: var(--card-background);
+  border-top: 1px solid var(--border-color);
+  padding: 12px 16px;  /* 减少内边距 */
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  z-index: 11;
+  box-shadow: 0 -4px 12px rgba(0, 0, 0, 0.05);
+}
+
+/* 按钮样式优化 */
+.voice-anchors-button,
+.settings-button,
+.start-button {
+  height: 32px !important;
+  line-height: 32px !important;
+  font-size: 13px !important;
+  padding: 0 12px !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 4px !important;
+}
+
+.voice-anchors-button .el-icon,
+.settings-button .el-icon,
+.start-button .el-icon {
+  font-size: 14px !important;
+}
+
+/* 移动端适配 */
+@media screen and (max-width: 768px) {
+  .input-area-card {
+    margin-top: 0;
+    top: 0;  /* 移动端也紧贴顶部 */
+  }
+
+  .card-header,
+  .card-body,
+  .text-area-container,
+  .compact-controls-bar {
+    padding: 10px;  /* 移动端进一步减少内边距 */
+  }
+
+  .compact-controls-bar {
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .compact-selects {
+    width: 100%;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .compact-select, .voice-select {
+    width: 100% !important;
+  }
+
+  .compact-actions {
+    width: 100%;
+    margin-left: 0;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 6px;
+  }
+
+  .start-button {
+    grid-column: 1 / -1;
+  }
+}
+
+/* 主容器样式优化 */
+.modern-main {
+  padding: 0 !important;  /* 移除内边距 */
+  padding-top: 0 !important;  /* 移除顶部内边距 */
+  margin: 0 !important;
+  overflow: auto;
+  width: 100%;
+  box-sizing: border-box;
+  background-color: var(--background-color);
+}
+
+/* 内容区域样式 */
+.main-content {
+  padding: 20px;  /* 内容区域保持内边距 */
+  box-sizing: border-box;
+  width: 100%;
+}
+
+/* 确保内容区域不会被压缩 */
+.card-body {
+  min-height: 200px;
+}
+
+/* 移除不必要的悬浮效果 */
+.input-area-card:hover {
+  transform: none;
+  box-shadow: var(--shadow-medium);
 }
 
 .card-title {
@@ -2640,52 +2738,6 @@ watch(() => openSettingsDrawer.value, (newValue) => {
   height: 28px;
 }
 
-.card-body {
-  padding: 20px;
-  background-color: var(--background-color);
-}
-
-.text-area-container {
-  background-color: var(--card-background);
-  border-radius: var(--border-radius-medium);
-  padding: 20px;
-  box-shadow: var(--shadow-light);
-  margin-bottom: 10px;
-  border: 1px solid var(--border-color);
-}
-
-.text-area-header {
-  margin-bottom: 15px;
-}
-
-.text-area-header h3 {
-  margin: 0 0 8px 0;
-  font-size: 16px;
-  font-weight: 600;
-  color: var(--text-primary);
-}
-
-.text-area-hint {
-  font-size: 14px;
-  color: var(--text-secondary);
-}
-
-.modern-textarea {
-  border: 1px solid var(--border-color);
-  border-radius: var(--border-radius-small);
-  font-size: 15px;
-  line-height: 1.6;
-  background-color: var(--card-background);
-}
-
-.modern-textarea .el-textarea__inner {
-  background-color: var(--card-background);
-  color: var(--text-primary);
-  border: none;
-  padding: 15px;
-  font-family: 'Inter', 'Helvetica Neue', Helvetica, 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', '微软雅黑', Arial, sans-serif;
-}
-
 .header-controls {
   display: flex;
   align-items: center;
@@ -2701,17 +2753,6 @@ watch(() => openSettingsDrawer.value, (newValue) => {
   background-color: rgba(64, 158, 255, 0.1);
   font-size: 13px;
   color: #409eff;
-}
-
-.compact-controls-bar {
-  padding: 16px 20px;
-  background-color: var(--card-background);
-  border-top: 1px solid var(--border-color);
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: 12px;
 }
 
 .compact-selects {
@@ -2738,20 +2779,20 @@ watch(() => openSettingsDrawer.value, (newValue) => {
 }
 
 /* 配色增强 */
-.dark-theme .input-area-card {
+:root[theme-mode="dark"] .input-area-card {
   box-shadow: var(--shadow-medium);
   border: 1px solid rgba(255, 255, 255, 0.05);
 }
 
-.dark-theme .text-area-container {
+:root[theme-mode="dark"] .text-area-container {
   border: 1px solid rgba(255, 255, 255, 0.05);
 }
 
-.dark-theme .input-mode-toggle {
+:root[theme-mode="dark"] .input-mode-toggle {
   background-color: rgba(255, 255, 255, 0.05);
 }
 
-.dark-theme .free-quota-badge {
+:root[theme-mode="dark"] .free-quota-badge {
   background-color: rgba(64, 158, 255, 0.15);
 }
 
@@ -2838,18 +2879,18 @@ watch(() => openSettingsDrawer.value, (newValue) => {
 }
 
 /* 深色模式适配 */
-.dark-theme .start-button {
+:root[theme-mode="dark"] .start-button {
   box-shadow: 0 4px 12px rgba(var(--primary-color-rgb), 0.4) !important;
 }
 
-.dark-theme .settings-button,
-.dark-theme .voice-anchors-button {
+:root[theme-mode="dark"] .settings-button,
+:root[theme-mode="dark"] .voice-anchors-button {
   background: rgba(255, 255, 255, 0.05) !important;
   border-color: rgba(255, 255, 255, 0.1) !important;
 }
 
-.dark-theme .settings-button:hover,
-.dark-theme .voice-anchors-button:hover {
+:root[theme-mode="dark"] .settings-button:hover,
+:root[theme-mode="dark"] .voice-anchors-button:hover {
   background: rgba(255, 255, 255, 0.1) !important;
   border-color: var(--primary-color) !important;
 }
@@ -3605,7 +3646,7 @@ watch(() => openSettingsDrawer.value, (newValue) => {
 }
 
 /* 深色模式移动端优化 */
-.dark-theme .mobile-view {
+:root[theme-mode="dark"] .mobile-view {
   .text-area {
     background-color: var(--card-background);
     border-color: var(--border-color);
@@ -3665,6 +3706,18 @@ watch(() => openSettingsDrawer.value, (newValue) => {
 .start-button {
   min-width: 80px !important; /* 稍微减小最小宽度 */
   font-weight: 500 !important; /* 稍微调整字重 */
+}
+
+/* 添加顶部内边距，为固定标题栏留出空间 */
+.modern-main {
+  padding-top: 0 !important;
+}
+
+/* 移动端适配 */
+@media (max-width: 768px) {
+  .modern-main {
+    padding-top: 0 !important;
+  }
 }
 </style>
 

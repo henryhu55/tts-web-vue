@@ -2,7 +2,6 @@
 import { useTtsStore } from "@/store/store";
 // This starter template is using Vue 3 <script setup> SFCs
 // Check out https://vuejs.org/api/sfc-script-setup.html#script-setup
-import Header from "./components/header/Header.vue";
 import Aside from "./components/aside/Aside.vue";
 import Main from "./components/main/Main.vue";
 import Footer from "./components/footer/Footer.vue";
@@ -413,7 +412,7 @@ const updateGuidePosition = () => {
 // 切换主题
 const toggleTheme = () => {
   isDarkTheme.value = !isDarkTheme.value;
-  document.body.classList.toggle('dark-theme', isDarkTheme.value);
+  document.documentElement.setAttribute('theme-mode', isDarkTheme.value ? 'dark' : 'light');
   store.set("darkTheme", isDarkTheme.value);
 };
 
@@ -504,7 +503,7 @@ onMounted(() => {
   const savedTheme = store.get("darkTheme");
   if (savedTheme !== undefined) {
     isDarkTheme.value = savedTheme;
-    document.body.classList.toggle('dark-theme', isDarkTheme.value);
+    document.documentElement.setAttribute('theme-mode', savedTheme ? 'dark' : 'light');
   }
   
   // 确保语言设置正确
@@ -769,9 +768,6 @@ onBeforeUnmount(() => {
 <template>
   <div class="app" :class="{ 'dark-theme': isDarkTheme, 'mobile-view': isMobileView }">
     <el-container class="modern-container">
-      <el-header class="modern-header">
-        <Header @toggle-theme="toggleTheme" @toggle-sidebar="toggleSidebar" />
-      </el-header>
       <el-container class="modern-body-container">
         <el-aside class="modern-aside" :class="{ 'sidebar-collapsed': isSidebarCollapsed }">
           <Aside />
@@ -873,6 +869,7 @@ body {
 :root {
   --background-color: #f5f8fa;
   --card-background: #ffffff;
+  --card-background-rgb: 255, 255, 255;
   --sidebar-background: #eef2f6;
   --sidebar-background-dark: #1d1e22;
   --text-primary: #303133;
@@ -898,6 +895,7 @@ body {
 .dark-theme {
   --background-color: #121212;
   --card-background: #1d1d1d;
+  --card-background-rgb: 29, 29, 29;
   --sidebar-background-dark: #1d1e22;
   --text-primary: #e6e6e6;
   --text-secondary: #aaaaaa;
@@ -919,35 +917,16 @@ body {
 
 .modern-container {
   height: 100vh;
-  background-image: linear-gradient(135deg, rgba(255, 255, 255, 0.05) 0%, rgba(255, 255, 255, 0) 100%);
-}
-
-.dark-theme .modern-container {
-  background-image: linear-gradient(135deg, rgba(0, 0, 0, 0.2) 0%, rgba(0, 0, 0, 0) 100%);
-}
-
-.modern-header {
-  border: 0 !important;
-  margin: 0 !important;
-  padding: 0 !important;
-  height: auto !important;
-  -webkit-app-region: drag;
-  background-color: var(--card-background);
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
-  z-index: 10;
-  position: relative;
-  border-bottom: 1px solid var(--border-color) !important;
-}
-
-.dark-theme .modern-header {
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.15);
+  width: 100vw;
+  overflow: hidden;
 }
 
 .modern-body-container {
-  height: calc(100vh - 60px);
+  height: 100vh;
   overflow: hidden;
   width: 100%;
   box-sizing: border-box;
+  padding-top: 0; /* 移除顶部内边距 */
 }
 
 .modern-aside {
@@ -956,13 +935,11 @@ body {
   background-color: var(--card-background);
   border-right: 1px solid var(--border-color);
   transition: all var(--transition-normal);
-  position: relative;
-  z-index: 5;
-  box-shadow: 4px 0 10px rgba(0, 0, 0, 0.03);
-}
-
-.dark-theme .modern-aside {
-  box-shadow: 4px 0 10px rgba(0, 0, 0, 0.1);
+  position: fixed;
+  top: 60px !important; /* 与header对齐 */
+  left: 0;
+  bottom: 0;
+  z-index: 100;
 }
 
 .modern-main-footer {
@@ -973,11 +950,13 @@ body {
   width: 100%;
   flex: 1;
   box-sizing: border-box;
+  margin-left: 220px; /* 为侧边栏留出空间 */
+  padding-top: 60px; /* 为header留出空间 */
 }
 
 .modern-main {
   flex: 1;
-  padding: 20px !important;
+  padding: 0 !important;
   margin: 0 !important;
   overflow: auto;
   width: 100%;
@@ -1269,137 +1248,31 @@ body {
 
 /* 移动端响应式样式 */
 @media (max-width: 768px) {
+  .modern-body-container {
+    padding-top: 0; /* 移除移动端顶部内边距 */
+  }
+
   .modern-aside {
-    position: fixed !important;
-    left: 0;
-    top: 0; /* 改为从顶部开始 */
-    bottom: 0;
-    z-index: 1000;
     transform: translateX(-100%);
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
-    width: 280px !important;
-    max-width: 85% !important;
-    background-color: var(--sidebar-background, #f5f7fa);
-    border-right: none;
-    box-shadow: var(--shadow-large);
-    display: flex;
-    flex-direction: column;
-    padding-top: 60px; /* 为顶部导航栏留出空间 */
+    z-index: 1000;
   }
 
   .modern-aside:not(.sidebar-collapsed) {
     transform: translateX(0);
   }
 
-  .dark-theme .modern-aside {
-    background-color: var(--sidebar-background-dark, #1d1e22);
-    box-shadow: var(--shadow-large-dark);
-  }
-
-  /* 侧边栏内容样式优化 */
-  .modern-aside .el-menu {
-    border-right: none !important;
-    background: transparent !important;
-    padding: 12px 0;
-  }
-
-  .modern-aside .el-menu-item {
-    height: 56px;
-    line-height: 56px;
-    margin: 4px 12px;
-    padding: 0 16px !important;
-    border-radius: 12px;
-    transition: all 0.3s ease;
-  }
-
-  .modern-aside .el-menu-item.is-active {
-    background: var(--primary-color) !important;
-    color: white !important;
-    transform: scale(1.02);
-    box-shadow: 0 4px 12px rgba(var(--primary-color-rgb), 0.35);
-  }
-
-  .modern-aside .el-menu-item:not(.is-active):hover {
-    background: var(--hover-color);
-    transform: translateX(4px);
-  }
-
-  .modern-aside .el-menu-item i {
-    font-size: 20px;
-    margin-right: 12px;
-    transition: all 0.3s ease;
-  }
-
-  .modern-aside .el-menu-item:hover i {
-    transform: scale(1.1);
-  }
-
-  /* 遮罩层样式优化 */
-  .mobile-sidebar-overlay {
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background-color: rgba(0, 0, 0, 0.3);
-    z-index: 999;
-    backdrop-filter: blur(4px);
-    -webkit-backdrop-filter: blur(4px);
-    opacity: 0;
-    visibility: hidden;
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  }
-
-  .mobile-sidebar-overlay.visible {
-    opacity: 1;
-    visibility: visible;
-  }
-
-  /* 深色模式适配 */
-  .dark-theme .modern-aside {
-    background-color: var(--card-background);
-    box-shadow: var(--shadow-large-dark);
-  }
-
-  .dark-theme .modern-aside .el-menu-item:not(.is-active):hover {
-    background: rgba(255, 255, 255, 0.05);
-  }
-
-  .dark-theme .mobile-sidebar-overlay {
-    background-color: rgba(0, 0, 0, 0.5);
-  }
-
-  /* 优化菜单项文字样式 */
-  .modern-aside .el-menu-item span {
-    font-size: 16px;
-    font-weight: 500;
-    margin-left: 8px;
-    transition: all 0.3s ease;
-  }
-
-  /* 添加底部装饰 */
-  .modern-aside::after {
-    content: '';
-    position: absolute;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    height: 100px;
-    background: linear-gradient(to bottom, transparent, var(--card-background));
-    pointer-events: none;
-    opacity: 0.8;
+  .modern-main-footer {
+    padding-top: 110px; /* 移动端为双行header留出空间 */
   }
 
   .modern-main {
-    padding: 12px !important;
+    padding: 0 !important;
     width: 100% !important;
     box-sizing: border-box;
   }
 
   .modern-body-container {
     margin-left: 0 !important;
-    height: calc(100vh - 60px);
-    overflow-x: hidden;
   }
 
   .modern-footer {

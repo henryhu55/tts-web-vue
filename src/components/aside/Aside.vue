@@ -152,7 +152,7 @@ const showUserGuide = () => {
   font-size: 18px;
 }
 
-.dark-theme .modern-aside {
+:root[theme-mode="dark"] .modern-aside {
   background-color: var(--sidebar-background-dark, #1e2025);
   border-right-color: var(--border-color);
 }
