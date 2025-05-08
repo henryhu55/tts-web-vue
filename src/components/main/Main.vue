@@ -9,36 +9,42 @@
     
     <!-- 文本编辑区 -->
     <div class="input-area-card" v-show="page.asideIndex === '1'">
-      <div class="card-header">
-        <div class="header-controls">
-          <!-- 免费额度提示 -->
-          <div v-if="formConfig.api === 5 && localTTSStore.serverStatus.freeLimit" class="free-quota-badge">
-            <el-icon color="#409eff"><InfoFilled /></el-icon>
-            <span>本次最多可输入 <b>{{ localTTSStore.serverStatus.freeLimit.remaining }}</b> 剩余 <b>{{ localTTSStore.serverStatus.freeLimit.remaining }}</b> 可输入</span>
-          </div>
-          
-          <el-tooltip
-            content="使用AI生成文本内容"
-            placement="top"
-            effect="light"
-          >
-            <el-button 
-              @click="dialogVisible = true" 
-              type="primary" 
-              class="ai-button"
-            >
-              <el-icon><MagicStick /></el-icon>
-              <span>AI 生成</span>
-            </el-button>
-          </el-tooltip>
-        </div>
-      </div>
-      
       <div class="card-body">
         <div class="text-area-container">
+          <!-- 文本区域头部，添加模式切换按钮 -->
           <div class="text-area-header">
-            <h3>{{ isSSMLMode ? 'SSML 标记语言' : '输入文本' }}</h3>
-            <span class="text-area-hint">{{ isSSMLMode ? '使用SSML可以更精确地控制语音效果，包括语调、停顿和发音' : '在此处输入您想要转换为语音的文本内容' }}</span>
+            <div class="text-area-header-left">
+              <h3>{{ isSSMLMode ? 'SSML 标记语言' : '输入文本' }}</h3>
+              <span class="text-area-hint">{{ isSSMLMode ? '使用SSML可以更精确地控制语音效果，包括语调、停顿和发音' : '在此处输入您想要转换为语音的文本内容' }}</span>
+            </div>
+            <div class="text-area-header-right">
+              <div class="input-mode-toggle">
+                <span class="mode-label">输入模式：</span>
+                <el-switch
+                  v-model="isSSMLMode"
+                  active-text="SSML"
+                  inactive-text="纯文本"
+                  inline-prompt
+                  class="mode-switch"
+                />
+                <el-tooltip
+                  v-if="isSSMLMode"
+                  content="查看SSML使用指南"
+                  placement="top"
+                  effect="light"
+                >
+                  <el-button 
+                    size="small" 
+                    type="info" 
+                    class="ssml-help-button"
+                    @click="openSSMLHelp"
+                  >
+                    <el-icon><QuestionFilled /></el-icon>
+                    SSML帮助
+                  </el-button>
+                </el-tooltip>
+              </div>
+            </div>
           </div>
           <el-input
             v-if="!isSSMLMode"
@@ -57,19 +63,36 @@
             resize="none"
             :rows="18"
           />
-          <!-- 免费额度进度条 -->
-          <div v-if="formConfig.api === 5 && localTTSStore.serverStatus.freeLimit" class="quota-progress-wrapper">
-            <div class="quota-text">
-              <span v-if="localTTSStore.serverStatus.freeLimit.remaining <= 0" class="quota-warning">每天限制 {{ localTTSStore.serverStatus.freeLimit.free_limit }} 个字符 (额度已用完)</span>
-              <span v-else>每天限制 <b>{{ localTTSStore.serverStatus.freeLimit.free_limit }}</b> 个字符 <span class="quota-highlight">(部分声音可无限制使用)</span></span>
+          <!-- 文本下方控制区域：简化为文字显示和购买按钮 -->
+          <div class="text-footer-controls">
+            <!-- 字数限制简化显示 -->
+            <div v-if="formConfig.api === 5 && localTTSStore.serverStatus.freeLimit" class="simple-limit-info">
+              <el-icon><DocumentChecked /></el-icon>
+              <span>每天限制 <b>{{ localTTSStore.serverStatus.freeLimit.free_limit }}</b> 个字符，剩余 <b>{{ localTTSStore.serverStatus.freeLimit.remaining }}</b></span>
+              <span v-if="localTTSStore.freeLimitUsagePercent > 90" class="quota-warning">(额度即将用完)</span>
             </div>
-            <el-progress 
-              :percentage="localTTSStore.freeLimitUsagePercent" 
-              :status="localTTSStore.freeLimitUsagePercent > 90 ? 'exception' : 'success'"
-              :stroke-width="6"
-              :show-text="true"
-            />
+            
+            <!-- 修改购买按钮文字 -->
+            <el-tooltip
+              content="使用API解锁无限制使用"
+              placement="top"
+              effect="light"
+            >
+              <el-button 
+                @click="openApiSite" 
+                type="success" 
+                size="small"
+                class="purchase-button"
+              >
+                <el-icon><ShoppingCart /></el-icon>
+                使用API解锁无限制
+              </el-button>
+            </el-tooltip>
           </div>
+          
+          <!-- 移除原有进度条，改为简单文字提示 -->
+          <!-- 删除这个div，因为已经和上方合并了 -->
+          
         </div>
       </div>
       
@@ -221,22 +244,40 @@
             </el-button>
           </el-tooltip>
           
-          <el-tooltip
-            content="开始转换文本为语音"
-            placement="top"
-            effect="light"
-          >
-            <el-button 
-              type="primary" 
-              @click="startBtn" 
-              :loading="isLoading"
-              size="small"
-              class="start-button"
+          <div class="action-buttons-group">
+            <el-tooltip
+              content="使用AI生成文本内容"
+              placement="top"
+              effect="light"
             >
-              <el-icon><CaretRight /></el-icon>
-              转换
-            </el-button>
-          </el-tooltip>
+              <el-button 
+                @click="dialogVisible = true" 
+                type="info" 
+                size="small"
+                class="ai-button"
+              >
+                <el-icon><MagicStick /></el-icon>
+                AI生成
+              </el-button>
+            </el-tooltip>
+            
+            <el-tooltip
+              content="开始转换文本为语音"
+              placement="top"
+              effect="light"
+            >
+              <el-button 
+                type="primary" 
+                @click="startBtn" 
+                :loading="isLoading"
+                size="small"
+                class="start-button"
+              >
+                <el-icon><CaretRight /></el-icon>
+                转换
+              </el-button>
+            </el-tooltip>
+          </div>
         </div>
       </div>
     </div>
@@ -568,22 +609,40 @@
             </el-button>
           </el-tooltip>
           
-          <el-tooltip
-            content="开始转换文本为语音"
-            placement="top"
-            effect="light"
-          >
-            <el-button 
-              type="primary" 
-              @click="startBtn" 
-              :loading="isLoading"
-              size="small"
-              class="start-button"
+          <div class="action-buttons-group">
+            <el-tooltip
+              content="使用AI生成文本内容"
+              placement="top"
+              effect="light"
             >
-              <el-icon><CaretRight /></el-icon>
-              转换
-            </el-button>
-          </el-tooltip>
+              <el-button 
+                @click="dialogVisible = true" 
+                type="info" 
+                size="small"
+                class="ai-button"
+              >
+                <el-icon><MagicStick /></el-icon>
+                AI生成
+              </el-button>
+            </el-tooltip>
+            
+            <el-tooltip
+              content="开始转换文本为语音"
+              placement="top"
+              effect="light"
+            >
+              <el-button 
+                type="primary" 
+                @click="startBtn" 
+                :loading="isLoading"
+                size="small"
+                class="start-button"
+              >
+                <el-icon><CaretRight /></el-icon>
+                转换
+              </el-button>
+            </el-tooltip>
+          </div>
         </div>
       </div>
     </div>
@@ -695,6 +754,21 @@
       :message="loadingMessage"
       @cancel="cancelConversion"
     />
+
+    <!-- 添加在线生成字幕页面 -->
+    <div class="content-area" v-show="page.asideIndex === '5'">
+      <div class="empty-state">
+        <div class="empty-icon">
+          <el-icon :size="64"><VideoCameraFilled /></el-icon>
+        </div>
+        <h2>在线生成字幕</h2>
+        <p>该功能正在开发中，敬请期待！</p>
+        <el-button type="primary" @click="goToTTS">
+          <el-icon><ArrowLeft /></el-icon>
+          返回文字转语音
+        </el-button>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -733,7 +807,11 @@ import {
   Setting,
   Avatar,
   InfoFilled,
-  QuestionFilled
+  QuestionFilled,
+  VideoCameraFilled,
+  ArrowLeft,
+  DocumentChecked,
+  ShoppingCart
 } from '@element-plus/icons-vue';
 
 // 获取i18n实例
@@ -2154,10 +2232,113 @@ watch(() => openSettingsDrawer.value, (newValue) => {
   }
 });
 
+// 添加在线生成字幕页面
+const goToTTS = () => {
+  // 跳转到文字转语音页面
+  console.log('跳转到文字转语音页面');
+  page.value.asideIndex = '1';
+};
+
+// 打开API购买页面
+const openApiSite = () => {
+  window.open("https://api.tts88.top", "_blank");
+  console.log('打开API购买页面');
+};
 </script>
 
 <style>
 /* 全局样式，确保抽屉在所有场景下都能正确显示 */
+
+/* 购买按钮样式 */
+.purchase-button {
+  height: 32px !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 6px !important;
+  background: linear-gradient(135deg, #67c23a, #85ce61) !important;
+  border: none !important;
+  box-shadow: 0 2px 6px rgba(103, 194, 58, 0.3) !important;
+  transition: all 0.3s ease !important;
+}
+
+.purchase-button:hover {
+  transform: translateY(-2px) !important;
+  box-shadow: 0 4px 8px rgba(103, 194, 58, 0.4) !important;
+}
+
+.purchase-button .el-icon {
+  font-size: 14px !important;
+}
+
+/* 简化样式，减少占用空间 */
+.text-footer-controls {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin: 10px 0 5px 0;
+  gap: 10px;
+}
+
+/* 合并后的字数限制信息样式 */
+.simple-limit-info {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  color: var(--text-secondary);
+  background: linear-gradient(135deg, rgba(64, 158, 255, 0.1), rgba(100, 180, 255, 0.15));
+  padding: 8px 12px;
+  border-radius: 8px;
+  border: 1px solid rgba(64, 158, 255, 0.2);
+  min-height: 32px;
+}
+
+.simple-limit-info .el-icon {
+  color: var(--primary-color);
+  font-size: 16px;
+}
+
+.simple-limit-info b {
+  color: var(--primary-color);
+  font-weight: 600;
+}
+
+/* 当配额接近用完时的警告样式 */
+.quota-warning {
+  color: var(--error-color);
+  font-weight: 500;
+}
+
+/* 添加分组样式，让AI生成按钮和转换按钮放在一起 */
+.action-buttons-group {
+  display: flex;
+  gap: 10px;
+  margin-left: 5px;
+}
+
+/* 调整AI生成按钮样式，与其他按钮保持一致 */
+.ai-button {
+  height: 32px !important;
+  line-height: 32px !important;
+  font-size: 13px !important;
+  padding: 0 12px !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 4px !important;
+}
+
+.ai-button .el-icon {
+  font-size: 14px !important;
+}
+
+.option-section {
+  background-color: var(--card-background-light, #f5f7fa);
+  border-radius: 8px;
+  padding: 20px;
+}
+
 
 .option-section {
   background-color: var(--card-background-light, #f5f7fa);
@@ -2247,27 +2428,45 @@ watch(() => openSettingsDrawer.value, (newValue) => {
 
 .text-area-header {
   display: flex;
-  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 16px;
+}
+
+.text-area-header-left {
+  flex: 1;
+}
+
+.text-area-header-right {
+  display: flex;
   align-items: center;
-  margin-bottom: 8px;
-  gap: 12px;
 }
 
-.text-area-header h3 {
-  margin: 0;
-  font-size: 18px;
-  font-weight: 600;
-  color: var(--text-primary);
+.input-mode-toggle {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(var(--card-background-rgb), 0.8);
+  padding: 6px 12px;
+  border-radius: 8px;
+  border: 1px solid var(--border-color);
 }
 
-.text-area-hint {
-  color: var(--text-secondary);
+.mode-label {
   font-size: 14px;
-  margin-right: auto;
+  color: var(--text-secondary);
+}
+
+.mode-switch {
+  margin: 0 4px;
 }
 
 .ssml-help-button {
-  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 6px 12px;
+  border-radius: 6px;
 }
 
 .modern-textarea {
@@ -3050,6 +3249,72 @@ watch(() => openSettingsDrawer.value, (newValue) => {
   font-size: 14px;
   margin: 0;
 }
+
+/* 文本下方控制区域样式 */
+.text-footer-controls {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin: 12px 0;
+  gap: 10px;
+}
+
+.free-quota-badge {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 10px;
+  border-radius: var(--border-radius-small);
+  background-color: rgba(64, 158, 255, 0.1);
+  font-size: 13px;
+  color: #409eff;
+  flex: 1;
+}
+
+.ai-button {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 15px;
+  font-size: 14px;
+}
+
+/* 确保卡片体没有多余边距 */
+.card-body {
+  padding: 16px;
+  padding-top: 10px;
+  position: relative;
+}
+
+/* 移除卡片顶部边距 */
+.input-area-card {
+  margin-top: 0;
+}
+
+/* 文本区域头部样式调整 */
+.text-area-header {
+  margin-bottom: 10px;
+}
+
+/* 移动端适配 */
+@media screen and (max-width: 768px) {
+  .text-footer-controls {
+    flex-direction: column-reverse;
+    align-items: stretch;
+  }
+  
+  .free-quota-badge {
+    width: 100%;
+    justify-content: flex-start;
+  }
+  
+  .ai-button {
+    width: 100%;
+    justify-content: center;
+  }
+}
+
+/* 其他已有样式保持不变 */
 </style>
 
 <style scoped>
@@ -3718,6 +3983,182 @@ watch(() => openSettingsDrawer.value, (newValue) => {
   .modern-main {
     padding-top: 0 !important;
   }
+}
+
+.text-area-header-left h3 {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.text-area-header-left .text-area-hint {
+  color: var(--text-secondary);
+  font-size: 14px;
+}
+
+/* 添加在线生成字幕页面样式 */
+.content-area {
+  padding: 20px;
+  background-color: var(--card-background);
+  border-radius: var(--border-radius-large);
+  box-shadow: var(--shadow-medium);
+  margin-top: 20px;
+}
+
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+
+.empty-icon {
+  font-size: 64px;
+  color: #909399;
+  margin-bottom: 16px;
+}
+
+.empty-state h2 {
+  font-size: 24px;
+  color: #303133;
+  margin-bottom: 8px;
+}
+
+.empty-state p {
+  font-size: 16px;
+  color: #606266;
+}
+
+.empty-state .el-button {
+  margin-top: 20px;
+}
+
+/* 字数限制提示样式优化 */
+.character-limit-badge {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  border-radius: var(--border-radius-small);
+  background: linear-gradient(135deg, rgba(64, 158, 255, 0.1), rgba(64, 158, 255, 0.2));
+  font-size: 13px;
+  color: #409eff;
+  border-left: 3px solid #409eff;
+  transition: all 0.3s ease;
+  flex: 1;
+  box-shadow: 0 2px 5px rgba(64, 158, 255, 0.1);
+}
+
+.character-limit-badge .el-icon {
+  font-size: 18px;
+  color: #409eff;
+}
+
+.limit-info {
+  display: flex;
+  flex-direction: column;
+}
+
+.limit-text {
+  font-weight: 500;
+}
+
+.limit-subtext {
+  font-size: 11px;
+  opacity: 0.8;
+}
+
+/* 警告状态 */
+.character-limit-badge.warning {
+  background: linear-gradient(135deg, rgba(230, 162, 60, 0.1), rgba(230, 162, 60, 0.2));
+  color: #e6a23c;
+  border-left-color: #e6a23c;
+  box-shadow: 0 2px 5px rgba(230, 162, 60, 0.1);
+}
+
+.character-limit-badge.warning .el-icon {
+  color: #e6a23c;
+}
+
+/* 危险状态 */
+.character-limit-badge.danger {
+  background: linear-gradient(135deg, rgba(245, 108, 108, 0.1), rgba(245, 108, 108, 0.2));
+  color: #f56c6c;
+  border-left-color: #f56c6c;
+  box-shadow: 0 2px 5px rgba(245, 108, 108, 0.1);
+  animation: pulse 1.5s infinite alternate;
+}
+
+.character-limit-badge.danger .el-icon {
+  color: #f56c6c;
+}
+
+/* 额度进度条样式优化 */
+.quota-progress-wrapper {
+  background: linear-gradient(135deg, rgba(103, 194, 58, 0.05), rgba(103, 194, 58, 0.1));
+  border-radius: var(--border-radius-medium);
+  padding: 10px 14px;
+  margin-top: 10px;
+  border: 1px solid rgba(103, 194, 58, 0.2);
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.03);
+}
+
+.quota-progress-wrapper.warning {
+  background: linear-gradient(135deg, rgba(230, 162, 60, 0.05), rgba(230, 162, 60, 0.1));
+  border-color: rgba(230, 162, 60, 0.2);
+}
+
+.quota-progress-wrapper.danger {
+  background: linear-gradient(135deg, rgba(245, 108, 108, 0.05), rgba(245, 108, 108, 0.1));
+  border-color: rgba(245, 108, 108, 0.2);
+}
+
+@keyframes pulse {
+  0% {
+    opacity: 0.9;
+    transform: scale(0.98);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+/* 简单文字提示样式 */
+.simple-limit-info {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  border-radius: var(--border-radius-small);
+  background: linear-gradient(135deg, rgba(64, 158, 255, 0.1), rgba(64, 158, 255, 0.2));
+  font-size: 13px;
+  color: #409eff;
+  border-left: 3px solid #409eff;
+  transition: all 0.3s ease;
+  flex: 1;
+  box-shadow: 0 2px 5px rgba(64, 158, 255, 0.1);
+}
+
+.simple-limit-info .el-icon {
+  font-size: 18px;
+  color: #409eff;
+}
+
+.limit-hint {
+  font-size: 11px;
+  opacity: 0.8;
+}
+.el-icon {
+  font-size: 18px;
+  color: #409eff;
+}
+
+.quota-warning {
+  font-size: 11px;
+  opacity: 0.8;
 }
 </style>
 

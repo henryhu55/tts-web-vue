@@ -30,6 +30,7 @@ declare module '@element-plus/icons-vue' {
   export const Avatar: any;
   export const Check: any;
   export const Close: any;
+  export const Download: any;
 }
 
 // Pinia相关

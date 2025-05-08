@@ -11,34 +11,18 @@
         </div>
       </div>
 
-      <!-- 中间区域：模式切换 -->
+      <!-- 中间区域：功能导航 -->
       <div class="header-center">
-        <div class="mode-controls">
-          <div class="input-mode-toggle">
-            <span class="mode-label">输入模式：</span>
-            <el-switch
-              v-model="isSSMLMode"
-              active-text="SSML"
-              inactive-text="纯文本"
-              inline-prompt
-              class="mode-switch"
-            />
-            <el-tooltip
-              v-if="isSSMLMode"
-              content="查看SSML使用指南"
-              placement="top"
-              effect="light"
-            >
-              <el-button 
-                size="small" 
-                type="info" 
-                class="ssml-help-button"
-                @click="openSSMLHelp"
-              >
-                <el-icon><QuestionFilled /></el-icon>
-                SSML帮助
-              </el-button>
-            </el-tooltip>
+        <div class="nav-menu">
+          <div class="nav-item" :class="{ 'active': activeNav === 'tts' }" @click="changeNav('tts')">
+            文字转语音
+          </div>
+          <div class="nav-item" :class="{ 'active': activeNav === 'docs' }" @click="changeNav('docs')">
+            文档
+          </div>
+          <div class="nav-item" :class="{ 'active': activeNav === 'subtitle' }" @click="changeNav('subtitle')">
+            在线生成字幕
+            <el-tag size="small" type="info" class="coming-soon-tag">即将上线</el-tag>
           </div>
         </div>
       </div>
@@ -108,7 +92,7 @@ export default {
     More, 
     Link
   },
-  emits: ['toggle-theme', 'toggle-sidebar', 'update:isSSMLMode'],
+  emits: ['toggle-theme', 'toggle-sidebar', 'update:isSSMLMode', 'nav-change'],
   setup(props, { emit }) {
     // 添加调试日志
     console.log('FixedHeader setup 被调用');
@@ -116,6 +100,7 @@ export default {
     // 响应式状态
     const isScrolled = ref(false);
     const isSSMLMode = ref(false);
+    const activeNav = ref('tts');
 
     // 方法
     const handleScroll = () => {
@@ -137,6 +122,11 @@ export default {
         console.warn('引导功能未找到');
         alert('无法启动引导功能，请刷新页面后重试');
       }
+    };
+
+    const changeNav = (nav) => {
+      activeNav.value = nav;
+      emit('nav-change', nav);
     };
 
     // 添加一个直接触发主题切换的方法
@@ -166,10 +156,12 @@ export default {
     return {
       isScrolled,
       isSSMLMode,
+      activeNav,
       openSSMLHelp,
       openApiSite,
       showUserGuide,
-      handleThemeClick
+      handleThemeClick,
+      changeNav
     };
   }
 }
@@ -241,7 +233,7 @@ export default {
   text-transform: capitalize;
 }
 
-/* 中间区域样式 */
+/* 中间区域样式 - 导航菜单 */
 .header-center {
   flex: 1;
   display: flex;
@@ -249,29 +241,49 @@ export default {
   align-items: center;
 }
 
-.mode-controls {
+.nav-menu {
   display: flex;
-  align-items: center;
-  gap: 16px;
+  gap: 24px;
 }
 
-.input-mode-toggle {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  background: var(--card-background);
-  padding: 6px 12px;
-  border-radius: 8px;
-  border: 1px solid var(--border-color);
-}
-
-.mode-label {
-  font-size: 14px;
+.nav-item {
+  position: relative;
+  padding: 8px 16px;
+  font-size: 16px;
+  font-weight: 600;
   color: var(--text-secondary);
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  gap: 6px;
 }
 
-.mode-switch {
-  margin: 0 8px;
+.nav-item:hover {
+  color: var(--primary-color);
+}
+
+.nav-item.active {
+  color: var(--primary-color);
+}
+
+.nav-item.active::after {
+  content: '';
+  position: absolute;
+  bottom: -2px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 20px;
+  height: 3px;
+  background-color: var(--primary-color);
+  border-radius: 2px;
+}
+
+.coming-soon-tag {
+  font-size: 10px;
+  padding: 2px 6px;
+  height: auto;
+  line-height: 1.2;
 }
 
 /* 右侧区域样式 */
@@ -279,37 +291,33 @@ export default {
   display: flex;
   align-items: center;
   gap: 16px;
-  min-width: 200px;
-  justify-content: flex-end;
 }
 
 .api-badge {
   display: flex;
   align-items: center;
-  font-size: 13px;
+  background: linear-gradient(90deg, rgba(74, 108, 247, 0.1), rgba(74, 108, 247, 0.05));
+  border-radius: 20px;
+  padding: 6px 12px;
   font-weight: 600;
-  color: #4886FF;
-  background-color: rgba(72, 134, 255, 0.1);
-  padding: 4px 8px;
-  border-radius: 4px;
+  font-size: 14px;
+  color: var(--primary-color);
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: all 0.3s ease;
 }
 
 .api-badge:hover {
-  background-color: rgba(72, 134, 255, 0.15);
+  background: linear-gradient(90deg, rgba(74, 108, 247, 0.15), rgba(74, 108, 247, 0.1));
   transform: translateY(-1px);
 }
 
 .api-tag {
-  display: inline-block;
-  background-color: #4886FF;
+  background-color: var(--primary-color);
   color: white;
   font-size: 10px;
-  font-weight: 700;
-  padding: 0px 3px;
-  border-radius: 2px;
-  margin-left: 3px;
+  padding: 2px 6px;
+  border-radius: 10px;
+  margin-left: 6px;
 }
 
 .control-buttons {
@@ -317,113 +325,49 @@ export default {
   gap: 8px;
 }
 
-.ssml-help-button {
-  display: flex;
-  align-items: center;
-  gap: 4px;
-  padding: 6px 12px;
-  border-radius: 6px;
-}
-
-/* 移动端菜单按钮样式 */
-.mobile-menu-button {
-  display: none;
-  padding: 8px;
-  cursor: pointer;
-  color: var(--text-primary);
-  transition: all var(--transition-fast);
-}
-
-.mobile-menu-button:hover {
-  color: var(--primary-color);
-}
-
-.mobile-menu-button .el-icon {
-  font-size: 24px;
-}
-
-/* 移动端适配 */
+/* 响应式样式 */
 @media (max-width: 768px) {
   .fixed-header {
-    left: 0;
-    padding: 0;
+    height: auto;
+    padding: 10px 0;
   }
-
+  
   .fixed-header-content {
-    padding: 0 12px;
+    flex-direction: column;
+    padding: 0 10px;
+    gap: 10px;
   }
-
+  
   .header-left {
-    min-width: auto;
-    padding-left: 0;
-  }
-
-  .mobile-menu-button {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 40px;
-    height: 40px;
-    border-radius: 8px;
-  }
-
-  .header-center {
-    position: absolute;
-    top: 60px;
-    left: 0;
-    right: 0;
-    background: var(--card-background);
-    padding: 8px;
-    border-bottom: 1px solid var(--border-color);
-    justify-content: flex-start;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
-  }
-
-  .mode-controls {
     width: 100%;
+    min-width: auto;
+    padding-left: 10px;
     justify-content: space-between;
+    height: 50px;
   }
-
-  .input-mode-toggle {
-    flex: 1;
-    justify-content: space-between;
+  
+  .header-center {
+    width: 100%;
+    overflow-x: auto;
+    justify-content: flex-start;
+    padding: 0 10px;
   }
-
-  .mode-label {
-    display: none;
+  
+  .nav-menu {
+    gap: 10px;
+    padding-bottom: 5px;
   }
-
-  .api-badge {
-    display: none;
+  
+  .nav-item {
+    font-size: 14px;
+    padding: 6px 12px;
+    white-space: nowrap;
   }
-
-  .control-buttons {
-    gap: 4px;
-  }
-
-  .control-buttons .el-button {
-    width: 36px;
-    height: 36px;
-    padding: 8px;
-  }
-
-  .ssml-help-button span {
-    display: none;
-  }
-
-  .app-branding {
-    margin-left: 8px;
-  }
-
-  .app-title {
-    font-size: 18px;
-  }
-}
-
-/* 平板设备响应式样式 */
-@media (min-width: 769px) and (max-width: 1024px) {
-  .app-title {
-    font-size: 20px;
+  
+  .header-right {
+    width: 100%;
+    padding: 0 10px;
+    justify-content: flex-end;
   }
 }
 </style> 

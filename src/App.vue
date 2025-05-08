@@ -766,13 +766,27 @@ const handleTouchEnd = (event) => {
     isSidebarCollapsed.value = true;
   }
 };
+
+// 添加导航变化处理逻辑
+const handleNavChange = (nav) => {
+  console.log('导航变化处理:', nav);
+  // 根据顶部导航更新侧边栏选中项
+  if (nav === 'tts') {
+    ttsStore.page.asideIndex = '1';
+  } else if (nav === 'docs') {
+    ttsStore.page.asideIndex = '4';
+  } else if (nav === 'subtitle') {
+    ttsStore.page.asideIndex = '5';
+  }
+};
 </script>
 
 <template>
   <div class="app" :class="{ 'dark-theme': isDarkTheme, 'mobile-view': isMobileView }">
     <FixedHeader 
       @toggle-theme="toggleTheme" 
-      @toggle-sidebar="toggleSidebar" 
+      @toggle-sidebar="toggleSidebar"
+      @nav-change="handleNavChange"
     />
     
     <!-- 添加调试信息 -->

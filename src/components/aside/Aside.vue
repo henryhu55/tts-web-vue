@@ -14,13 +14,18 @@
           <el-icon><Files /></el-icon>
           <span>{{ t('aside.batch') }}</span>
         </el-menu-item>
-        <el-menu-item index="3">
-          <el-icon><Setting /></el-icon>
-          <span>{{ t('aside.settings') }}</span>
-        </el-menu-item>
         <el-menu-item index="4">
           <el-icon><Notebook /></el-icon>
           <span>{{ t('aside.documents') }}</span>
+        </el-menu-item>
+        <el-menu-item index="5">
+          <el-icon><VideoPlay /></el-icon>
+          <span>在线生成字幕</span>
+          <el-tag size="small" type="info" class="coming-soon-tag">即将上线</el-tag>
+        </el-menu-item>
+        <el-menu-item index="3">
+          <el-icon><Setting /></el-icon>
+          <span>{{ t('aside.settings') }}</span>
         </el-menu-item>
       </el-menu>
     </div>
@@ -42,7 +47,7 @@ import { useTtsStore } from "@/store/store";
 import { storeToRefs } from "pinia";
 import { useI18n } from 'vue-i18n';
 import Version from "./Version.vue";
-import { Document, Files, Setting, Notebook, Help } from '@element-plus/icons-vue';
+import { Document, Files, Setting, Notebook, Help, VideoPlay } from '@element-plus/icons-vue';
 
 const { t } = useI18n();
 const ttsStore = useTtsStore();
@@ -134,6 +139,16 @@ const showUserGuide = () => {
   margin: 8px 12px;
   transition: all var(--transition-fast);
   font-weight: 500;
+  display: flex;
+  align-items: center;
+}
+
+.coming-soon-tag {
+  margin-left: 8px;
+  font-size: 10px;
+  padding: 2px 6px;
+  height: auto;
+  line-height: 1.2;
 }
 
 .modern-menu .el-menu-item.is-active {
