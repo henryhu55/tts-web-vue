@@ -1,0 +1,743 @@
+/* 全局样式，确保抽屉在所有场景下都能正确显示 */
+
+/* 购买按钮样式 */
+.purchase-button {
+  height: 32px !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 6px !important;
+  background: linear-gradient(135deg, #67c23a, #85ce61) !important;
+  border: none !important;
+  box-shadow: 0 2px 6px rgba(103, 194, 58, 0.3) !important;
+  transition: all 0.3s ease !important;
+}
+
+.purchase-button:hover {
+  transform: translateY(-2px) !important;
+  box-shadow: 0 4px 8px rgba(103, 194, 58, 0.4) !important;
+}
+
+.purchase-button .el-icon {
+  font-size: 14px !important;
+}
+
+/* 简化样式，减少占用空间 */
+.text-footer-controls {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin: 10px 0 5px 0;
+  gap: 10px;
+}
+
+/* 合并后的字数限制信息样式 */
+.simple-limit-info {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  color: var(--text-secondary);
+  background: linear-gradient(135deg, rgba(64, 158, 255, 0.1), rgba(100, 180, 255, 0.15));
+  padding: 8px 12px;
+  border-radius: 8px;
+  border: 1px solid rgba(64, 158, 255, 0.2);
+  min-height: 32px;
+}
+
+.simple-limit-info .el-icon {
+  color: var(--primary-color);
+  font-size: 16px;
+}
+
+.simple-limit-info b {
+  color: var(--primary-color);
+  font-weight: 600;
+}
+
+/* 当配额接近用完时的警告样式 */
+.quota-warning {
+  color: var(--error-color);
+  font-weight: 500;
+}
+
+/* 添加分组样式，让AI生成按钮和转换按钮放在一起 */
+.action-buttons-group {
+  display: flex;
+  gap: 10px;
+  margin-left: 5px;
+}
+
+/* 调整AI生成按钮样式，与其他按钮保持一致 */
+.ai-button {
+  height: 32px !important;
+  line-height: 32px !important;
+  font-size: 13px !important;
+  padding: 0 12px !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 4px !important;
+}
+
+.ai-button .el-icon {
+  font-size: 14px !important;
+}
+
+.option-section {
+  background-color: var(--card-background-light, #f5f7fa);
+  border-radius: 8px;
+  padding: 20px;
+}
+
+.section-title {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin: 0 0 16px 0;
+  padding: 0 0 8px 0; /* 移除左侧padding */
+  border-bottom: 1px solid var(--border-color);
+}
+
+.section-header {
+  padding: 0; /* 移除左侧padding */
+  margin-bottom: 16px;
+}
+
+.title-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 4px;
+}
+
+.title-row .el-icon {
+  font-size: 20px;
+  color: var(--primary-color);
+}
+
+.title-row span {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.section-desc {
+  color: var(--text-secondary);
+  font-size: 14px;
+  margin: 0;
+}
+
+/* 响应式调整 */
+@media screen and (max-width: 768px) {
+  .section-title,
+  .section-header {
+    padding-left: 0; /* 移除左侧padding */
+  }
+}
+
+.el-drawer {
+  --el-drawer-padding-primary: 0 !important;
+  z-index: 2001 !important;
+}
+
+.el-drawer__header {
+  margin-bottom: 0 !important;
+  padding: 2px 20px !important;
+  border-bottom: 1px solid var(--el-border-color-lighter) !important;
+  font-size: 18px !important;
+  font-weight: 600 !important;
+}
+
+.el-drawer__body {
+  padding: 0 !important;
+  overflow-y: auto !important;
+  height: calc(100% - 60px) !important;
+}
+
+.el-drawer__content {
+  overflow: hidden !important;
+}
+
+.el-overlay {
+  z-index: 2000 !important;
+}
+
+/* 文本区域样式增强 */
+.text-area-container {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.text-area-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 16px;
+}
+
+.text-area-header-left {
+  flex: 1;
+}
+
+.text-area-header-right {
+  display: flex;
+  align-items: center;
+}
+
+.input-mode-toggle {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(var(--card-background-rgb), 0.8);
+  padding: 6px 12px;
+  border-radius: 8px;
+  border: 1px solid var(--border-color);
+}
+
+.mode-label {
+  font-size: 14px;
+  color: var(--text-secondary);
+}
+
+.mode-switch {
+  margin: 0 4px;
+}
+
+.ssml-help-button {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 6px 12px;
+  border-radius: 6px;
+}
+
+.modern-textarea {
+  border-radius: var(--border-radius-medium) !important;
+  transition: all var(--transition-normal);
+  border: 1px solid var(--border-color);
+  background-color: var(--card-background);
+  box-shadow: var(--shadow-light);
+}
+
+.modern-textarea:focus-within {
+  box-shadow: 0 0 0 3px rgba(74, 108, 247, 0.15);
+  border-color: var(--primary-color);
+}
+
+.modern-textarea .el-textarea__inner {
+  font-family: 'Inter', 'Helvetica Neue', Helvetica, 'PingFang SC', sans-serif;
+  font-size: 15px;
+  line-height: 1.6;
+  color: var(--text-primary);
+  background-color: transparent;
+}
+
+/* 控制栏样式增强 */
+.compact-controls-bar {
+  background-color: rgba(0, 0, 0, 0.03);
+  padding: 16px;
+  border-top: 1px solid var(--border-color);
+  display: flex;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+:root[theme-mode="dark"] .compact-controls-bar {
+  background-color: rgba(255, 255, 255, 0.03);
+}
+
+.compact-selects {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.compact-actions {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.voice-option {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+}
+
+.start-button {
+  font-weight: 600;
+  min-width: 90px;
+}
+
+/* 抽屉样式增强 */
+.drawer-header {
+  background-color: var(--card-background);
+  border-bottom: 1px solid var(--border-color);
+  padding: 20px;  /* 修改padding与内容区域一致 */
+  margin-bottom: 0;
+}
+
+.drawer-header h3 {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0 0 8px 0;
+  font-size: 20px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.drawer-header .el-icon {
+  font-size: 20px;
+  color: var(--primary-color);
+}
+
+.drawer-description {
+  margin: 0;
+  color: var(--text-secondary);
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.settings-drawer-content {
+  padding: 20px;  /* 保持与header一致的padding */
+  height: 100%;
+  overflow-y: auto;
+  background-color: var(--background-color);
+}
+
+/* 抽屉动画优化 */
+:deep(.el-drawer) {
+  --el-drawer-padding-primary: 0;
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+:deep(.el-drawer__body) {
+  padding: 0;
+  overflow-y: auto;
+  height: calc(100% - 80px); /* 考虑到header高度 */
+}
+
+:deep(.el-drawer__header) {
+  margin: 0;
+  padding: 0;
+}
+
+:deep(.el-drawer.rtl) {
+  box-shadow: -2px 0 8px rgba(0, 0, 0, 0.15);
+}
+
+/* 深色模式适配 */
+.dark-theme :deep(.el-drawer) {
+  background-color: var(--card-background);
+  border-left: 1px solid var(--border-color);
+}
+
+.dark-theme :deep(.el-drawer.rtl) {
+  box-shadow: -2px 0 8px rgba(0, 0, 0, 0.25);
+}
+
+/* 响应式调整 */
+@media screen and (max-width: 768px) {
+  :deep(.el-drawer) {
+    width: 90% !important;
+  }
+  
+  .drawer-header,
+  .settings-drawer-content {
+    padding: 16px;  /* 移动端统一使用更小的padding */
+  }
+  
+  .drawer-header h3 {
+    font-size: 20px;
+  }
+  
+  .settings-drawer-content {
+    padding: 16px;
+  }
+}
+
+/* SSML帮助对话框样式 */
+.ssml-help-content {
+  padding: 0 16px;
+}
+
+.ssml-help-content h3 {
+  margin: 0 0 12px 0;
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--primary-color);
+}
+
+.ssml-examples {
+  margin: 24px 0;
+}
+
+.ssml-example-item {
+  margin-bottom: 20px;
+  padding: 12px;
+  border-radius: var(--border-radius-medium);
+  background-color: rgba(0, 0, 0, 0.02);
+  border: 1px solid var(--border-color);
+}
+
+.dark-theme .ssml-example-item {
+  background-color: rgba(255, 255, 255, 0.02);
+}
+
+.ssml-example-item h4 {
+  margin: 0 0 12px 0;
+  font-size: 16px;
+  font-weight: 500;
+}
+
+.ssml-example-item pre {
+  margin: 0 0 8px 0;
+  padding: 12px;
+  background-color: var(--card-background);
+  border-radius: var(--border-radius-small);
+  overflow-x: auto;
+  font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+  font-size: 14px;
+  line-height: 1.5;
+  color: var(--accent-color);
+  border: 1px solid var(--border-color);
+}
+
+.ssml-example-item p {
+  margin: 8px 0 0 0;
+  font-size: 14px;
+  color: var(--text-secondary);
+}
+
+.ssml-template {
+  padding: 16px;
+  background-color: rgba(0, 0, 0, 0.02);
+  border-radius: var(--border-radius-medium);
+  border: 1px solid var(--border-color);
+}
+
+.dark-theme .ssml-template {
+  background-color: rgba(255, 255, 255, 0.02);
+}
+
+.ssml-template pre {
+  margin: 0;
+  padding: 16px;
+  background-color: var(--card-background);
+  border-radius: var(--border-radius-small);
+  overflow-x: auto;
+  font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+  font-size: 14px;
+  line-height: 1.5;
+  color: var(--accent-color);
+  border: 1px solid var(--border-color);
+}
+
+/* 配额进度条样式增强 */
+.quota-progress-wrapper {
+  background-color: rgba(0, 0, 0, 0.02);
+  border-radius: var(--border-radius-medium);
+  padding: 12px 16px;
+  margin-top: 12px;
+  border: 1px solid var(--border-color);
+}
+
+.dark-theme .quota-progress-wrapper {
+  background-color: rgba(255, 255, 255, 0.02);
+}
+
+.quota-text {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 8px;
+  font-size: 14px;
+  color: var(--text-secondary);
+}
+
+.quota-highlight {
+  color: var(--accent-color);
+  font-weight: 500;
+}
+
+.quota-warning {
+  color: var(--error-color);
+  font-weight: 500;
+}
+
+/* 响应式调整 */
+@media (max-width: 768px) {
+  .compact-controls-bar {
+    flex-direction: column;
+  }
+  
+  .compact-selects, .compact-actions {
+    width: 100%;
+  }
+  
+  .text-area-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  
+  .ssml-help-button {
+    margin-left: 0;
+  }
+}
+
+/* 新界面样式 */
+.input-area-card {
+  background-color: var(--card-background);
+  border-radius: var(--border-radius-large);
+  box-shadow: var(--shadow-medium);
+  overflow: hidden;
+  margin-top: 0;
+  border: 1px solid var(--border-color);
+  position: sticky;
+  top: 0;  /* 改为0，让它紧贴顶部 */
+  z-index: 10;
+}
+
+.card-header {
+  padding: 12px 16px;  /* 减少内边距 */
+  border-bottom: 1px solid var(--border-color);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background-color: var(--card-background);
+}
+
+.card-body {
+  padding: 16px;  /* 减少内边距 */
+  background-color: var(--background-color);
+}
+
+.text-area-container {
+  background-color: var(--card-background);
+  border-radius: var(--border-radius-medium);
+  padding: 16px;  /* 减少内边距 */
+  box-shadow: var(--shadow-light);
+  border: 1px solid var(--border-color);
+}
+
+.compact-controls-bar {
+  position: sticky;
+  bottom: 0;
+  background-color: var(--card-background);
+  border-top: 1px solid var(--border-color);
+  padding: 12px 16px;  /* 减少内边距 */
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  z-index: 11;
+  box-shadow: 0 -4px 12px rgba(0, 0, 0, 0.05);
+}
+
+/* 按钮样式优化 */
+.voice-anchors-button,
+.settings-button,
+.start-button {
+  height: 32px !important;
+  line-height: 32px !important;
+  font-size: 13px !important;
+  padding: 0 12px !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 4px !important;
+}
+
+.voice-anchors-button .el-icon,
+.settings-button .el-icon,
+.start-button .el-icon {
+  font-size: 14px !important;
+}
+
+/* 移动端适配 */
+@media screen and (max-width: 768px) {
+  .input-area-card {
+    margin-top: 0;
+    top: 0;  /* 移动端也紧贴顶部 */
+  }
+
+  .card-header,
+  .card-body,
+  .text-area-container,
+  .compact-controls-bar {
+    padding: 10px;  /* 移动端进一步减少内边距 */
+  }
+
+  .compact-controls-bar {
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .compact-selects {
+    width: 100%;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .compact-select, .voice-select {
+    width: 100% !important;
+  }
+
+  .compact-actions {
+    width: 100%;
+    margin-left: 0;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 6px;
+  }
+
+  .start-button {
+    grid-column: 1 / -1;
+  }
+}
+
+/* 主容器样式优化 */
+.modern-main {
+  padding: 0 !important;  /* 移除内边距 */
+  padding-top: 0 !important;  /* 移除顶部内边距 */
+  margin: 0 !important;
+  overflow: auto;
+  width: 100%;
+  box-sizing: border-box;
+  background-color: var(--background-color);
+}
+
+/* 内容区域样式 */
+.main-content {
+  padding: 20px;  /* 内容区域保持内边距 */
+  box-sizing: border-box;
+  width: 100%;
+}
+
+/* 确保内容区域不会被压缩 */
+.card-body {
+  min-height: 200px;
+}
+
+/* 移除不必要的悬浮效果 */
+.input-area-card:hover {
+  transform: none;
+  box-shadow: var(--shadow-medium);
+}
+
+.card-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 4px;
+}
+
+.card-title h2 {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.card-title .el-icon {
+  font-size: 20px;
+  color: var(--primary-color);
+}
+
+.card-description {
+  color: var(--text-secondary);
+  font-size: 14px;
+  margin: 0;
+}
+
+.input-mode-toggle {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background-color: rgba(var(--primary-color-rgb), 0.05);
+  padding: 6px 10px;
+  border-radius: var(--border-radius-medium);
+}
+
+.mode-label {
+  font-size: 14px;
+  color: var(--text-secondary);
+}
+
+.mode-switch {
+  margin: 0 5px;
+}
+
+.ssml-help-button {
+  margin-left: 5px;
+  padding: 5px 12px;
+  font-size: 12px;
+  height: 28px;
+}
+
+.header-controls {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.free-quota-badge {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  border-radius: var(--border-radius-small);
+  background-color: rgba(64, 158, 255, 0.1);
+  font-size: 13px;
+  color: #409eff;
+}
+
+.compact-selects {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  align-items: center;
+}
+
+.compact-select,
+.voice-select {
+  width: auto;
+  min-width: 120px;
+}
+
+.voice-select {
+  min-width: 180px;
+}
+
+.compact-actions {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+/* 配色增强 */
+:root[theme-mode="dark"] .input-area-card {
+  box-shadow: var(--shadow-medium);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+:root[theme-mode="dark"] .text-area-container {
+  border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+:root[theme-mode="dark"] .input-mode-toggle {
+  background-color: rgba(255, 255, 255, 0.05);
+}
+
+:root[theme-mode="dark"] .free-quota-badge {
+  background-color: rgba(64, 158, 255, 0.15);
+}
+
+/* 添加导入Scoped样式 */
+@import './MainScopedStyles.css'; 

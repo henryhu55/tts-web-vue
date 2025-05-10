@@ -4,7 +4,6 @@ import { useTtsStore } from "@/store/store";
 // Check out https://vuejs.org/api/sfc-script-setup.html#script-setup
 import Aside from "./components/aside/Aside.vue";
 import Main from "./components/main/Main.vue";
-import Footer from "./components/footer/Footer.vue";
 import WebStore from "./store/web-store";
 import { onMounted, ref, watch, nextTick, onBeforeUnmount, computed } from "vue";
 import { useI18n } from 'vue-i18n';
@@ -782,48 +781,45 @@ const handleNavChange = (nav) => {
 </script>
 
 <template>
-  <div class="app" :class="{ 'dark-theme': isDarkTheme, 'mobile-view': isMobileView }">
-    <FixedHeader 
-      @toggle-theme="toggleTheme" 
-      @toggle-sidebar="toggleSidebar"
-      @nav-change="handleNavChange"
-    />
-    
-    <!-- 添加调试信息 -->
-    <div v-if="false" style="display: none;">
-      当前主题: {{ isDarkTheme ? 'dark' : 'light' }}
-    </div>
-    <el-container class="modern-container">
-      <el-container class="modern-body-container">
-        <el-aside class="modern-aside" :class="{ 'sidebar-collapsed': isSidebarCollapsed }">
-          <Aside />
-        </el-aside>
-        <el-container class="modern-main-footer">
-          <el-main class="modern-main"><Main /></el-main>
-          <el-footer class="modern-footer"><Footer /></el-footer>
-        </el-container>
-      </el-container>
-    </el-container>
-    
-    <!-- 移动端侧边栏遮罩层 -->
-    <div v-if="isMobileView" 
-         class="mobile-sidebar-overlay"
-         :class="{ 'visible': !isSidebarCollapsed }"
-         @click="toggleSidebar">
+  <div 
+    :class="[
+      'app-container', 
+      { 'dark-theme': isDarkTheme, 'app-mobile': isMobileView }
+    ]"
+    @click="handleAppClick"
+  >
+    <!-- 导航栏与主容器 -->
+    <div class="main-container">
+      <!-- 侧边栏 -->
+      <div 
+        :class="[
+          'sidebar-container', 
+          { 'sidebar-collapsed': !isSidebarCollapsed }, 
+          { 'sidebar-mobile': isMobileView }
+        ]"
+      >
+        <Aside ref="asideRef" />
     </div>
 
-    <!-- 使用全新的引导实现 -->
-    <div v-if="showUserGuide" class="guide-system">
-      <!-- 半透明背景层 -->
-      <div class="guide-overlay"></div>
-      
-      <!-- 高亮遮罩区域 -->
-      <div class="guide-mask">
-        <div class="guide-highlight-area" :style="highlightStyle"></div>
+      <!-- 内容区域 - 包括主内容、页脚等 -->
+      <div 
+        :class="[
+          'content-wrapper',
+          { 'content-expanded': !isSidebarCollapsed },
+          { 'content-mobile': isMobileView }
+        ]"
+      >
+        <Main ref="mainRef" />
+    </div>
       </div>
       
+    <!-- 新手引导系统 -->
+    <div v-if="showUserGuide" class="guide-overlay" @click="completeGuide">
+      <!-- 高亮区域 -->
+      <div class="guide-highlight" :style="highlightStyle"></div>
+
       <!-- 引导卡片 -->
-      <div class="guide-card" :style="guideCardStyle">
+      <div class="guide-card" :style="guideCardStyle" @click.stop>
         <div class="guide-card-header">
           <h2>欢迎使用 TTS Web Vue</h2>
           <p>让我们快速了解一下如何使用这个应用</p>
@@ -847,7 +843,7 @@ const handleNavChange = (nav) => {
           <div class="guide-actions-left">
             <el-button 
               size="small" 
-              @click.stop="handlePrevStep"
+              @click="handlePrevStep"
               :disabled="currentGuideStep === 0"
             >上一步</el-button>
             
@@ -855,7 +851,7 @@ const handleNavChange = (nav) => {
               size="small" 
               type="info" 
               text
-              @click.stop="completeGuide"
+              @click="completeGuide"
             >跳过</el-button>
           </div>
           
@@ -865,14 +861,14 @@ const handleNavChange = (nav) => {
               :key="index" 
               class="guide-indicator" 
               :class="{ active: currentGuideStep === index }"
-              @click.stop="setGuideStep(index, $event)"
+              @click="setGuideStep(index)"
             ></span>
           </div>
           
           <el-button 
             size="small" 
             type="primary" 
-            @click.stop="handleNextStep"
+            @click="handleNextStep"
           >
             {{ currentGuideStep < guideSteps.length - 1 ? '下一步' : '完成' }}
           </el-button>
@@ -883,280 +879,285 @@ const handleNavChange = (nav) => {
 </template>
 
 <style>
-body {
-  margin: 0;
-  font-family: 'Inter', 'Helvetica Neue', Helvetica, 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', '微软雅黑', Arial, sans-serif;
-  background-color: var(--background-color);
-  color: var(--text-primary);
-  transition: background-color 0.3s, color 0.3s;
-}
-
-/* 定义CSS变量 */
+/* 全局变量 */
 :root {
-  --background-color: #f5f8fa;
-  --card-background: #ffffff;
-  --card-background-rgb: 255, 255, 255;
-  --sidebar-background: #eef2f6;
-  --sidebar-background-dark: #1d1e22;
+  /* 颜色 */
+  --primary-color: #4169e1;
+  --secondary-color: #3150b0;
+  --primary-light: #ecf5ff;
+  --primary-dark: #337ecc;
+  --success-color: #67c23a;
+  --warning-color: #e6a23c;
+  --danger-color: #f56c6c;
+  --info-color: #909399;
+  
+  /* 文本颜色 */
   --text-primary: #303133;
-  --text-secondary: #606266;
-  --border-color: #e4e7ed;
-  --border-color-rgb: 228, 231, 237;
-  --hover-color: rgba(0, 0, 0, 0.03);
-  --primary-color: #4a6cf7;
-  --primary-color-rgb: 74, 108, 247;
-  --secondary-color: #6484fb;
-  --primary-gradient: linear-gradient(135deg, #4a6cf7, #6484fb);
+  --text-regular: #606266;
+  --text-secondary: #909399;
+  --text-placeholder: #c0c4cc;
+  
+  /* 边框颜色 */
+  --border-color: #dcdfe6;
+  --border-light: #e4e7ed;
+  --border-lighter: #ebeef5;
+  --border-extra-light: #f2f6fc;
+  
+  /* 背景颜色 */
+  --background-color: #f5f7fa;
+  --card-background: #ffffff;
+  
+  /* 阴影 */
+  --shadow-light: 0 2px 4px rgba(0, 0, 0, 0.05);
+  --shadow-medium: 0 2px 12px 0 rgba(0, 0, 0, 0.1);
+  --shadow-dark: 0 4px 16px rgba(0, 0, 0, 0.15);
+  
+  /* 圆角 */
   --border-radius-small: 4px;
-  --border-radius-medium: 8px;
+  --border-radius-medium: 6px;
   --border-radius-large: 12px;
-  --shadow-light: 0 2px 12px 0 rgba(0, 0, 0, 0.05);
-  --shadow-medium: 0 4px 16px rgba(0, 0, 0, 0.08);
-  --shadow-large: 0 8px 24px rgba(0, 0, 0, 0.12);
-  --shadow-large-dark: 0 8px 24px rgba(0, 0, 0, 0.25);
-  --transition-fast: 0.2s ease;
-  --transition-normal: 0.3s ease;
+  
+  /* 过渡 */
+  --transition-normal: all 0.3s cubic-bezier(0.645, 0.045, 0.355, 1);
+  
+  /* 布局 */
+  --sidebar-width: 240px;
+  --sidebar-collapsed-width: 64px;
+  --header-height: 60px;
+  --footer-height: 40px;
+  
+  /* 字体 */
+  --font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --font-size-large: 18px;
+  --font-size-medium: 16px;
+  --font-size-normal: 14px;
+  --font-size-small: 12px;
 }
 
-.dark-theme {
-  --background-color: #121212;
-  --card-background: #1d1d1d;
-  --card-background-rgb: 29, 29, 29;
-  --sidebar-background-dark: #1d1e22;
-  --text-primary: #e6e6e6;
-  --text-secondary: #aaaaaa;
-  --border-color: #333333;
-  --border-color-rgb: 51, 51, 51;
-  --hover-color: rgba(255, 255, 255, 0.05);
-  --shadow-light: 0 2px 12px 0 rgba(0, 0, 0, 0.2);
-  --shadow-medium: 0 4px 16px rgba(0, 0, 0, 0.3);
-  --shadow-large: 0 8px 24px rgba(0, 0, 0, 0.35);
+/* 暗黑主题变量 */
+:root[theme-mode="dark"] {
+  --primary-color: #4169e1;
+  --secondary-color: #3150b0;
+  --primary-light: #18222c;
+  --primary-dark: #337ecc;
+  
+  --text-primary: #e0e0e0;
+  --text-regular: #c0c0c0;
+  --text-secondary: #909399;
+  --text-placeholder: #606266;
+  
+  --border-color: #434343;
+  --border-light: #363636;
+  --border-lighter: #303030;
+  --border-extra-light: #2a2a2a;
+  
+  --background-color: #141414;
+  --card-background: #1e1e1e;
+  
+  --shadow-light: 0 2px 4px rgba(0, 0, 0, 0.1);
+  --shadow-medium: 0 2px 12px 0 rgba(0, 0, 0, 0.2);
+  --shadow-dark: 0 4px 16px rgba(0, 0, 0, 0.3);
 }
 
-.app {
-  background-color: var(--background-color);
-  border-radius: var(--border-radius-large);
-  border: 1px solid var(--border-color);
-  overflow: hidden;
-  box-shadow: var(--shadow-medium);
-}
-
-.modern-container {
-  height: 100vh;
-  width: 100vw;
-  overflow: hidden;
-}
-
-.modern-body-container {
-  height: 100vh;
-  overflow: hidden;
-  width: 100%;
+/* 基本样式重置 */
+* {
   box-sizing: border-box;
-  padding-top: 0; /* 移除顶部内边距 */
+  margin: 0;
+  padding: 0;
 }
 
-.modern-aside {
-  width: 220px !important;
-  overflow: hidden !important;
-  background-color: var(--card-background);
-  border-right: 1px solid var(--border-color);
-  transition: all var(--transition-normal);
-  position: fixed;
-  top: 60px !important; /* 与header对齐 */
-  left: 0;
-  bottom: 0;
-  z-index: 100;
+body {
+  font-family: var(--font-family);
+  color: var(--text-primary);
+  background-color: var(--background-color);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  line-height: 1.5;
 }
 
-.modern-main-footer {
-  height: 100%;
+/* 滚动条样式 */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #d0d0d0;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #b8b8b8;
+}
+
+:root[theme-mode="dark"] ::-webkit-scrollbar-thumb {
+  background: #555;
+}
+
+:root[theme-mode="dark"] ::-webkit-scrollbar-thumb:hover {
+  background: #777;
+}
+
+/* 应用容器 */
+.app-container {
   display: flex;
   flex-direction: column;
+  min-height: 100vh;
   background-color: var(--background-color);
-  width: 100%;
+  transition: var(--transition-normal);
+  overflow-x: hidden;
+}
+
+/* 主容器 */
+.main-container {
+  display: flex;
   flex: 1;
-  box-sizing: border-box;
-  margin-left: 220px; /* 为侧边栏留出空间 */
-  padding-top: 60px; /* 为header留出空间 */
+  min-height: 100vh;
+  position: relative;
 }
 
-.modern-main {
-  flex: 1;
-  padding: 0 !important;
-  margin: 0 !important;
-  overflow: auto;
-  width: 100%;
-  box-sizing: border-box;
-  background-color: var(--background-color);
-}
-
-.modern-footer {
-  background-color: var(--card-background);
-  border-top: 1px solid var(--border-color) !important;
-  margin: 0 !important;
-  padding: 0 !important;
-}
-
-.el-button {
-  -webkit-app-region: no-drag;
-}
-
-/* 使用全新的引导实现 */
-.guide-system {
+/* 侧边栏容器 */
+.sidebar-container {
+  width: var(--sidebar-width);
+  height: 100vh;
   position: fixed;
   top: 0;
   left: 0;
-  right: 0;
-  bottom: 0;
+  z-index: 1000;
+  transition: width 0.3s ease, transform 0.3s ease;
+  overflow-x: hidden;
+  box-shadow: var(--shadow-light);
+  background-color: var(--card-background);
+  border-right: 1px solid var(--border-light);
+}
+
+/* 侧边栏折叠状态 */
+.sidebar-collapsed {
+  width: var(--sidebar-collapsed-width);
+}
+
+/* 内容区域 */
+.content-wrapper {
+  flex: 1;
+  margin-left: var(--sidebar-width);
+  min-height: 100vh;
+  position: relative;
+  transition: margin-left 0.3s ease;
+  padding-bottom: var(--footer-height);
+  width: calc(100% - var(--sidebar-width));
+}
+
+/* 内容区域在侧边栏折叠时的样式 */
+.content-expanded {
+  margin-left: var(--sidebar-collapsed-width);
+  width: calc(100% - var(--sidebar-collapsed-width));
+}
+
+/* 移动端样式 */
+.app-mobile .sidebar-container {
+    transform: translateX(-100%);
+  box-shadow: none;
+  }
+
+.app-mobile .sidebar-mobile {
+    transform: translateX(0);
+  box-shadow: var(--shadow-medium);
+  }
+
+.app-mobile .content-wrapper {
+  margin-left: 0;
+  width: 100%;
+  }
+
+.app-mobile .content-mobile {
+  margin-left: 0;
+  width: 100%;
+  }
+
+/* 引导系统 */
+.guide-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background-color: rgba(0, 0, 0, 0.5);
   z-index: 9999;
-  display: flex;
+    display: flex;
   justify-content: center;
   align-items: center;
-  pointer-events: none;
-}
+  pointer-events: all;
+  }
 
-.guide-overlay {
+.guide-highlight {
   position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background-color: rgba(0, 0, 0, 0.2);
-  z-index: 9998;
-  backdrop-filter: blur(1px);
-}
-
-.guide-mask {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  z-index: 9999;
-  pointer-events: none;
-  /* 确保mask不影响内容可见性 */
-  backdrop-filter: none;
-  -webkit-backdrop-filter: none;
-}
-
-/* 添加一个清晰的标记，更好地突出显示目标区域 */
-.guide-highlight-area::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background-color: rgba(255, 255, 255, 0.08);
-  border-radius: 2px;
-  pointer-events: none;
-}
-
-.guide-highlight-area {
-  position: absolute;
-  box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.75);
-  border: 3px solid var(--primary-color, #4a6cf7);
-  border-radius: 4px;
-  box-sizing: border-box;
-  animation: highlight-pulse 1.5s infinite alternate;
-  pointer-events: auto;
-  backdrop-filter: none;
-  background-color: transparent;
-  outline: 2px solid rgba(255, 255, 255, 0.8);
-  outline-offset: -5px;
+  box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.5);
+  border: 2px solid var(--primary-color);
   z-index: 10000;
-}
-
-@keyframes highlight-pulse {
-  from {
-    box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.75);
-    border-color: rgba(74, 108, 247, 0.8);
+  pointer-events: none;
+  transition: all 0.3s cubic-bezier(0.645, 0.045, 0.355, 1);
   }
-  to {
-    box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.85);
-    border-color: rgba(74, 108, 247, 1);
-    box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.85), 0 0 0 2px rgba(255, 255, 255, 0.5);
-  }
-}
 
-.guide-card {
-  background-color: var(--card-background, #ffffff);
-  border-radius: var(--border-radius-large, 16px);
-  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.25), 0 0 0 1px rgba(74, 108, 247, 0.2);
+  .guide-card {
+  position: absolute;
   width: 400px;
-  max-width: 90%;
-  display: flex;
-  flex-direction: column;
+  background-color: var(--card-background);
+  border-radius: var(--border-radius-large);
+  box-shadow: var(--shadow-dark);
+  z-index: 10001;
+  opacity: 0;
+  transition: all 0.3s cubic-bezier(0.645, 0.045, 0.355, 1);
   overflow: hidden;
-  position: fixed;
-  z-index: 10002;
-  pointer-events: auto;
-  visibility: visible;
-  transform: translateZ(0);
-  backface-visibility: hidden;
-  -webkit-font-smoothing: antialiased;
-  will-change: transform, opacity;
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  /* 添加卡片阴影和边框 */
-  outline: 2px solid rgba(74, 108, 247, 0.15);
-  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.3), 0 0 0 1px rgba(74, 108, 247, 0.2), 0 0 0 4px rgba(74, 108, 247, 0.05);
-  /* 添加平滑过渡效果 */
-  transition: opacity 0.3s ease-out, top 0.3s ease-out, left 0.3s ease-out;
-}
-
-/* 优化引导卡片的效果 */
-.dark-theme .guide-card {
-  border: 1px solid rgba(255, 255, 255, 0.15);
-  outline: 2px solid rgba(74, 108, 247, 0.2);
-  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(74, 108, 247, 0.3), 0 0 0 4px rgba(74, 108, 247, 0.1);
 }
 
 .guide-card-header {
-  padding: 20px;
   background-color: var(--primary-color);
-  color: white;
+  color: rgb(255, 255, 255);
   background-image: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
   position: relative;
+  padding: 20px;
   overflow: hidden;
 }
 
-/* 添加标题装饰 */
-.guide-card-header::after {
+.guide-card-header::before {
   content: '';
   position: absolute;
-  top: -50%;
-  right: -50%;
+  top: 0;
+  right: 0;
   width: 100%;
-  height: 200%;
-  background: rgba(255, 255, 255, 0.1);
-  transform: rotate(30deg);
-  pointer-events: none;
+  height: 100%;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.1) 0%, rgba(255, 255, 255, 0) 100%);
+  transform: skewY(-12deg);
+  transform-origin: top right;
 }
 
 .guide-card-header h2 {
-  margin: 0 0 8px 0;
-  font-size: 22px;
+  margin: 0;
+  font-size: var(--font-size-large);
   font-weight: 600;
+  position: relative;
 }
 
 .guide-card-header p {
-  margin: 0;
-  font-size: 15px;
+  margin: 8px 0 0;
   opacity: 0.9;
+  font-size: var(--font-size-normal);
+  position: relative;
 }
 
 .guide-card-content {
   padding: 24px;
-  overflow-y: auto;
-  flex: 1;
-  background-color: var(--card-background, #ffffff);
+  background-color: var(--card-background);
 }
 
 .guide-step {
   position: relative;
-  background-color: var(--card-background, #ffffff);
-  border-radius: 8px;
-  padding-top: 8px;
+  padding: 0;
+  margin: 0;
 }
 
 .guide-step-number {
@@ -1165,339 +1166,119 @@ body {
   right: 0;
   background-color: var(--primary-color);
   color: white;
-  font-size: 12px;
-  padding: 4px 10px;
-  border-radius: var(--border-radius-small);
-  font-weight: 500;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  padding: 2px 12px;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: normal;
 }
 
 .guide-step h3 {
-  font-size: 18px;
-  margin: 0 0 12px 0;
-  color: var(--primary-color);
-  font-weight: 600;
+  margin: 0 0 12px;
+  color: var(--text-primary);
+  font-size: var(--font-size-medium);
+  display: flex;
+  align-items: center;
+  gap: 0;
+  padding: 0;
+  padding-right: 50px; /* 调整一下右侧间距 */
 }
 
 .guide-step p {
-  font-size: 15px;
+  margin: 0 0 16px;
+  color: var(--text-regular);
+  font-size: var(--font-size-normal);
   line-height: 1.6;
-  color: var(--text-secondary);
-  margin: 0;
+  padding: 0;
+}
+
+.guide-hint {
+  padding: 12px 16px;
+  background-color: var(--primary-light);
+  border-radius: var(--border-radius-small);
+  color: var(--primary-dark);
+  font-size: var(--font-size-small);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 16px 0;
+}
+
+.guide-hint i {
+  font-size: 16px;
+  color: var(--primary-color);
 }
 
 .guide-card-footer {
+  padding: 16px 24px;
+  border-top: 1px solid var(--border-light);
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 16px 24px;
-  border-top: 1px solid var(--border-color);
-  background-color: rgba(0, 0, 0, 0.02);
-  position: relative;
-  z-index: 10003;
+  background-color: var(--card-background);
 }
 
 .guide-actions-left {
   display: flex;
-  gap: 8px;
-  align-items: center;
-}
-
-.dark-theme .guide-card-footer {
-  background-color: rgba(255, 255, 255, 0.02);
-}
-
-/* 自定义按钮样式 */
-.guide-card-footer .el-button--primary {
-  background: var(--primary-gradient) !important; 
-  border: none;
-  padding: 8px 16px;
-  font-weight: 500;
-  box-shadow: 0 2px 6px rgba(74, 108, 247, 0.3);
-  transition: all 0.3s ease;
-}
-
-.guide-card-footer .el-button--primary:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(74, 108, 247, 0.4);
-}
-
-.guide-card-footer .el-button--default {
-  border-color: var(--border-color);
-  background-color: var(--card-background);
-  transition: all 0.3s ease;
+  gap: 12px;
 }
 
 .guide-indicators {
   display: flex;
-  gap: 8px;
+  gap: 6px;
+  align-items: center;
 }
 
 .guide-indicator {
-  width: 10px;
-  height: 10px;
+  width: 6px;
+  height: 6px;
   border-radius: 50%;
   background-color: var(--border-color);
   cursor: pointer;
-  transition: all var(--transition-fast, 0.2s ease);
-  opacity: 0.5;
-}
-
-.guide-indicator:hover {
-  opacity: 0.8;
-  transform: scale(1.1);
+  transition: all 0.3s ease;
 }
 
 .guide-indicator.active {
+  width: 18px;
+  border-radius: 3px;
   background-color: var(--primary-color);
-  transform: scale(1.2);
-  opacity: 1;
 }
 
-.guide-highlight-element {
-  position: relative;
-  z-index: 10000;
-  box-shadow: 0 0 0 4px rgba(74, 108, 247, 0.5) !important;
-  border-radius: 4px;
-  transition: box-shadow 0.3s ease;
-  animation: highlight-pulse 1.5s infinite alternate;
+/* 暗黑主题适配 */
+:root[theme-mode="dark"] .guide-card {
+  background-color: var(--card-background);
 }
 
-@keyframes highlight-pulse {
-  from {
-    box-shadow: 0 0 0 4px rgba(74, 108, 247, 0.3) !important;
-  }
-  to {
-    box-shadow: 0 0 0 4px rgba(74, 108, 247, 0.8) !important;
-  }
+:root[theme-mode="dark"] .guide-hint {
+  background-color: rgba(64, 158, 255, 0.1);
+  color: var(--primary-color);
 }
 
-/* 移动端响应式样式 */
+/* 响应式样式 */
 @media (max-width: 768px) {
-  .modern-body-container {
-    padding-top: 0; /* 移除移动端顶部内边距 */
-  }
-
-  .modern-aside {
-    transform: translateX(-100%);
-    z-index: 1000;
-  }
-
-  .modern-aside:not(.sidebar-collapsed) {
-    transform: translateX(0);
-  }
-
-  .modern-main-footer {
-    padding-top: 110px; /* 移动端为双行header留出空间 */
-  }
-
-  .modern-main {
-    padding: 0 !important;
-    width: 100% !important;
-    box-sizing: border-box;
-  }
-
-  .modern-body-container {
-    margin-left: 0 !important;
-  }
-
-  .modern-footer {
-    padding: 10px !important;
-  }
-
-  .el-form-item {
-    margin-bottom: 12px !important;
-  }
-
-  .el-input, .el-select {
-    width: 100% !important;
-  }
-
-  .text-area-container {
-    margin: 8px 0 !important;
-    width: 100% !important;
-  }
-
-  .settings-panel {
-    padding: 12px !important;
-    width: 100% !important;
-    box-sizing: border-box;
-  }
-
-  .button-group {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 8px;
-    width: 100%;
-  }
-
-  .button-group .el-button {
-    flex: 1;
-    min-width: calc(50% - 4px);
-    margin: 0 !important;
-  }
-
   .guide-card {
-    position: fixed;
-    left: 16px !important;
-    right: 16px !important;
-    bottom: 20px !important;
-    top: auto !important;
-    width: auto !important;
-    max-width: none !important;
-    margin: 0;
-    border-radius: 20px;
-    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2), 0 2px 8px rgba(0, 0, 0, 0.1);
-    transform: translateY(0) !important;
-    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.3s ease !important;
+    width: 90%;
+    max-width: 360px;
   }
-
-  .guide-card[style*="opacity: 0"] {
-    transform: translateY(100%) !important;
-  }
-
+  
   .guide-card-header {
     padding: 16px;
-    border-radius: 20px 20px 0 0;
   }
-
-  .guide-card-header h2 {
-    font-size: 18px;
-    margin-bottom: 4px;
-  }
-
-  .guide-card-header p {
-    font-size: 14px;
-  }
-
+  
   .guide-card-content {
     padding: 16px;
-    max-height: 40vh;
-    overflow-y: auto;
   }
-
-  .guide-step {
-    padding-top: 0;
-  }
-
-  .guide-step-number {
-    position: relative;
-    top: auto;
-    right: auto;
-    display: inline-block;
-    margin-bottom: 12px;
-    font-size: 12px;
-    padding: 4px 8px;
-    border-radius: 12px;
-    background: rgba(var(--primary-color-rgb), 0.1);
-    color: var(--primary-color);
-    font-weight: 600;
-  }
-
-  .guide-step h3 {
-    font-size: 16px;
-    margin-bottom: 8px;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-  }
-
-  .guide-step p {
-    font-size: 14px;
-    line-height: 1.5;
-    margin-bottom: 12px;
-  }
-
-  .guide-hint {
-    padding: 10px;
-    border-radius: 12px;
-    font-size: 13px;
-    background: rgba(var(--primary-color-rgb), 0.05);
-    border-left: none;
-    display: flex;
-    align-items: flex-start;
-    gap: 8px;
-  }
-
-  .guide-hint i {
-    margin-top: 2px;
-  }
-
+  
   .guide-card-footer {
     padding: 12px 16px;
-    border-radius: 0 0 20px 20px;
-    background: var(--card-background);
-    border-top: 1px solid rgba(var(--border-color-rgb), 0.1);
-  }
-
-  .guide-actions-left {
+    flex-wrap: wrap;
     gap: 12px;
   }
-
+  
   .guide-indicators {
-    position: absolute;
-    top: -24px;
-    left: 50%;
-    transform: translateX(-50%);
-    background: rgba(0, 0, 0, 0.2);
-    padding: 4px 8px;
-    border-radius: 12px;
-    backdrop-filter: blur(4px);
-  }
-
-  .guide-indicator {
-    width: 6px;
-    height: 6px;
-    background: rgba(255, 255, 255, 0.5);
-  }
-
-  .guide-indicator.active {
-    background: white;
-  }
-
-  .guide-highlight-area {
-    border-width: 2px;
-    border-radius: 12px;
-  }
-
-  /* 优化按钮样式 */
-  .guide-card-footer .el-button {
-    font-size: 14px;
-    padding: 8px 16px;
-    border-radius: 12px;
-  }
-
-  .guide-card-footer .el-button--primary {
-    background: var(--primary-color) !important;
-    font-weight: 600;
-  }
-
-  /* 深色模式适配 */
-  .dark-theme .guide-card {
-    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4), 0 2px 8px rgba(0, 0, 0, 0.2);
-  }
-
-  .dark-theme .guide-indicators {
-    background: rgba(255, 255, 255, 0.1);
-  }
-
-  /* 添加安全区域适配 */
-  @supports(padding: max(0px)) {
-    .guide-card {
-      bottom: max(20px, env(safe-area-inset-bottom)) !important;
-      padding-bottom: env(safe-area-inset-bottom);
-    }
-  }
-}
-
-/* 平板设备响应式样式 */
-@media (min-width: 769px) and (max-width: 1024px) {
-  .el-dialog__body {
-    padding: 15px !important;
-  }
-
-  .el-dialog__footer {
-    padding: 10px 15px !important;
+    order: -1;
+    width: 100%;
+    justify-content: center;
+    margin-bottom: 8px;
   }
 }
 </style>

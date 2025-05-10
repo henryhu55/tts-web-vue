@@ -93,10 +93,12 @@ const showUserGuide = () => {
 }
 
 .version-container {
-  padding: 16px;
+  padding: 12px 16px;
   font-size: 12px;
   color: var(--text-secondary);
   text-align: center;
+  border-top: 1px solid rgba(0, 0, 0, 0.05);
+  margin-top: 8px;
 }
 
 .help-links {
@@ -107,7 +109,7 @@ const showUserGuide = () => {
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 8px 12px;
+  padding: 10px 14px;
   border-radius: var(--border-radius-small);
   background-color: rgba(74, 108, 247, 0.1);
   color: var(--primary-color);
@@ -115,16 +117,21 @@ const showUserGuide = () => {
   gap: 8px;
   cursor: pointer;
   transition: all var(--transition-fast);
-  margin-bottom: 8px;
+  margin: 0 12px 10px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
 }
 
 .guide-button:hover {
   background-color: rgba(74, 108, 247, 0.2);
-  transform: translateY(-1px);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(74, 108, 247, 0.15);
 }
 
 .guide-button .el-icon {
-  font-size: 16px;
+  font-size: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .modern-menu {
@@ -141,6 +148,23 @@ const showUserGuide = () => {
   font-weight: 500;
   display: flex;
   align-items: center;
+  justify-content: flex-start;
+  padding: 0 16px;
+}
+
+.modern-menu .el-menu-item span {
+  line-height: 1.5;
+  display: flex;
+  align-items: center;
+}
+
+.modern-menu .el-menu-item .el-icon {
+  margin-right: 12px;
+  font-size: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 24px;
 }
 
 .coming-soon-tag {
@@ -162,13 +186,36 @@ const showUserGuide = () => {
   transform: translateX(3px);
 }
 
-.modern-menu .el-menu-item .el-icon {
-  margin-right: 12px;
-  font-size: 18px;
-}
-
 :root[theme-mode="dark"] .modern-aside {
   background-color: var(--sidebar-background-dark, #1e2025);
   border-right-color: var(--border-color);
+}
+
+:root[theme-mode="dark"] .version-container {
+  border-top-color: rgba(255, 255, 255, 0.05);
+}
+
+/* 移动设备响应式优化 */
+@media (max-width: 768px) {
+  .modern-menu .el-menu-item {
+    height: 42px;
+    line-height: 42px;
+    margin: 6px 10px;
+    padding: 0 12px;
+  }
+  
+  .modern-menu .el-menu-item .el-icon {
+    font-size: 16px;
+    margin-right: 10px;
+  }
+  
+  .guide-button {
+    padding: 8px 12px;
+    margin: 0 10px 8px;
+  }
+  
+  .version-container {
+    padding: 10px 12px;
+  }
 }
 </style>

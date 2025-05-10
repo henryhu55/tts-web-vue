@@ -175,7 +175,7 @@ export default {
   right: 0;
   height: 60px;
   background: var(--card-background);
-  z-index: 98;
+  z-index: 999;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   padding: 0;
   display: flex;

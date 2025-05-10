@@ -89,10 +89,6 @@
               </el-button>
             </el-tooltip>
           </div>
-          
-          <!-- 移除原有进度条，改为简单文字提示 -->
-          <!-- 删除这个div，因为已经和上方合并了 -->
-          
         </div>
       </div>
       
@@ -280,6 +276,89 @@
           </div>
         </div>
       </div>
+
+      <!-- 集成播放器卡片到主界面 -->
+      <div class="player-card">
+        <div class="player-container">
+          <div class="player-row">
+            <!-- 格式选择区域 -->
+            <div class="format-selection">
+              <span class="format-label">{{ t('footer.format') || '格式' }}:</span>
+              <el-select
+                v-model="playerConfig.formatType"
+                class="format-select"
+                @change="setFormatType"
+                size="small"
+              >
+                <el-option
+                  v-for="format in formatOptions"
+                  :key="format.value"
+                  :label="format.label"
+                  :value="format.value"
+                >
+                  <div class="format-option">
+                    <el-icon><DocumentChecked /></el-icon>
+                    <span>{{ format.label }}</span>
+                  </div>
+                </el-option>
+              </el-select>
+            </div>
+            
+            <!-- 音频播放器 -->
+            <div class="audio-player">
+              <audio
+                ref="audioPlayerRef"
+                :src="currMp3Url"
+                :autoplay="playerConfig.autoplay"
+                controls
+                controlslist="nodownload"
+                class="modern-audio-player"
+              ></audio>
+            </div>
+            
+            <!-- 下载按钮 -->
+            <div class="download-button">
+              <el-tooltip 
+                :content="t('footer.downloadAudio') || '下载音频'" 
+                placement="top"
+                effect="light"
+              >
+                <el-button
+                  type="primary"
+                  circle
+                  @click="download"
+                  :disabled="currMp3Url == ''"
+                  :loading="isDownloading"
+                >
+                  <el-icon><Download /></el-icon>
+                </el-button>
+              </el-tooltip>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 添加页脚信息 - 移动到组件底部 -->
+    <div class="site-footer" v-show="page.asideIndex === '1'">
+      <div class="footer-info">
+        <div class="copyright">
+          © 2023-{{ new Date().getFullYear() }} TTS语音合成 | 
+          <a href="https://beian.miit.gov.cn/" target="_blank" class="beian-link">沪ICP备XXXXXXXX号-X</a>
+        </div>
+        <div class="footer-links">
+          <a href="/about" class="footer-link">关于我们</a>
+          <a href="/privacy" class="footer-link">隐私政策</a>
+          <a href="/terms" class="footer-link">使用条款</a>
+          <a href="/contact" class="footer-link">联系我们</a>
+        </div>
+        <div class="friendly-links">
+          <span class="links-label">友情链接：</span>
+          <a href="https://api.tts88.top" target="_blank" class="friendly-link">TTS API</a>
+          <a href="https://docs.tts88.top" target="_blank" class="friendly-link">开发文档</a>
+          <a href="https://github.com" target="_blank" class="friendly-link">GitHub</a>
+        </div>
+      </div>
     </div>
 
     <!-- 设置抽屉 -->
@@ -371,7 +450,7 @@
 
     <!-- 批量处理区域 -->
     <div class="batch-area-card" v-show="page.asideIndex === '2'">
-      <div class="card-header">
+      <div class="card-header batch-card-header">
         <h2>{{ t('aside.batch') }}</h2>
         <div class="batch-actions">
           <el-upload
@@ -782,7 +861,7 @@ import ConfigPage from "../configpage/ConfigPage.vue";
 import { ElMessage } from 'element-plus';
 import WebStore from "@/store/web-store";
 
-import { ref, watch, onMounted, nextTick, onUnmounted } from "vue";
+import { ref, watch, onMounted, nextTick, onUnmounted, reactive } from "vue";
 import { useTtsStore } from "@/store/store";
 import { useLocalTTSStore } from "@/store/local-tts-store";
 import { storeToRefs } from "pinia";
@@ -811,7 +890,8 @@ import {
   VideoCameraFilled,
   ArrowLeft,
   DocumentChecked,
-  ShoppingCart
+  ShoppingCart,
+  Download
 } from '@element-plus/icons-vue';
 
 // 获取i18n实例
@@ -1137,6 +1217,11 @@ watch(() => page.value.asideIndex, (newIndex, oldIndex) => {
       adjustIframeHeight();
     }, 300);
   }
+  
+  // 在页面切换后调整内容区域的顶部边距
+  nextTick(() => {
+    adjustContentMargins();
+  });
 }, { immediate: true });
 
 // 监听主题变化，通知iframe
@@ -1174,6 +1259,9 @@ onMounted(() => {
   // 添加窗口大小变化监听
   window.addEventListener('resize', handleResize);
   
+  // 调整内容区域的顶部边距
+  adjustContentMargins();
+  
   // 如果当前使用的是免费TTS服务，自动检查连接和获取额度
   if (formConfig.value.api === 5) {
     checkTTSServiceStatus();
@@ -1198,6 +1286,11 @@ onMounted(() => {
   
   // 添加全局快捷键事件监听，用于抽屉控制
   document.addEventListener('keydown', handleKeyDown);
+  
+  // 设置播放器引用
+  if (audioPlayerRef.value) {
+    ttsStore.audioPlayer = audioPlayerRef.value;
+  }
 });
 
 // 检查免费TTS服务状态
@@ -1354,15 +1447,32 @@ const clearAll = () => {
 };
 
 const play = (val: any) => {
-  // 在 web 版本中直接使用保存的音频 URL 播放
-  if (audioPlayer.value) {
-    (audioPlayer.value as HTMLAudioElement).pause();
+  // 在 web 版本中播放音频
+  if (audioPlayerRef.value) {
+    // 暂停当前播放
+    audioPlayerRef.value.pause();
   }
   
-  if (val.audioUrl) {
-    const audioElement = new Audio(val.audioUrl);
-    audioPlayer.value = audioElement;
-    audioElement.play();
+  // 如果有音频数据
+  if (val.audioData) {
+    // 二进制数据
+    playAudioBlob(val.audioData);
+    
+    ElMessage({
+      message: "正在播放",
+      type: "success",
+      duration: 2000,
+    });
+  } else if (val.audioUrl) {
+    // URL数据
+    currMp3Url.value = val.audioUrl;
+    
+    if (audioPlayerRef.value) {
+      audioPlayerRef.value.play().catch(err => {
+        console.error('播放失败:', err);
+      });
+    }
+    
     ElMessage({
       message: "正在播放",
       type: "success",
@@ -1380,12 +1490,33 @@ const play = (val: any) => {
 const openInFolder = (val: any) => {
   // Web版本不支持打开文件夹，改为下载功能
   if (val.audioUrl) {
+    // 直接下载URL
     const a = document.createElement('a');
     a.href = val.audioUrl;
-    a.download = val.fileName.split('.')[0] + '.mp3';
+    a.download = val.fileName.split('.')[0] + '.' + playerConfig.formatType;
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
+    
+    ElMessage({
+      message: "开始下载音频文件",
+      type: "success",
+      duration: 2000,
+    });
+  } else if (val.audioData) {
+    // 下载二进制数据
+    const blob = new Blob([val.audioData], { type: `audio/${playerConfig.formatType}` });
+    const url = URL.createObjectURL(blob);
+    
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = val.fileName.split('.')[0] + '.' + playerConfig.formatType;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    
+    // 释放URL
+    URL.revokeObjectURL(url);
     
     ElMessage({
       message: "开始下载音频文件",
@@ -1422,6 +1553,9 @@ const handleResize = () => {
       adjustIframeHeight();
     });
   }
+  
+  // 在窗口大小变化时调整内容区域的边距
+  adjustContentMargins();
 };
 
 // 添加卸载时的清理函数
@@ -1434,6 +1568,9 @@ onUnmounted(() => {
   
   // 确保抽屉关闭
   openSettingsDrawer.value = false;
+  
+  // 清理播放器引用
+  ttsStore.audioPlayer = null;
 });
 
 const openSettingsDrawer = ref(false);
@@ -1753,11 +1890,11 @@ const audition = async (value: string) => {
     
     if (res) {
       if (res.buffer) {
-        const audioBlob = new Blob([res.buffer], { type: 'audio/mpeg' });
-        const audioUrl = URL.createObjectURL(audioBlob);
-        ttsStore.audition(audioUrl);
+        // 处理二进制音频流
+        playAudioBlob(res.buffer);
       } else if (res.audibleUrl) {
-        ttsStore.audition(res.audibleUrl);
+        // 直接使用URL
+        currMp3Url.value = res.audibleUrl;
       }
     }
   } catch (err) {
@@ -1899,7 +2036,7 @@ const voiceSelectChange = (value: string) => {
 };
 
 // 开始转换按钮
-const startBtn = () => {
+const startBtn = async () => {
   if (page.value.asideIndex == "1" && inputs.value.inputValue == "") {
     ElMessage({
       message: t('messages.inputWarning'),
@@ -1939,8 +2076,19 @@ const startBtn = () => {
     }
   }, 300);
   
+  try {
   // 启动转换过程
-  ttsStore.start().then(() => {
+    const result = await ttsStore.start();
+    
+    // 如果返回的是ArrayBuffer，需要处理为Blob URL
+    if (result && result.buffer) {
+      handleAudioBlob(result.buffer);
+    } 
+    // 如果直接返回了URL
+    else if (result && result.audibleUrl) {
+      currMp3Url.value = result.audibleUrl;
+    }
+    
     // 转换完成
     clearInterval(progressInterval);
     convertProgress.value = 100;
@@ -1950,7 +2098,7 @@ const startBtn = () => {
       isLoading.value = false;
       convertProgress.value = 0;
     }, 500);
-  }).catch(error => {
+  } catch (error) {
     // 转换出错
     clearInterval(progressInterval);
     isLoading.value = false;
@@ -1961,7 +2109,7 @@ const startBtn = () => {
       type: "error",
       duration: 3000,
     });
-  });
+  }
 };
 
 // 添加函数用于打开设置抽屉
@@ -2244,1921 +2392,296 @@ const openApiSite = () => {
   window.open("https://api.tts88.top", "_blank");
   console.log('打开API购买页面');
 };
+
+// 添加audioPlayerRef引用
+const audioPlayerRef = ref(null);
+
+// 下载音频
+const download = () => {
+  if (!currMp3Url.value) return;
+  
+  isDownloading.value = true;
+  
+  try {
+    // 创建一个下载链接
+    const link = document.createElement('a');
+    link.href = currMp3Url.value;
+    link.download = `tts_audio_${new Date().getTime()}.${playerConfig.formatType}`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  } catch (error) {
+    console.error('下载音频失败:', error);
+  } finally {
+    isDownloading.value = false;
+}
+};
+
+// 设置格式类型
+const setFormatType = (value: string) => {
+  playerConfig.formatType = value;
+  
+  // 如果当前有音频链接，可以在这里转换格式
+  if (currMp3Url.value) {
+    // 这里可以添加转换格式的逻辑
+    console.log('设置格式类型:', value);
+  }
+};
+
+// 下载音频时的状态
+const isDownloading = ref(false);
+
+// 格式选项
+const formatOptions = [
+  { label: 'MP3', value: 'mp3' },
+  { label: 'WAV', value: 'wav' }
+];
+
+// 播放器配置
+const playerConfig = reactive({
+  formatType: 'mp3',
+  autoplay: true
+});
+
+// 监听音频URL的变化
+watch(() => currMp3Url.value, (newUrl) => {
+  if (newUrl && playerConfig.autoplay && audioPlayerRef.value) {
+    // 确保在下一个事件循环中执行，避免DOM还未更新
+    nextTick(() => {
+      audioPlayerRef.value.play().catch(err => {
+        console.error('自动播放失败:', err);
+        // 可能是因为浏览器策略限制自动播放，这里可以添加提示
+        ElMessage({
+          message: "自动播放被浏览器阻止，请点击播放按钮手动播放",
+          type: "info",
+          duration: 3000,
+        });
+      });
+    });
+  }
+});
+
+// 处理二进制音频流，转换为可播放的URL
+const handleAudioBlob = (audioBlob) => {
+  // 如果已经有一个创建的URL，先释放它
+  if (currMp3Url.value && currMp3Url.value.startsWith('blob:')) {
+    URL.revokeObjectURL(currMp3Url.value);
+}
+
+  // 创建新的URL
+  const audioUrl = URL.createObjectURL(new Blob([audioBlob], { type: `audio/${playerConfig.formatType}` }));
+  
+  // 更新URL
+  currMp3Url.value = audioUrl;
+  
+  return audioUrl;
+};
+
+// 播放二进制音频
+const playAudioBlob = (audioBlob) => {
+  try {
+    // 创建音频URL
+    const audioUrl = handleAudioBlob(audioBlob);
+    
+    // 播放音频
+    if (audioPlayerRef.value) {
+      audioPlayerRef.value.src = audioUrl;
+      audioPlayerRef.value.play().catch(err => {
+        console.error('播放失败:', err);
+        // 可能是因为浏览器策略限制自动播放
+        ElMessage({
+          message: "播放失败，请点击播放按钮手动播放",
+          type: "info",
+          duration: 3000,
+        });
+      });
+    } else {
+      console.error('找不到音频播放器元素');
+    }
+    
+    return audioUrl;
+  } catch (error) {
+    console.error('播放二进制音频失败:', error);
+    ElMessage({
+      message: "播放失败: " + (error instanceof Error ? error.message : String(error)),
+      type: "error",
+      duration: 3000,
+    });
+    return null;
+}
+};
+
+// 调整内容区域的顶部边距
+const adjustContentMargins = () => {
+  nextTick(() => {
+    const headerHeight = 60; // 固定标题栏高度
+    
+    // 获取当前激活的内容区域
+    let activeContent;
+    
+    if (page.value.asideIndex === '1') {
+      // 文本转语音页面
+      activeContent = document.querySelector('.input-area-card');
+    } else if (page.value.asideIndex === '2') {
+      // 批量处理页面
+      activeContent = document.querySelector('.batch-area-card');
+    } else if (page.value.asideIndex === '3') {
+      // 配置页面
+      activeContent = document.querySelector('.config-page-container');
+    } else if (page.value.asideIndex === '4') {
+      // 文档页面
+      activeContent = document.querySelector('.doc-page-container');
+    } else if (page.value.asideIndex === '5') {
+      // 在线生成字幕页面
+      activeContent = document.querySelector('.content-area');
+}
+
+    // 如果找到元素，则调整其顶部边距
+    if (activeContent) {
+      // 对于桌面设备，使用更大的边距
+      if (window.innerWidth > 768) {
+        activeContent.style.marginTop = `${headerHeight + 10}px`;
+      } else {
+        // 对于移动设备，使用较小的边距
+        activeContent.style.marginTop = `${headerHeight + 5}px`;
+}
+
+      console.log(`已调整 ${activeContent.className} 的顶部边距`);
+}
+  });
+};
 </script>
 
 <style>
-/* 全局样式，确保抽屉在所有场景下都能正确显示 */
-
-/* 购买按钮样式 */
-.purchase-button {
-  height: 32px !important;
-  display: inline-flex !important;
-  align-items: center !important;
-  justify-content: center !important;
-  gap: 6px !important;
-  background: linear-gradient(135deg, #67c23a, #85ce61) !important;
-  border: none !important;
-  box-shadow: 0 2px 6px rgba(103, 194, 58, 0.3) !important;
-  transition: all 0.3s ease !important;
-}
-
-.purchase-button:hover {
-  transform: translateY(-2px) !important;
-  box-shadow: 0 4px 8px rgba(103, 194, 58, 0.4) !important;
-}
-
-.purchase-button .el-icon {
-  font-size: 14px !important;
-}
-
-/* 简化样式，减少占用空间 */
-.text-footer-controls {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin: 10px 0 5px 0;
-  gap: 10px;
-}
-
-/* 合并后的字数限制信息样式 */
-.simple-limit-info {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  font-size: 13px;
-  color: var(--text-secondary);
-  background: linear-gradient(135deg, rgba(64, 158, 255, 0.1), rgba(100, 180, 255, 0.15));
-  padding: 8px 12px;
-  border-radius: 8px;
-  border: 1px solid rgba(64, 158, 255, 0.2);
-  min-height: 32px;
-}
-
-.simple-limit-info .el-icon {
-  color: var(--primary-color);
-  font-size: 16px;
-}
-
-.simple-limit-info b {
-  color: var(--primary-color);
-  font-weight: 600;
-}
-
-/* 当配额接近用完时的警告样式 */
-.quota-warning {
-  color: var(--error-color);
-  font-weight: 500;
-}
-
-/* 添加分组样式，让AI生成按钮和转换按钮放在一起 */
-.action-buttons-group {
-  display: flex;
-  gap: 10px;
-  margin-left: 5px;
-}
-
-/* 调整AI生成按钮样式，与其他按钮保持一致 */
-.ai-button {
-  height: 32px !important;
-  line-height: 32px !important;
-  font-size: 13px !important;
-  padding: 0 12px !important;
-  display: inline-flex !important;
-  align-items: center !important;
-  justify-content: center !important;
-  gap: 4px !important;
-}
-
-.ai-button .el-icon {
-  font-size: 14px !important;
-}
-
-.option-section {
-  background-color: var(--card-background-light, #f5f7fa);
-  border-radius: 8px;
-  padding: 20px;
-}
-
-
-.option-section {
-  background-color: var(--card-background-light, #f5f7fa);
-  border-radius: 8px;
-  padding: 20px;
-}
-
-.section-title {
-  font-size: 16px;
-  font-weight: 600;
-  color: var(--text-primary);
-  margin: 0 0 16px 0;
-  padding: 0 0 8px 0; /* 移除左侧padding */
-  border-bottom: 1px solid var(--border-color);
-}
-
-.section-header {
-  padding: 0; /* 移除左侧padding */
-  margin-bottom: 16px;
-}
-
-.title-row {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  margin-bottom: 4px;
-}
-
-.title-row .el-icon {
-  font-size: 20px;
-  color: var(--primary-color);
-}
-
-.title-row span {
-  font-size: 16px;
-  font-weight: 600;
-  color: var(--text-primary);
-}
-
-.section-desc {
-  color: var(--text-secondary);
-  font-size: 14px;
-  margin: 0;
-}
-
-/* 响应式调整 */
-@media screen and (max-width: 768px) {
-  .section-title,
-  .section-header {
-    padding-left: 0; /* 移除左侧padding */
-  }
-}
-
-.el-drawer {
-  --el-drawer-padding-primary: 0 !important;
-  z-index: 2001 !important;
-}
-
-.el-drawer__header {
-  margin-bottom: 0 !important;
-  padding: 2px 20px !important;
-  border-bottom: 1px solid var(--el-border-color-lighter) !important;
-  font-size: 18px !important;
-  font-weight: 600 !important;
-}
-
-.el-drawer__body {
-  padding: 0 !important;
-  overflow-y: auto !important;
-  height: calc(100% - 60px) !important;
-}
-
-.el-drawer__content {
-  overflow: hidden !important;
-}
-
-.el-overlay {
-  z-index: 2000 !important;
-}
-
-/* 文本区域样式增强 */
-.text-area-container {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-}
-
-.text-area-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  margin-bottom: 16px;
-}
-
-.text-area-header-left {
-  flex: 1;
-}
-
-.text-area-header-right {
-  display: flex;
-  align-items: center;
-}
-
-.input-mode-toggle {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  background: rgba(var(--card-background-rgb), 0.8);
-  padding: 6px 12px;
-  border-radius: 8px;
-  border: 1px solid var(--border-color);
-}
-
-.mode-label {
-  font-size: 14px;
-  color: var(--text-secondary);
-}
-
-.mode-switch {
-  margin: 0 4px;
-}
-
-.ssml-help-button {
-  display: flex;
-  align-items: center;
-  gap: 4px;
-  padding: 6px 12px;
-  border-radius: 6px;
-}
-
-.modern-textarea {
-  border-radius: var(--border-radius-medium) !important;
-  transition: all var(--transition-normal);
-  border: 1px solid var(--border-color);
-  background-color: var(--card-background);
-  box-shadow: var(--shadow-light);
-}
-
-.modern-textarea:focus-within {
-  box-shadow: 0 0 0 3px rgba(74, 108, 247, 0.15);
-  border-color: var(--primary-color);
-}
-
-.modern-textarea .el-textarea__inner {
-  font-family: 'Inter', 'Helvetica Neue', Helvetica, 'PingFang SC', sans-serif;
-  font-size: 15px;
-  line-height: 1.6;
-  color: var(--text-primary);
-  background-color: transparent;
-}
-
-/* 控制栏样式增强 */
-.compact-controls-bar {
-  background-color: rgba(0, 0, 0, 0.03);
-  padding: 16px;
-  border-top: 1px solid var(--border-color);
-  display: flex;
-  justify-content: space-between;
-  flex-wrap: wrap;
-  gap: 16px;
-}
-
-:root[theme-mode="dark"] .compact-controls-bar {
-  background-color: rgba(255, 255, 255, 0.03);
-}
-
-.compact-selects {
-  display: flex;
-  gap: 12px;
-  flex-wrap: wrap;
-}
-
-.compact-actions {
-  display: flex;
-  gap: 12px;
-  flex-wrap: wrap;
-}
-
-.voice-option {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  width: 100%;
-}
-
-.start-button {
-  font-weight: 600;
-  min-width: 90px;
-}
-
-/* 抽屉样式增强 */
-.drawer-header {
-  background-color: var(--card-background);
-  border-bottom: 1px solid var(--border-color);
-  padding: 20px;  /* 修改padding与内容区域一致 */
-  margin-bottom: 0;
-}
-
-.drawer-header h3 {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  margin: 0 0 8px 0;
-  font-size: 20px;
-  font-weight: 600;
-  color: var(--text-primary);
-}
-
-.drawer-header .el-icon {
-  font-size: 20px;
-  color: var(--primary-color);
-}
-
-.drawer-description {
-  margin: 0;
-  color: var(--text-secondary);
-  font-size: 14px;
-  line-height: 1.5;
-}
-
-.settings-drawer-content {
-  padding: 20px;  /* 保持与header一致的padding */
-  height: 100%;
-  overflow-y: auto;
-  background-color: var(--background-color);
-}
-
-/* 抽屉动画优化 */
-:deep(.el-drawer) {
-  --el-drawer-padding-primary: 0;
-  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-:deep(.el-drawer__body) {
-  padding: 0;
-  overflow-y: auto;
-  height: calc(100% - 80px); /* 考虑到header高度 */
-}
-
-:deep(.el-drawer__header) {
-  margin: 0;
-  padding: 0;
-}
-
-:deep(.el-drawer.rtl) {
-  box-shadow: -2px 0 8px rgba(0, 0, 0, 0.15);
-}
-
-/* 深色模式适配 */
-.dark-theme :deep(.el-drawer) {
-  background-color: var(--card-background);
-  border-left: 1px solid var(--border-color);
-}
-
-.dark-theme :deep(.el-drawer.rtl) {
-  box-shadow: -2px 0 8px rgba(0, 0, 0, 0.25);
-}
-
-/* 响应式调整 */
-@media screen and (max-width: 768px) {
-  :deep(.el-drawer) {
-    width: 90% !important;
-  }
-  
-  .drawer-header,
-  .settings-drawer-content {
-    padding: 16px;  /* 移动端统一使用更小的padding */
-  }
-  
-  .drawer-header h3 {
-    font-size: 20px;
-  }
-  
-  .settings-drawer-content {
-    padding: 16px;
-  }
-}
-
-/* SSML帮助对话框样式 */
-.ssml-help-content {
-  padding: 0 16px;
-}
-
-.ssml-help-content h3 {
-  margin: 0 0 12px 0;
-  font-size: 18px;
-  font-weight: 600;
-  color: var(--primary-color);
-}
-
-.ssml-examples {
-  margin: 24px 0;
-}
-
-.ssml-example-item {
-  margin-bottom: 20px;
-  padding: 12px;
-  border-radius: var(--border-radius-medium);
-  background-color: rgba(0, 0, 0, 0.02);
-  border: 1px solid var(--border-color);
-}
-
-.dark-theme .ssml-example-item {
-  background-color: rgba(255, 255, 255, 0.02);
-}
-
-.ssml-example-item h4 {
-  margin: 0 0 12px 0;
-  font-size: 16px;
-  font-weight: 500;
-}
-
-.ssml-example-item pre {
-  margin: 0 0 8px 0;
-  padding: 12px;
-  background-color: var(--card-background);
-  border-radius: var(--border-radius-small);
-  overflow-x: auto;
-  font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
-  font-size: 14px;
-  line-height: 1.5;
-  color: var(--accent-color);
-  border: 1px solid var(--border-color);
-}
-
-.ssml-example-item p {
-  margin: 8px 0 0 0;
-  font-size: 14px;
-  color: var(--text-secondary);
-}
-
-.ssml-template {
-  padding: 16px;
-  background-color: rgba(0, 0, 0, 0.02);
-  border-radius: var(--border-radius-medium);
-  border: 1px solid var(--border-color);
-}
-
-.dark-theme .ssml-template {
-  background-color: rgba(255, 255, 255, 0.02);
-}
-
-.ssml-template pre {
-  margin: 0;
-  padding: 16px;
-  background-color: var(--card-background);
-  border-radius: var(--border-radius-small);
-  overflow-x: auto;
-  font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
-  font-size: 14px;
-  line-height: 1.5;
-  color: var(--accent-color);
-  border: 1px solid var(--border-color);
-}
-
-/* 配额进度条样式增强 */
-.quota-progress-wrapper {
-  background-color: rgba(0, 0, 0, 0.02);
-  border-radius: var(--border-radius-medium);
-  padding: 12px 16px;
-  margin-top: 12px;
-  border: 1px solid var(--border-color);
-}
-
-.dark-theme .quota-progress-wrapper {
-  background-color: rgba(255, 255, 255, 0.02);
-}
-
-.quota-text {
-  display: flex;
-  justify-content: space-between;
-  margin-bottom: 8px;
-  font-size: 14px;
-  color: var(--text-secondary);
-}
-
-.quota-highlight {
-  color: var(--accent-color);
-  font-weight: 500;
-}
-
-.quota-warning {
-  color: var(--error-color);
-  font-weight: 500;
-}
-
-/* 响应式调整 */
-@media (max-width: 768px) {
-  .compact-controls-bar {
-    flex-direction: column;
-  }
-  
-  .compact-selects, .compact-actions {
-    width: 100%;
-  }
-  
-  .text-area-header {
-    flex-direction: column;
-    align-items: flex-start;
-  }
-  
-  .ssml-help-button {
-    margin-left: 0;
-  }
-}
-
-/* 新界面样式 */
-.input-area-card {
-  background-color: var(--card-background);
-  border-radius: var(--border-radius-large);
-  box-shadow: var(--shadow-medium);
-  overflow: hidden;
-  margin-top: 0;
-  border: 1px solid var(--border-color);
-  position: sticky;
-  top: 0;  /* 改为0，让它紧贴顶部 */
-  z-index: 10;
-}
-
-.card-header {
-  padding: 12px 16px;  /* 减少内边距 */
-  border-bottom: 1px solid var(--border-color);
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  background-color: var(--card-background);
-}
-
-.card-body {
-  padding: 16px;  /* 减少内边距 */
-  background-color: var(--background-color);
-}
-
-.text-area-container {
-  background-color: var(--card-background);
-  border-radius: var(--border-radius-medium);
-  padding: 16px;  /* 减少内边距 */
-  box-shadow: var(--shadow-light);
-  border: 1px solid var(--border-color);
-}
-
-.compact-controls-bar {
-  position: sticky;
-  bottom: 0;
-  background-color: var(--card-background);
-  border-top: 1px solid var(--border-color);
-  padding: 12px 16px;  /* 减少内边距 */
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  z-index: 11;
-  box-shadow: 0 -4px 12px rgba(0, 0, 0, 0.05);
-}
-
-/* 按钮样式优化 */
-.voice-anchors-button,
-.settings-button,
-.start-button {
-  height: 32px !important;
-  line-height: 32px !important;
-  font-size: 13px !important;
-  padding: 0 12px !important;
-  display: inline-flex !important;
-  align-items: center !important;
-  justify-content: center !important;
-  gap: 4px !important;
-}
-
-.voice-anchors-button .el-icon,
-.settings-button .el-icon,
-.start-button .el-icon {
-  font-size: 14px !important;
-}
-
-/* 移动端适配 */
-@media screen and (max-width: 768px) {
-  .input-area-card {
-    margin-top: 0;
-    top: 0;  /* 移动端也紧贴顶部 */
-  }
-
-  .card-header,
-  .card-body,
-  .text-area-container,
-  .compact-controls-bar {
-    padding: 10px;  /* 移动端进一步减少内边距 */
-  }
-
-  .compact-controls-bar {
-    flex-direction: column;
-    gap: 8px;
-  }
-
-  .compact-selects {
-    width: 100%;
-    flex-direction: column;
-    gap: 6px;
-  }
-
-  .compact-select, .voice-select {
-    width: 100% !important;
-  }
-
-  .compact-actions {
-    width: 100%;
-    margin-left: 0;
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 6px;
-  }
-
-  .start-button {
-    grid-column: 1 / -1;
-  }
-}
-
-/* 主容器样式优化 */
-.modern-main {
-  padding: 0 !important;  /* 移除内边距 */
-  padding-top: 0 !important;  /* 移除顶部内边距 */
-  margin: 0 !important;
-  overflow: auto;
-  width: 100%;
-  box-sizing: border-box;
-  background-color: var(--background-color);
-}
-
-/* 内容区域样式 */
-.main-content {
-  padding: 20px;  /* 内容区域保持内边距 */
-  box-sizing: border-box;
-  width: 100%;
-}
-
-/* 确保内容区域不会被压缩 */
-.card-body {
-  min-height: 200px;
-}
-
-/* 移除不必要的悬浮效果 */
-.input-area-card:hover {
-  transform: none;
-  box-shadow: var(--shadow-medium);
-}
-
-.card-title {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  margin-bottom: 4px;
-}
-
-.card-title h2 {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  margin: 0;
-  font-size: 18px;
-  font-weight: 600;
-  color: var(--text-primary);
-}
-
-.card-title .el-icon {
-  font-size: 20px;
-  color: var(--primary-color);
-}
-
-.card-description {
-  color: var(--text-secondary);
-  font-size: 14px;
-  margin: 0;
-}
-
-.input-mode-toggle {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  background-color: rgba(var(--primary-color-rgb), 0.05);
-  padding: 6px 10px;
-  border-radius: var(--border-radius-medium);
-}
-
-.mode-label {
-  font-size: 14px;
-  color: var(--text-secondary);
-}
-
-.mode-switch {
-  margin: 0 5px;
-}
-
-.ssml-help-button {
-  margin-left: 5px;
-  padding: 5px 12px;
-  font-size: 12px;
-  height: 28px;
-}
-
-.header-controls {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
-
-.free-quota-badge {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 8px 12px;
-  border-radius: var(--border-radius-small);
-  background-color: rgba(64, 158, 255, 0.1);
-  font-size: 13px;
-  color: #409eff;
-}
-
-.compact-selects {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 12px;
-  align-items: center;
-}
-
-.compact-select,
-.voice-select {
-  width: auto;
-  min-width: 120px;
-}
-
-.voice-select {
-  min-width: 180px;
-}
-
-.compact-actions {
-  display: flex;
-  gap: 10px;
-  align-items: center;
-}
-
-/* 配色增强 */
-:root[theme-mode="dark"] .input-area-card {
-  box-shadow: var(--shadow-medium);
-  border: 1px solid rgba(255, 255, 255, 0.05);
-}
-
-:root[theme-mode="dark"] .text-area-container {
-  border: 1px solid rgba(255, 255, 255, 0.05);
-}
-
-:root[theme-mode="dark"] .input-mode-toggle {
-  background-color: rgba(255, 255, 255, 0.05);
-}
-
-:root[theme-mode="dark"] .free-quota-badge {
-  background-color: rgba(64, 158, 255, 0.15);
-}
-
-@media screen and (max-width: 768px) {
-  .card-title {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 10px;
-    width: 100%;
-  }
-  
-  .input-mode-toggle {
-    width: 100%;
-    justify-content: space-between;
-    padding: 8px 12px;
-  }
-}
-
-/* 按钮样式增强 */
-.start-button {
-  height: 44px !important;
-  padding: 0 24px !important;
-  font-size: 16px !important;
-  font-weight: 600 !important;
-  background: var(--primary-gradient) !important;
-  border: none !important;
-  box-shadow: 0 4px 12px rgba(var(--primary-color-rgb), 0.25) !important;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
-  display: flex !important;
-  align-items: center !important;
-  gap: 8px !important;
-}
-
-.start-button:hover {
-  transform: translateY(-2px) !important;
-  box-shadow: 0 6px 16px rgba(var(--primary-color-rgb), 0.35) !important;
-}
-
-.start-button:active {
-  transform: translateY(0) !important;
-  box-shadow: 0 2px 8px rgba(var(--primary-color-rgb), 0.2) !important;
-}
-
-.start-button .el-icon {
-  font-size: 20px !important;
-}
-
-.start-button.is-loading {
-  background: var(--primary-color) !important;
-  opacity: 0.8 !important;
-}
-
-/* 功能按钮样式 */
-.settings-button,
-.voice-anchors-button {
-  height: 44px !important;
-  padding: 0 16px !important;
-  font-size: 14px !important;
-  background: var(--card-background) !important;
-  border: 1px solid var(--border-color) !important;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
-  display: flex !important;
-  align-items: center !important;
-  gap: 6px !important;
-}
-
-.settings-button:hover,
-.voice-anchors-button:hover {
-  background: var(--hover-color) !important;
-  border-color: var(--primary-color) !important;
-  color: var(--primary-color) !important;
-}
-
-.settings-button .el-icon,
-.voice-anchors-button .el-icon {
-  font-size: 18px !important;
-}
-
-/* 按钮组布局优化 */
-.compact-actions {
-  display: flex !important;
-  align-items: center !important;
-  gap: 12px !important;
-}
-
-/* 深色模式适配 */
-:root[theme-mode="dark"] .start-button {
-  box-shadow: 0 4px 12px rgba(var(--primary-color-rgb), 0.4) !important;
-}
-
-:root[theme-mode="dark"] .settings-button,
-:root[theme-mode="dark"] .voice-anchors-button {
-  background: rgba(255, 255, 255, 0.05) !important;
-  border-color: rgba(255, 255, 255, 0.1) !important;
-}
-
-:root[theme-mode="dark"] .settings-button:hover,
-:root[theme-mode="dark"] .voice-anchors-button:hover {
-  background: rgba(255, 255, 255, 0.1) !important;
-  border-color: var(--primary-color) !important;
-}
-
-/* 响应式调整 */
-@media screen and (max-width: 768px) {
-  .start-button {
-    width: 100% !important;
-    justify-content: center !important;
-  }
-  
-  .settings-button,
-  .voice-anchors-button {
-    flex: 1 !important;
-    justify-content: center !important;
-  }
-  
-  .compact-actions {
-    flex-wrap: wrap !important;
-    gap: 8px !important;
-  }
-}
-
-/* 交互反馈样式 */
-.feedback-tooltip {
-  --el-tooltip-padding: 8px 12px;
-  --el-tooltip-font-size: 13px;
-  --el-tooltip-border-radius: 6px;
-  --el-tooltip-box-shadow: 0 3px 6px -4px rgba(0, 0, 0, 0.12),
-    0 6px 16px 0 rgba(0, 0, 0, 0.08),
-    0 9px 28px 8px rgba(0, 0, 0, 0.05);
-}
-
-/* 加载动画优化 */
-.loading-animation {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 16px;
-}
-
-.loading-spinner {
-  width: 40px;
-  height: 40px;
-  border: 3px solid rgba(var(--primary-color-rgb), 0.2);
-  border-top-color: var(--primary-color);
-  border-radius: 50%;
-  animation: spin 1s linear infinite;
-}
-
-.loading-text {
-  font-size: 16px;
-  color: var(--text-primary);
-  font-weight: 500;
-}
-
-.loading-progress {
-  width: 100%;
-  max-width: 300px;
-  margin-top: 8px;
-}
-
-/* 转换进度条样式 */
-.progress-bar {
-  width: 100%;
-  height: 6px;
-  background-color: rgba(var(--primary-color-rgb), 0.1);
-  border-radius: 3px;
-  overflow: hidden;
-  position: relative;
-}
-
-.progress-bar-inner {
-  position: absolute;
-  left: 0;
-  top: 0;
-  height: 100%;
-  background-color: var(--primary-color);
-  border-radius: 3px;
-  transition: width 0.3s ease;
-}
-
-/* 操作反馈动画 */
-@keyframes spin {
-  to {
-    transform: rotate(360deg);
-  }
-}
-
-@keyframes pulse {
-  0% {
-    transform: scale(1);
-  }
-  50% {
-    transform: scale(1.05);
-  }
-  100% {
-    transform: scale(1);
-  }
-}
-
-/* 深色模式适配 */
-.dark-theme .loading-spinner {
-  border-color: rgba(255, 255, 255, 0.1);
-  border-top-color: var(--primary-color);
-}
-
-.dark-theme .progress-bar {
-  background-color: rgba(255, 255, 255, 0.1);
-}
-
-/* 响应式调整 */
-@media screen and (max-width: 768px) {
-  .loading-animation {
-    gap: 12px;
-  }
-  
-  .loading-spinner {
-    width: 32px;
-    height: 32px;
-  }
-  
-  .loading-text {
-    font-size: 14px;
-  }
-  
-  .loading-progress {
-    max-width: 250px;
-  }
-}
-
-/* 标题区域样式 */
-.section-header {
-  margin-bottom: 16px;
-}
-
-.title-row {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  margin-bottom: 4px;
-}
-
-.title-row .el-icon {
-  font-size: 20px;
-  color: var(--primary-color);
-}
-
-.title-row span {
-  font-size: 16px;
-  font-weight: 600;
-  color: var(--text-primary);
-}
-
-.section-desc {
-  color: var(--text-secondary);
-  font-size: 14px;
-  margin: 0;
-}
-
-/* 文本下方控制区域样式 */
-.text-footer-controls {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin: 12px 0;
-  gap: 10px;
-}
-
-.free-quota-badge {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 8px 10px;
-  border-radius: var(--border-radius-small);
-  background-color: rgba(64, 158, 255, 0.1);
-  font-size: 13px;
-  color: #409eff;
-  flex: 1;
-}
-
-.ai-button {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  padding: 8px 15px;
-  font-size: 14px;
-}
-
-/* 确保卡片体没有多余边距 */
-.card-body {
-  padding: 16px;
-  padding-top: 10px;
-  position: relative;
-}
-
-/* 移除卡片顶部边距 */
-.input-area-card {
-  margin-top: 0;
-}
-
-/* 文本区域头部样式调整 */
-.text-area-header {
-  margin-bottom: 10px;
-}
-
-/* 移动端适配 */
-@media screen and (max-width: 768px) {
-  .text-footer-controls {
-    flex-direction: column-reverse;
-    align-items: stretch;
-  }
-  
-  .free-quota-badge {
-    width: 100%;
-    justify-content: flex-start;
-  }
-  
-  .ai-button {
-    width: 100%;
-    justify-content: center;
-  }
-}
-
-/* 其他已有样式保持不变 */
+/* 全局样式导入 */
+@import './MainStyles.css';
 </style>
 
 <style scoped>
+/* 组件作用域样式导入 */
+@import './MainScopedStyles.css';
+
+/* 主界面容器 */
 .modern-main {
   padding: 20px;
-}
-
-/* 选项区域样式 */
-.option-section {
-  background-color: var(--card-background-light, #f5f7fa);
-  border-radius: 8px;
-  padding: 20px;
-}
-
-.section-title {
-  font-size: 16px;
-  font-weight: 600;
-  color: var(--text-primary);
-  margin: 0 0 16px 0;
-  padding: 0 0 8px 20px; /* 增加左侧padding */
-  border-bottom: 1px solid var(--border-color);
-}
-
-.section-header {
-  padding: 0 0 0 20px; /* 增加左侧padding */
-  margin-bottom: 16px;
-}
-
-.title-row {
+  padding-top: 70px; /* 为固定标题栏留出空间 */
+  width: 100%;
+  min-height: 100vh;
   display: flex;
+    flex-direction: column;
   align-items: center;
-  gap: 8px;
-  margin-bottom: 4px;
+  background-color: var(--background-color);
+  overflow-x: hidden;
 }
 
-.title-row .el-icon {
-  font-size: 20px;
-  color: var(--primary-color);
-}
-
-.title-row span {
-  font-size: 16px;
-  font-weight: 600;
-  color: var(--text-primary);
-}
-
-.section-desc {
-  color: var(--text-secondary);
-  font-size: 14px;
-  margin: 0;
-}
-
-/* 响应式调整 */
-@media screen and (max-width: 768px) {
-  .section-title,
-  .section-header {
-    padding-left: 16px; /* 移动端减小padding */
-  }
-  
-  .modern-main {
-    padding: 10px;
-  }
-}
-
-.input-area-card, .batch-area-card {
+/* 文本编辑区卡片 */
+  .input-area-card {
+    width: 100%;
+  max-width: 1000px;
   background-color: var(--card-background);
   border-radius: var(--border-radius-large);
   box-shadow: var(--shadow-medium);
+  border: 1px solid var(--border-color);
   overflow: hidden;
-  transition: transform var(--transition-normal), box-shadow var(--transition-normal);
-  position: relative;
+  margin-bottom: 20px;
+  margin-top: 20px;
 }
 
-.input-area-card:hover, .batch-area-card:hover {
-  transform: translateY(-4px);
-  box-shadow: var(--shadow-large);
-}
-
-.card-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 16px 20px;
-  border-bottom: 1px solid var(--border-color);
-  position: relative;
-  z-index: 2;
-}
-
-.header-controls {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-
-.card-header h2 {
-  margin: 0;
-  font-size: 18px;
-  font-weight: 600;
-  color: var(--text-primary);
-}
-
-.card-body {
-  padding: 20px;
-  position: relative;
-}
-
-.text-area-container {
-  height: 100%;
-  position: relative;
-}
-
-.modern-textarea {
-  border: none;
-  height: 100%;
-}
-
-:deep(.el-textarea__inner) {
-  height: 100%;
-  resize: none;
-  border: none;
-  background-color: var(--card-background);
-  color: var(--text-primary);
-  font-size: 16px;
-  padding: 16px;
-  line-height: 1.6;
-}
-
-.ai-button {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-/* 免费额度提示样式 */
-.free-quota-badge {
-  background-color: #f0f8ff;
-  border: 1px solid #b3d8ff;
-  color: #409eff;
-  padding: 4px 12px;
-  border-radius: 16px;
-  font-size: 13px;
-  white-space: nowrap;
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  height: 32px;
-}
-
-.quota-progress-wrapper {
-  margin-top: 12px;
-  padding: 8px 12px;
-  border-radius: 6px;
-  background-color: rgba(64, 158, 255, 0.1);
-  border: 1px dashed #b3d8ff;
-}
-
-.quota-text {
-  display: flex;
-  justify-content: space-between;
-  font-size: 13px;
-  color: #606266;
-  margin-bottom: 8px;
-}
-
-.quota-warning {
-  color: #f56c6c;
-  font-weight: 500;
-}
-
-.quota-highlight {
-  color: #67c23a;
-  font-weight: 500;
-}
-
-/* 简洁控制栏样式 */
+/* 控制栏 */
 .compact-controls-bar {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 12px 20px;
+  padding: 16px;
   border-top: 1px solid var(--border-color);
-  background-color: var(--card-background);
-  z-index: 10;
-  box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.05);
+  gap: 20px;
 }
 
-.compact-selects {
-  display: flex;
-  gap: 12px;
-  flex-wrap: wrap;
-  flex: 1;
-}
-
-.compact-select, .voice-select {
-  width: 120px;
-  min-width: 100px;
-  border-radius: 6px;
-}
-
-.voice-select {
-  width: 200px;
-  min-width: 180px;
-}
-
-.compact-actions {
-  display: flex;
-  gap: 10px;
-  margin-left: 12px;
-}
-
-.settings-button {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-}
-
-.start-button {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-}
-
-/* 设置抽屉样式 */
-:deep(.el-drawer__header) {
-  margin-bottom: 0;
-  padding: 16px 20px;
-  border-bottom: 1px solid var(--border-color);
-  font-size: 18px;
-  font-weight: 600;
-}
-
-:deep(.el-drawer__body) {
-  padding: 0;
-  overflow-y: auto;
-  height: calc(100% - 60px);
-}
-
-:deep(.el-drawer__content) {
-  overflow: hidden;
-}
-
-:deep(.el-drawer) {
-  z-index: 2001 !important; /* 确保抽屉在最上层 */
-}
-
-:deep(.el-drawer__container) {
-  position: fixed !important;
-  z-index: 2000 !important;
-}
-
-.settings-drawer-content {
-  padding: 20px;
-  height: 100%;
-  overflow-y: auto;
-  box-sizing: border-box;
-}
-
-.drawer-options {
-  width: 100%;
-}
-
-.modern-dialog {
-  border-radius: var(--border-radius-large);
-}
-
-.dialog-description {
-  margin-top: 0;
-  margin-bottom: 20px;
-  color: var(--text-secondary);
-}
-
-.dialog-input {
-  display: flex;
-  gap: 10px;
-}
-
-.dialog-prompt-input {
-  flex: 1;
-}
-
-.dialog-submit-button {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-}
-
-.batch-actions {
-  display: flex;
-  gap: 10px;
-}
-
-.modern-table {
-  border-radius: var(--border-radius-medium);
-  overflow: hidden;
-}
-
-:deep(.el-table) {
-  --el-table-border-color: var(--border-color);
-  --el-table-header-bg-color: rgba(74, 108, 247, 0.05);
-  --el-table-row-hover-bg-color: rgba(74, 108, 247, 0.03);
-}
-
-:deep(.el-table th) {
-  background-color: var(--el-table-header-bg-color);
-  font-weight: 600;
-}
-
-.status-tag {
-  border-radius: 12px;
-  padding: 0 10px;
-}
-
-.action-buttons {
-  display: flex;
-  gap: 6px;
-}
-
-.clear-button {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-}
-
-.config-page-container, .doc-page-container {
-  flex: 1;
-  background-color: var(--card-background);
-  border-radius: var(--border-radius-large);
-  box-shadow: var(--shadow-medium);
-  overflow: hidden;
-  height: calc(100vh - 180px); /* 确保有足够的高度 */
-  width: 100%;
-  position: relative;
-  display: flex;
-  flex-direction: column;
-}
-
-/* 特别强调文档容器样式 */
-.doc-page-container {
-  position: relative;
-  z-index: 5;
-  height: calc(100vh - 40px); /* 只预留顶部导航栏的空间 */
-  transform: translateZ(0); /* 启用硬件加速 */
-  will-change: transform; /* 优化渲染性能 */
-  margin: 0; /* 重置外边距 */
-  padding: 0; /* 重置内边距 */
-  display: flex;
-  flex-direction: column;
-  overflow: hidden; /* 防止内容溢出 */
-  box-sizing: border-box; /* 确保padding不增加总尺寸 */
-  border-radius: 0;
-  box-shadow: none;
-}
-
-.doc-frame {
-  width: 100%;
-  height: 100%;
-  min-height: 700px;
-  border: none;
-  display: block;
-  overflow: auto;
-  border-radius: 0;
-  opacity: 0;
-  transition: opacity 0.3s ease;
-  flex: 1; /* 让iframe自动填充容器 */
-  max-height: none !important; /* 覆盖可能的最大高度限制 */
-  margin: 0;
-  padding: 0;
-}
-
-.iframe-visible {
-  opacity: 1;
-}
-
-.options-container {
-  background-color: var(--card-background);
-  border-radius: var(--border-radius-large);
-  box-shadow: var(--shadow-medium);
-  padding: 20px;
+/* 确保播放器卡片与侧边栏不冲突 */
+.player-card {
   margin-top: 20px;
-}
-
-:deep(.el-tabs__item) {
-  font-size: 16px;
-  padding: 0 20px;
-}
-
-:deep(.el-tabs__active-bar) {
-  background-color: var(--primary-color);
-}
-
-:deep(.el-tabs__item.is-active) {
-  color: var(--primary-color);
-  font-weight: 600;
-}
-
-:deep(.el-tabs__nav-wrap::after) {
-  background-color: var(--border-color);
-}
-
-.iframe-loading, .iframe-error {
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
+  width: 100%;
+  max-width: 1000px;
   background-color: var(--card-background);
-  z-index: 1000;
-  text-align: center;
+  border-radius: var(--border-radius-large);
+  box-shadow: var(--shadow-medium);
+  border: 1px solid var(--border-color);
+  overflow: hidden;
+  z-index: 1;
 }
 
-.iframe-loading {
-  font-size: 18px;
-  font-weight: 600;
-  color: var(--text-primary);
-}
-
-.loading-spinner {
-  width: 40px;
-  height: 40px;
-  border: 4px solid rgba(74, 108, 247, 0.2);
-  border-radius: 50%;
-  border-top-color: var(--primary-color);
-  animation: spin 1s linear infinite;
-  margin-bottom: 16px;
-}
-
-@keyframes spin {
-  to {
-    transform: rotate(360deg);
-  }
-}
-
-.iframe-error {
-  padding: 30px;
+/* 确保页脚与侧边栏不冲突 */
+.site-footer {
+  margin-top: 20px;
+  width: 100%;
+  max-width: 1000px;
+  padding: 20px;
   background-color: var(--card-background);
+  border-radius: var(--border-radius-large);
+  box-shadow: var(--shadow-medium);
+  border: 1px solid var(--border-color);
+  z-index: 1;
 }
 
-.iframe-error p {
-  margin: 16px 0;
-  font-size: 16px;
-  color: var(--text-secondary);
+/* 响应式布局 */
+@media (max-width: 1200px) {
+  .input-area-card,
+  .player-card,
+  .site-footer {
+    max-width: 95%;
+}
 }
 
-.error-icon {
-  font-size: 48px;
-  color: #ff4757;
-  margin-bottom: 16px;
+@media (max-width: 768px) {
+  .modern-main {
+    padding: 10px;
 }
 
-.error-actions {
-  display: flex;
-  gap: 16px;
-  margin-top: 16px;
-}
-
-.loading-dots {
-  display: inline-block;
-  width: 30px;
-  text-align: left;
-}
-
-.loading-dots:after {
-  content: '.';
-  animation: dots 1.5s steps(5, end) infinite;
-}
-
-@keyframes dots {
-  0%, 20% {
-    content: '.';
+  .input-area-card,
+  .player-card,
+  .site-footer {
+    max-width: 100%;
   }
-  40% {
-    content: '..';
-  }
-  60% {
-    content: '...';
-  }
-  80%, 100% {
-    content: '';
-  }
-}
-
-/* 媒体查询以处理不同屏幕尺寸 */
-@media screen and (max-width: 768px) {
+  
   .compact-controls-bar {
-    flex-direction: column;
-    gap: 10px;
-    padding: 12px;
+  flex-direction: column;
+  gap: 16px;
   }
   
   .compact-selects {
     width: 100%;
-    flex-direction: column;
-    gap: 8px;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
   }
   
-  .compact-select, .voice-select {
-    width: 100% !important;
-    max-width: none !important;
+  .voice-select {
+    grid-column: span 2;
   }
   
   .compact-actions {
     width: 100%;
-    margin-left: 0;
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 8px;
+    justify-content: space-between;
   }
   
-  .start-button {
-    grid-column: 1 / -1;  /* 让开始按钮占据整行 */
-  }
-  
-  .text-area-container {
-    margin: 8px 0;
-  }
-  
-  .text-area-header {
+  .player-row {
     flex-direction: column;
-    align-items: flex-start;
-    gap: 8px;
-  }
-  
-  .text-area-hint {
-    font-size: 13px;
-  }
-  
-  .modern-textarea {
-    min-height: 150px;
-  }
-  
-  .card-header {
-    padding: 12px;
-    flex-wrap: wrap;
     gap: 10px;
   }
   
-  .header-controls {
+  .format-selection {
     width: 100%;
     justify-content: space-between;
   }
   
-  .ai-button {
-    width: 100%;
+  .download-button {
+    align-self: flex-end;
+    margin-top: 8px;
   }
   
-  .free-quota-badge {
+  .audio-player {
     width: 100%;
-    justify-content: center;
-    font-size: 12px;
-    height: auto;
-    padding: 6px;
   }
-}
-
-@media screen and (min-width: 769px) and (max-width: 1024px) {
-  .modern-main {
-    padding: 15px !important;
-  }
-
-  .control-panel {
-    gap: 15px;
-  }
-
-  .settings-panel {
-    padding: 20px;
-  }
-
-  .el-dialog {
-    width: 80% !important;
-  }
-
-  .el-drawer {
-    width: 70% !important;
-  }
-}
-
-/* 触摸设备交互优化 */
-@media (hover: none) {
-  .el-button:active {
-    transform: scale(0.98);
-  }
-
-  .voice-card:active {
-    transform: scale(0.98);
-  }
-
-  .settings-item:active {
-    background-color: var(--hover-color);
-  }
-}
-
-/* 深色模式移动端优化 */
-:root[theme-mode="dark"] .mobile-view {
-  .text-area {
-    background-color: var(--card-background);
-    border-color: var(--border-color);
-  }
-
-  .settings-panel {
-    background-color: var(--card-background);
-  }
-
-  .upload-area {
-    background-color: var(--card-background);
-    border-color: var(--border-color);
-  }
-}
-
-/* 优化加载动画在移动端的显示 */
-@media (max-width: 768px) {
-  .loading-animation {
-    transform: scale(0.8);
-  }
-
-  .loading-text {
-    font-size: 14px;
-  }
-
-  .progress-bar {
-    height: 8px;
-  }
-}
-
-.voice-anchors-button,
-.settings-button,
-.start-button {
-  height: 32px !important; /* 减小按钮高度 */
-  line-height: 32px !important;
-  font-size: 13px !important; /* 稍微减小字体大小 */
-  padding: 0 12px !important; /* 减小内边距 */
-}
-
-.voice-anchors-button .el-icon,
-.settings-button .el-icon,
-.start-button .el-icon {
-  font-size: 14px !important; /* 减小图标大小 */
-}
-
-/* 确保图标垂直居中 */
-.voice-anchors-button,
-.settings-button,
-.start-button {
-  display: inline-flex !important;
-  align-items: center !important;
-  justify-content: center !important;
-  gap: 4px !important; /* 减小图标和文字的间距 */
-}
-
-/* 保持开始按钮的主要样式 */
-.start-button {
-  min-width: 80px !important; /* 稍微减小最小宽度 */
-  font-weight: 500 !important; /* 稍微调整字重 */
-}
-
-/* 添加顶部内边距，为固定标题栏留出空间 */
-.modern-main {
-  padding-top: 0 !important;
-}
-
-/* 移动端适配 */
-@media (max-width: 768px) {
-  .modern-main {
-    padding-top: 0 !important;
-  }
-}
-
-.text-area-header-left h3 {
-  margin: 0;
-  font-size: 18px;
-  font-weight: 600;
-  color: var(--text-primary);
-}
-
-.text-area-header-left .text-area-hint {
-  color: var(--text-secondary);
-  font-size: 14px;
-}
-
-/* 添加在线生成字幕页面样式 */
-.content-area {
-  padding: 20px;
-  background-color: var(--card-background);
-  border-radius: var(--border-radius-large);
-  box-shadow: var(--shadow-medium);
-  margin-top: 20px;
-}
-
-.empty-state {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  text-align: center;
-}
-
-.empty-icon {
-  font-size: 64px;
-  color: #909399;
-  margin-bottom: 16px;
-}
-
-.empty-state h2 {
-  font-size: 24px;
-  color: #303133;
-  margin-bottom: 8px;
-}
-
-.empty-state p {
-  font-size: 16px;
-  color: #606266;
-}
-
-.empty-state .el-button {
-  margin-top: 20px;
-}
-
-/* 字数限制提示样式优化 */
-.character-limit-badge {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 8px 12px;
-  border-radius: var(--border-radius-small);
-  background: linear-gradient(135deg, rgba(64, 158, 255, 0.1), rgba(64, 158, 255, 0.2));
-  font-size: 13px;
-  color: #409eff;
-  border-left: 3px solid #409eff;
-  transition: all 0.3s ease;
-  flex: 1;
-  box-shadow: 0 2px 5px rgba(64, 158, 255, 0.1);
-}
-
-.character-limit-badge .el-icon {
-  font-size: 18px;
-  color: #409eff;
-}
-
-.limit-info {
-  display: flex;
-  flex-direction: column;
-}
-
-.limit-text {
-  font-weight: 500;
-}
-
-.limit-subtext {
-  font-size: 11px;
-  opacity: 0.8;
-}
-
-/* 警告状态 */
-.character-limit-badge.warning {
-  background: linear-gradient(135deg, rgba(230, 162, 60, 0.1), rgba(230, 162, 60, 0.2));
-  color: #e6a23c;
-  border-left-color: #e6a23c;
-  box-shadow: 0 2px 5px rgba(230, 162, 60, 0.1);
-}
-
-.character-limit-badge.warning .el-icon {
-  color: #e6a23c;
-}
-
-/* 危险状态 */
-.character-limit-badge.danger {
-  background: linear-gradient(135deg, rgba(245, 108, 108, 0.1), rgba(245, 108, 108, 0.2));
-  color: #f56c6c;
-  border-left-color: #f56c6c;
-  box-shadow: 0 2px 5px rgba(245, 108, 108, 0.1);
-  animation: pulse 1.5s infinite alternate;
-}
-
-.character-limit-badge.danger .el-icon {
-  color: #f56c6c;
-}
-
-/* 额度进度条样式优化 */
-.quota-progress-wrapper {
-  background: linear-gradient(135deg, rgba(103, 194, 58, 0.05), rgba(103, 194, 58, 0.1));
-  border-radius: var(--border-radius-medium);
-  padding: 10px 14px;
-  margin-top: 10px;
-  border: 1px solid rgba(103, 194, 58, 0.2);
-  transition: all 0.3s ease;
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.03);
-}
-
-.quota-progress-wrapper.warning {
-  background: linear-gradient(135deg, rgba(230, 162, 60, 0.05), rgba(230, 162, 60, 0.1));
-  border-color: rgba(230, 162, 60, 0.2);
-}
-
-.quota-progress-wrapper.danger {
-  background: linear-gradient(135deg, rgba(245, 108, 108, 0.05), rgba(245, 108, 108, 0.1));
-  border-color: rgba(245, 108, 108, 0.2);
-}
-
-@keyframes pulse {
-  0% {
-    opacity: 0.9;
-    transform: scale(0.98);
-  }
-  100% {
-    opacity: 1;
-    transform: scale(1);
-  }
-}
-
-/* 简单文字提示样式 */
-.simple-limit-info {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 8px 12px;
-  border-radius: var(--border-radius-small);
-  background: linear-gradient(135deg, rgba(64, 158, 255, 0.1), rgba(64, 158, 255, 0.2));
-  font-size: 13px;
-  color: #409eff;
-  border-left: 3px solid #409eff;
-  transition: all 0.3s ease;
-  flex: 1;
-  box-shadow: 0 2px 5px rgba(64, 158, 255, 0.1);
-}
-
-.simple-limit-info .el-icon {
-  font-size: 18px;
-  color: #409eff;
-}
-
-.limit-hint {
-  font-size: 11px;
-  opacity: 0.8;
-}
-.el-icon {
-  font-size: 18px;
-  color: #409eff;
-}
-
-.quota-warning {
-  font-size: 11px;
-  opacity: 0.8;
 }
 </style>
 

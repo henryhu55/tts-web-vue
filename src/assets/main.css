@@ -1,0 +1,328 @@
+/* 全局变量 */
+:root {
+  --primary-color: #409eff;
+  --primary-color-rgb: 64, 158, 255;
+  --accent-color: #67c23a;
+  --warning-color: #e6a23c;
+  --error-color: #f56c6c;
+  --text-primary: #303133;
+  --text-secondary: #606266;
+  --text-tertiary: #909399;
+  --border-color: #ebeef5;
+  --hover-color: #f5f7fa;
+  --card-background: #ffffff;
+  --card-background-rgb: 255, 255, 255;
+  --card-background-light: #f5f7fa;
+  --background-color: #f2f5fa;
+  --border-radius-small: 4px;
+  --border-radius-medium: 8px;
+  --border-radius-large: 12px;
+  --shadow-light: 0 2px 12px 0 rgba(0, 0, 0, 0.05);
+  --shadow-medium: 0 4px 16px 0 rgba(0, 0, 0, 0.1);
+  --shadow-large: 0 8px 24px 0 rgba(0, 0, 0, 0.12);
+  --transition-normal: 0.3s ease;
+  --sidebar-width: 250px;
+  --sidebar-collapsed-width: 80px;
+  --header-height: 60px;
+}
+
+/* 深色模式变量 */
+:root[theme-mode="dark"] {
+  --primary-color: #409eff;
+  --accent-color: #67c23a;
+  --warning-color: #e6a23c;
+  --error-color: #f56c6c;
+  --text-primary: #e5eaf3;
+  --text-secondary: #a3abd2;
+  --text-tertiary: #6e7191;
+  --border-color: #424656;
+  --hover-color: #333645;
+  --card-background: #282c3a;
+  --card-background-rgb: 40, 44, 58;
+  --card-background-light: #323644;
+  --background-color: #1e2030;
+  --shadow-light: 0 2px 12px 0 rgba(0, 0, 0, 0.2);
+  --shadow-medium: 0 4px 16px 0 rgba(0, 0, 0, 0.25);
+  --shadow-large: 0 8px 24px 0 rgba(0, 0, 0, 0.3);
+}
+
+/* 基础样式 */
+html, body {
+  margin: 0;
+  padding: 0;
+  font-family: 'Inter', 'Helvetica Neue', Helvetica, 'PingFang SC', 'Microsoft YaHei', sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  background-color: var(--background-color);
+  color: var(--text-primary);
+  height: 100%;
+  width: 100%;
+  overflow: hidden;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+/* 应用容器 */
+.app-container {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  background-color: var(--background-color);
+  transition: background-color var(--transition-normal);
+  overflow: hidden;
+}
+
+/* 布局容器 */
+.layout-container {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  overflow: hidden;
+}
+
+/* 主内容区域 */
+.main-container {
+  flex: 1;
+  display: flex;
+  overflow: hidden;
+}
+
+/* 内容布局调整 */
+.content-wrapper {
+  display: flex;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  position: relative;
+}
+
+/* 侧边栏样式调整 */
+.modern-aside {
+  width: var(--sidebar-width);
+  height: 100%;
+  transition: width var(--transition-normal), transform var(--transition-normal);
+  background-color: var(--card-background);
+  border-right: 1px solid var(--border-color);
+  overflow-y: auto;
+  position: relative;
+  z-index: 100;
+  flex-shrink: 0; /* 防止侧边栏收缩 */
+}
+
+.sidebar-collapsed {
+  width: var(--sidebar-collapsed-width);
+}
+
+/* 主内容区样式调整 */
+.main-content-area {
+  flex: 1;
+  overflow-y: auto;
+  height: 100%;
+  background-color: var(--background-color);
+  position: relative;
+  width: calc(100% - var(--sidebar-width)); /* 减去侧边栏宽度 */
+  margin-left: 0; /* 移除左侧外边距 */
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  padding-top: 60px; /* 为固定标题栏留出空间 */
+}
+
+/* 当侧边栏折叠时的主内容区宽度 */
+.sidebar-collapsed + .main-content-area {
+  width: calc(100% - var(--sidebar-collapsed-width));
+}
+
+/* 移动端样式调整 */
+@media (max-width: 768px) {
+  .main-content-area {
+    width: 100% !important;
+    margin-left: 0 !important;
+  }
+  
+  .modern-aside {
+    position: fixed;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    z-index: 1000;
+    transform: translateX(-100%);
+  }
+  
+  .modern-aside.sidebar-collapsed {
+    transform: translateX(0);
+    width: var(--sidebar-width) !important;
+  }
+}
+
+/* 移动端菜单按钮 */
+.mobile-menu-button {
+  position: fixed;
+  top: 10px;
+  left: 10px;
+  z-index: 1000;
+  background-color: var(--card-background);
+  border: none;
+  border-radius: 50%;
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  box-shadow: var(--shadow-medium);
+  transition: all var(--transition-normal);
+}
+
+.menu-icon {
+  position: relative;
+  width: 20px;
+  height: 20px;
+}
+
+.menu-icon span {
+  display: block;
+  position: absolute;
+  height: 2px;
+  width: 100%;
+  background: var(--primary-color);
+  border-radius: 2px;
+  opacity: 1;
+  left: 0;
+  transform: rotate(0deg);
+  transition: var(--transition-normal);
+}
+
+.menu-icon span:nth-child(1) {
+  top: 0px;
+}
+
+.menu-icon span:nth-child(2) {
+  top: 8px;
+}
+
+.menu-icon span:nth-child(3) {
+  top: 16px;
+}
+
+.menu-icon.is-active span:nth-child(1) {
+  top: 8px;
+  transform: rotate(135deg);
+}
+
+.menu-icon.is-active span:nth-child(2) {
+  opacity: 0;
+  left: -60px;
+}
+
+.menu-icon.is-active span:nth-child(3) {
+  top: 8px;
+  transform: rotate(-135deg);
+}
+
+/* 用户引导样式 */
+.guide-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 9999;
+  pointer-events: all;
+}
+
+.guide-backdrop {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(2px);
+}
+
+.guide-highlight {
+  position: absolute;
+  box-shadow: 0 0 0 2000px rgba(0, 0, 0, 0.7);
+  border-radius: 4px;
+  transition: all 0.3s ease;
+  z-index: 1;
+}
+
+.guide-card {
+  position: absolute;
+  width: 320px;
+  background-color: white;
+  border-radius: 8px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+  transition: all 0.3s ease;
+  overflow: hidden;
+  z-index: 2;
+}
+
+.guide-card-content {
+  padding: 16px;
+}
+
+.guide-title {
+  margin: 0 0 8px 0;
+  font-size: 18px;
+  color: var(--primary-color);
+}
+
+.guide-description {
+  margin: 0 0 12px 0;
+  font-size: 14px;
+  line-height: 1.5;
+  color: var(--text-secondary);
+}
+
+.guide-hint {
+  margin: 0;
+  padding: 8px;
+  background-color: rgba(var(--primary-color-rgb), 0.1);
+  border-radius: 4px;
+  font-size: 13px;
+  color: var(--text-secondary);
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+}
+
+.hint-icon {
+  font-size: 16px;
+}
+
+.guide-card-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 16px;
+  background-color: #f5f7fa;
+  border-top: 1px solid #ebeef5;
+}
+
+.guide-button {
+  padding: 6px 12px;
+  border-radius: 4px;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  border: none;
+}
+
+.guide-prev {
+  background-color: #f0f0f0;
+  color: #606266;
+}
+
+.guide-next, .guide-finish {
+  background-color: var(--primary-color);
+  color: white;
+}
+
+.guide-button:hover {
+  opacity: 0.9;
+} 
