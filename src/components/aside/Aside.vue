@@ -5,37 +5,41 @@
         :default-active="page.asideIndex"
         class="modern-menu"
         @select="menuChange"
+        collapse
       >
         <el-menu-item index="1">
-          <el-icon><Document /></el-icon>
-          <span>{{ t('aside.text') }}</span>
+          <el-tooltip :content="t('aside.text')" placement="right">
+            <el-icon><Document /></el-icon>
+          </el-tooltip>
         </el-menu-item>
         <el-menu-item index="2">
-          <el-icon><Files /></el-icon>
-          <span>{{ t('aside.batch') }}</span>
+          <el-tooltip :content="t('aside.batch')" placement="right">
+            <el-icon><Files /></el-icon>
+          </el-tooltip>
         </el-menu-item>
         <el-menu-item index="4">
-          <el-icon><Notebook /></el-icon>
-          <span>{{ t('aside.documents') }}</span>
+          <el-tooltip :content="t('aside.documents')" placement="right">
+            <el-icon><Notebook /></el-icon>
+          </el-tooltip>
         </el-menu-item>
         <el-menu-item index="5">
-          <el-icon><VideoPlay /></el-icon>
-          <span>在线生成字幕</span>
-          <el-tag size="small" type="info" class="coming-soon-tag">即将上线</el-tag>
+          <el-tooltip content="在线生成字幕" placement="right">
+            <el-icon><VideoPlay /></el-icon>
+          </el-tooltip>
         </el-menu-item>
         <el-menu-item index="3">
-          <el-icon><Setting /></el-icon>
-          <span>{{ t('aside.settings') }}</span>
+          <el-tooltip :content="t('aside.settings')" placement="right">
+            <el-icon><Setting /></el-icon>
+          </el-tooltip>
         </el-menu-item>
       </el-menu>
     </div>
     <div class="version-container">
-      <div class="help-links">
-        <div class="guide-button" @click="showUserGuide">
+      <el-tooltip content="查看引导" placement="right">
+        <div class="icon-only-guide" @click="showUserGuide">
           <el-icon><Help /></el-icon>
-          <span>查看引导</span>
         </div>
-      </div>
+      </el-tooltip>
       <Version />
     </div>
   </div>
@@ -82,18 +86,24 @@ const showUserGuide = () => {
   display: flex;
   flex-direction: column;
   justify-content: space-between;
-  border-bottom-left-radius: var(--border-radius-large);
-  padding: 10px 0;
+  border-bottom-left-radius: 0;
+  padding: 0;
+  padding-top: 20px;
   box-shadow: inset -1px 0 0 rgba(0, 0, 0, 0.05);
+  width: 64px;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  z-index: 1001;
 }
 
 .menu-container {
   flex: 1;
   overflow-y: auto;
+  position: relative;
 }
 
 .version-container {
-  padding: 12px 16px;
+  padding: 12px 8px;
   font-size: 12px;
   color: var(--text-secondary);
   text-align: center;
@@ -101,33 +111,28 @@ const showUserGuide = () => {
   margin-top: 8px;
 }
 
-.help-links {
-  margin-bottom: 12px;
-}
-
-.guide-button {
+.icon-only-guide {
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 10px 14px;
-  border-radius: var(--border-radius-small);
+  padding: 10px;
+  border-radius: 50%;
   background-color: rgba(74, 108, 247, 0.1);
   color: var(--primary-color);
-  font-size: 13px;
-  gap: 8px;
   cursor: pointer;
-  transition: all var(--transition-fast);
-  margin: 0 12px 10px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  transition: all 0.3s ease;
+  margin: 0 auto 10px;
+  width: 32px;
+  height: 32px;
 }
 
-.guide-button:hover {
+.icon-only-guide:hover {
   background-color: rgba(74, 108, 247, 0.2);
   transform: translateY(-2px);
   box-shadow: 0 4px 8px rgba(74, 108, 247, 0.15);
 }
 
-.guide-button .el-icon {
+.icon-only-guide .el-icon {
   font-size: 18px;
   display: flex;
   align-items: center;
@@ -137,42 +142,34 @@ const showUserGuide = () => {
 .modern-menu {
   border-right: none !important;
   background-color: transparent;
+  width: 64px;
 }
 
 .modern-menu .el-menu-item {
   height: 48px;
   line-height: 48px;
   border-radius: var(--border-radius-medium);
-  margin: 8px 12px;
+  margin: 8px 4px;
   transition: all var(--transition-fast);
   font-weight: 500;
   display: flex;
   align-items: center;
-  justify-content: flex-start;
-  padding: 0 16px;
-}
-
-.modern-menu .el-menu-item span {
-  line-height: 1.5;
-  display: flex;
-  align-items: center;
+  justify-content: center;
+  padding: 0;
 }
 
 .modern-menu .el-menu-item .el-icon {
-  margin-right: 12px;
-  font-size: 18px;
+  margin-right: 0;
+  font-size: 20px;
   display: flex;
   align-items: center;
   justify-content: center;
   min-width: 24px;
+  transition: transform 0.3s ease;
 }
 
-.coming-soon-tag {
-  margin-left: 8px;
-  font-size: 10px;
-  padding: 2px 6px;
-  height: auto;
-  line-height: 1.2;
+.modern-menu .el-menu-item:hover .el-icon {
+  transform: scale(1.1);
 }
 
 .modern-menu .el-menu-item.is-active {
@@ -184,6 +181,10 @@ const showUserGuide = () => {
 .modern-menu .el-menu-item:not(.is-active):hover {
   background-color: rgba(74, 108, 247, 0.1);
   transform: translateX(3px);
+}
+
+.modern-menu.el-menu--collapse .el-menu-item:not(.is-active):hover {
+  transform: scale(1.05);
 }
 
 :root[theme-mode="dark"] .modern-aside {
@@ -201,17 +202,10 @@ const showUserGuide = () => {
     height: 42px;
     line-height: 42px;
     margin: 6px 10px;
-    padding: 0 12px;
   }
   
   .modern-menu .el-menu-item .el-icon {
     font-size: 16px;
-    margin-right: 10px;
-  }
-  
-  .guide-button {
-    padding: 8px 12px;
-    margin: 0 10px 8px;
   }
   
   .version-container {

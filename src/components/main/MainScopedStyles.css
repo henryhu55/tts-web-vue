@@ -68,19 +68,17 @@
   }
 }
 
+/* 文本框和批量生成卡片的样式 */
 .input-area-card, .batch-area-card {
+  width: 100%;
+  max-width: 1000px;
   background-color: var(--card-background);
   border-radius: var(--border-radius-large);
   box-shadow: var(--shadow-medium);
+  border: 1px solid var(--border-color);
   overflow: hidden;
-  transition: transform var(--transition-normal), box-shadow var(--transition-normal);
-  position: relative;
-  margin-left: 0 !important; /* 移除可能的左侧外边距 */
-  width: 100% !important;
-  max-width: 100%;
-  box-sizing: border-box;
-  z-index: 2;
-  margin-top: 70px; /* 为固定标题栏留出空间 */
+  margin-bottom: 20px;
+  margin-top: 20px;
 }
 
 .input-area-card:hover, .batch-area-card:hover {
@@ -336,6 +334,7 @@
   gap: 6px;
 }
 
+/* 配置和文档页面容器样式 */
 .config-page-container, .doc-page-container {
   flex: 1;
   background-color: var(--card-background);
@@ -344,6 +343,7 @@
   overflow: hidden;
   height: calc(100vh - 180px); /* 确保有足够的高度 */
   width: 100%;
+  max-width: 1000px;
   position: relative;
   display: flex;
   flex-direction: column;

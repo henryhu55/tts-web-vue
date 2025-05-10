@@ -1,13 +1,10 @@
 <template>
   <div class="fixed-header" :class="{ 'scrolled': isScrolled }">
     <div class="fixed-header-content">
-      <!-- 左侧区域：移动端菜单按钮和Logo -->
+      <!-- 左侧区域：Logo -->
       <div class="header-left">
-        <div class="mobile-menu-button" @click="$emit('toggle-sidebar')">
-          <el-icon><Menu /></el-icon>
-        </div>
         <div class="app-branding">
-          <span class="app-title">TTS web vue</span>
+          <span class="app-title">TTS Web Vue</span>
         </div>
       </div>
 
@@ -210,9 +207,8 @@ export default {
   align-items: center;
   gap: 12px;
   min-width: 220px;
-  padding-left: 20px;
+  padding-left: 0;
   height: 60px;
-  background: var(--card-background);
   position: relative;
   z-index: 101;
 }
@@ -231,6 +227,7 @@ export default {
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   text-transform: capitalize;
+  margin-left: 0;
 }
 
 /* 中间区域样式 - 导航菜单 */

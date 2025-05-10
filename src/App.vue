@@ -803,11 +803,8 @@ const handleNavChange = (nav) => {
 
       <!-- 内容区域 - 包括主内容、页脚等 -->
       <div 
-        :class="[
-          'content-wrapper',
-          { 'content-expanded': !isSidebarCollapsed },
-          { 'content-mobile': isMobileView }
-        ]"
+        class="content-wrapper"
+        :class="{ 'content-mobile': isMobileView }"
       >
         <Main ref="mainRef" />
     </div>
@@ -1018,16 +1015,17 @@ body {
   flex: 1;
   min-height: 100vh;
   position: relative;
+  padding-top: var(--header-height);
 }
 
 /* 侧边栏容器 */
 .sidebar-container {
-  width: var(--sidebar-width);
-  height: 100vh;
+  width: 64px;
+  height: calc(100vh - var(--header-height));
   position: fixed;
-  top: 0;
+  top: var(--header-height);
   left: 0;
-  z-index: 1000;
+  z-index: 1001;
   transition: width 0.3s ease, transform 0.3s ease;
   overflow-x: hidden;
   box-shadow: var(--shadow-light);
@@ -1043,30 +1041,25 @@ body {
 /* 内容区域 */
 .content-wrapper {
   flex: 1;
-  margin-left: var(--sidebar-width);
+  margin-left: 64px;
   min-height: 100vh;
   position: relative;
   transition: margin-left 0.3s ease;
   padding-bottom: var(--footer-height);
-  width: calc(100% - var(--sidebar-width));
-}
-
-/* 内容区域在侧边栏折叠时的样式 */
-.content-expanded {
-  margin-left: var(--sidebar-collapsed-width);
-  width: calc(100% - var(--sidebar-collapsed-width));
+  width: calc(100% - 64px);
 }
 
 /* 移动端样式 */
 .app-mobile .sidebar-container {
-    transform: translateX(-100%);
+  transform: translateX(-100%);
   box-shadow: none;
-  }
+  z-index: 1000;
+}
 
 .app-mobile .sidebar-mobile {
-    transform: translateX(0);
+  transform: translateX(0);
   box-shadow: var(--shadow-medium);
-  }
+}
 
 .app-mobile .content-wrapper {
   margin-left: 0;

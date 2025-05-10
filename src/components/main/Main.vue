@@ -5,6 +5,7 @@
       v-model:isSSMLMode="isSSMLMode"
       :title="page.asideIndex === '1' ? '文本转语音' : '批量处理'"
       :subtitle="page.asideIndex === '1' ? '将文字转换为自然的语音' : '批量处理文本转语音任务'"
+      @nav-change="handleNavChange"
     />
     
     <!-- 文本编辑区 -->
@@ -2514,7 +2515,7 @@ const playAudioBlob = (audioBlob) => {
 // 调整内容区域的顶部边距
 const adjustContentMargins = () => {
   nextTick(() => {
-    const headerHeight = 60; // 固定标题栏高度
+    const headerHeight = 0; // 固定标题栏高度
     
     // 获取当前激活的内容区域
     let activeContent;
@@ -2550,6 +2551,21 @@ const adjustContentMargins = () => {
 }
   });
 };
+
+// 处理导航变化
+const handleNavChange = (nav) => {
+  if (nav === 'tts') {
+    page.value.asideIndex = '1';
+  } else if (nav === 'docs') {
+    page.value.asideIndex = '4';
+  } else if (nav === 'subtitle') {
+    page.value.asideIndex = '5';
+  } else if (nav === 'settings') {
+    page.value.asideIndex = '3';
+  } else if (nav === 'batch') {
+    page.value.asideIndex = '2';
+  }
+};
 </script>
 
 <style>
@@ -2564,27 +2580,13 @@ const adjustContentMargins = () => {
 /* 主界面容器 */
 .modern-main {
   padding: 20px;
-  padding-top: 70px; /* 为固定标题栏留出空间 */
   width: 100%;
   min-height: 100vh;
   display: flex;
-    flex-direction: column;
+  flex-direction: column;
   align-items: center;
   background-color: var(--background-color);
   overflow-x: hidden;
-}
-
-/* 文本编辑区卡片 */
-  .input-area-card {
-    width: 100%;
-  max-width: 1000px;
-  background-color: var(--card-background);
-  border-radius: var(--border-radius-large);
-  box-shadow: var(--shadow-medium);
-  border: 1px solid var(--border-color);
-  overflow: hidden;
-  margin-bottom: 20px;
-  margin-top: 20px;
 }
 
 /* 控制栏 */
