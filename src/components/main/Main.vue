@@ -345,7 +345,7 @@
       <div class="footer-info">
         <div class="copyright">
           © 2023-{{ new Date().getFullYear() }} TTS语音合成 | 
-          <a href="https://beian.miit.gov.cn/" target="_blank" class="beian-link">沪ICP备XXXXXXXX号-X</a>
+          <a href="https://beian.miit.gov.cn/" target="_blank" class="beian-link">沪ICP备15001572号-1</a>
         </div>
         <div class="footer-links">
           <a href="/about" class="footer-link">关于我们</a>
@@ -357,7 +357,7 @@
           <span class="links-label">友情链接：</span>
           <a href="https://api.tts88.top" target="_blank" class="friendly-link">TTS API</a>
           <a href="https://docs.tts88.top" target="_blank" class="friendly-link">开发文档</a>
-          <a href="https://github.com" target="_blank" class="friendly-link">GitHub</a>
+          <a href="https://github.com/henryhu55/tts-web-vue" target="_blank" class="friendly-link">GitHub</a>
         </div>
       </div>
     </div>
