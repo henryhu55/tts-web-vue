@@ -1,69 +1,129 @@
 <template>
   <div class="fixed-header" :class="{ 'scrolled': isScrolled }">
     <div class="fixed-header-content">
-      <!-- 左侧区域：Logo -->
-      <div class="header-left">
-        <div class="app-branding">
-          <span class="app-title">TTS Web Vue</span>
+      <!-- PC端布局 -->
+      <template v-if="!isMobile">
+        <!-- 左侧区域：Logo -->
+        <div class="header-left">
+          <div class="app-branding">
+            <span class="app-title">TTS Web Vue</span>
+          </div>
         </div>
-      </div>
 
-      <!-- 中间区域：功能导航 -->
-      <div class="header-center">
-        <div class="nav-menu">
-          <div class="nav-item" :class="{ 'active': activeNav === 'tts' }" @click="changeNav('tts')">
-            文字转语音
-          </div>
-          <div class="nav-item" :class="{ 'active': activeNav === 'docs' }" @click="changeNav('docs')">
-            文档
-          </div>
-          <div class="nav-item" :class="{ 'active': activeNav === 'subtitle' }" @click="changeNav('subtitle')">
-            在线生成字幕
-            <el-tag size="small" type="info" class="coming-soon-tag">即将上线</el-tag>
+        <!-- 中间区域：功能导航 -->
+        <div class="header-center">
+          <div class="nav-menu">
+            <div class="nav-item" :class="{ 'active': activeNav === 'tts' }" @click="changeNav('tts')">
+              文字转语音
+            </div>
+            <div class="nav-item" :class="{ 'active': activeNav === 'docs' }" @click="changeNav('docs')">
+              文档
+            </div>
+            <div class="nav-item" :class="{ 'active': activeNav === 'subtitle' }" @click="changeNav('subtitle')">
+              在线生成字幕
+              <el-tag size="small" type="info" class="coming-soon-tag">即将上线</el-tag>
+            </div>
           </div>
         </div>
-      </div>
 
-      <!-- 右侧区域：控制按钮 -->
-      <div class="header-right">
-        <div class="api-badge" @click="openApiSite">
-          <span>TTS88</span>
-          <span class="api-tag">API</span>
-        </div>
-        
-        <div class="control-buttons">
-          <el-tooltip content="切换主题" placement="bottom" effect="light">
-            <el-button
-              circle
-              @click="handleThemeClick"
-            >
-              <el-icon><MoonNight /></el-icon>
-            </el-button>
-          </el-tooltip>
+        <!-- 右侧区域：控制按钮 -->
+        <div class="header-right">
+          <div class="api-badge" @click="openApiSite">
+            <span>TTS88</span>
+            <span class="api-tag">API</span>
+          </div>
           
-          <el-dropdown trigger="click">
-            <el-button circle>
-              <el-icon><More /></el-icon>
-            </el-button>
-            <template #dropdown>
-              <el-dropdown-menu>
-                <el-dropdown-item @click="showUserGuide">
-                  <el-icon><QuestionFilled /></el-icon> 查看引导
-                </el-dropdown-item>
-                <el-dropdown-item>
-                  <el-icon><InfoFilled /></el-icon> 关于应用
-                </el-dropdown-item>
-                <el-dropdown-item>
-                  <el-icon><QuestionFilled /></el-icon> 帮助文档
-                </el-dropdown-item>
-                <el-dropdown-item @click="openApiSite">
-                  <el-icon><Link /></el-icon> API 官网
-                </el-dropdown-item>
-              </el-dropdown-menu>
-            </template>
-          </el-dropdown>
+          <div class="control-buttons">
+            <el-tooltip content="切换主题" placement="bottom" effect="light">
+              <el-button circle @click="handleThemeClick">
+                <el-icon><MoonNight /></el-icon>
+              </el-button>
+            </el-tooltip>
+            
+            <el-dropdown trigger="click">
+              <el-button circle>
+                <el-icon><More /></el-icon>
+              </el-button>
+              <template #dropdown>
+                <el-dropdown-menu>
+                  <el-dropdown-item @click="showUserGuide">
+                    <el-icon><QuestionFilled /></el-icon> 查看引导
+                  </el-dropdown-item>
+                  <el-dropdown-item>
+                    <el-icon><InfoFilled /></el-icon> 关于应用
+                  </el-dropdown-item>
+                  <el-dropdown-item>
+                    <el-icon><QuestionFilled /></el-icon> 帮助文档
+                  </el-dropdown-item>
+                  <el-dropdown-item @click="openApiSite">
+                    <el-icon><Link /></el-icon> API 官网
+                  </el-dropdown-item>
+                </el-dropdown-menu>
+              </template>
+            </el-dropdown>
+          </div>
         </div>
-      </div>
+      </template>
+
+      <!-- 移动端布局 -->
+      <template v-else>
+        <!-- Logo -->
+        <div class="header-left">
+          <div class="app-branding">
+            <span class="app-title">TTS Web Vue</span>
+          </div>
+        </div>
+
+        <!-- 中间和右侧区域的容器 -->
+        <div class="header-center-right-container">
+          <!-- 中间区域：功能导航 -->
+          <div class="header-center">
+            <div class="nav-menu">
+              <div class="nav-item" :class="{ 'active': activeNav === 'tts' }" @click="changeNav('tts')">
+                文字转语音
+              </div>
+            </div>
+          </div>
+
+          <!-- 右侧区域：控制按钮 -->
+          <div class="header-right">
+            <div class="api-badge" @click="openApiSite">
+              <span>TTS88</span>
+              <span class="api-tag">API</span>
+            </div>
+            
+            <div class="control-buttons">
+              <el-tooltip content="切换主题" placement="bottom" effect="light">
+                <el-button circle @click="handleThemeClick">
+                  <el-icon><MoonNight /></el-icon>
+                </el-button>
+              </el-tooltip>
+              
+              <el-dropdown trigger="click">
+                <el-button circle>
+                  <el-icon><More /></el-icon>
+                </el-button>
+                <template #dropdown>
+                  <el-dropdown-menu>
+                    <el-dropdown-item @click="showUserGuide">
+                      <el-icon><QuestionFilled /></el-icon> 查看引导
+                    </el-dropdown-item>
+                    <el-dropdown-item>
+                      <el-icon><InfoFilled /></el-icon> 关于应用
+                    </el-dropdown-item>
+                    <el-dropdown-item>
+                      <el-icon><QuestionFilled /></el-icon> 帮助文档
+                    </el-dropdown-item>
+                    <el-dropdown-item @click="openApiSite">
+                      <el-icon><Link /></el-icon> API 官网
+                    </el-dropdown-item>
+                  </el-dropdown-menu>
+                </template>
+              </el-dropdown>
+            </div>
+          </div>
+        </div>
+      </template>
     </div>
   </div>
 </template>
@@ -98,6 +158,7 @@ export default {
     const isScrolled = ref(false);
     const isSSMLMode = ref(false);
     const activeNav = ref('tts');
+    const isMobile = ref(window.innerWidth <= 768);
 
     // 方法
     const handleScroll = () => {
@@ -135,14 +196,22 @@ export default {
       window.dispatchEvent(new CustomEvent('toggle-theme-event'));
     };
 
+    // 检查移动端状态
+    const checkMobile = () => {
+      isMobile.value = window.innerWidth <= 768;
+    };
+
     // 生命周期钩子
     onMounted(() => {
       console.log('FixedHeader 组件已挂载');
       window.addEventListener('scroll', handleScroll);
+      checkMobile();
+      window.addEventListener('resize', checkMobile);
     });
 
     onBeforeUnmount(() => {
       window.removeEventListener('scroll', handleScroll);
+      window.removeEventListener('resize', checkMobile);
     });
 
     // 监听器
@@ -158,7 +227,8 @@ export default {
       openApiSite,
       showUserGuide,
       handleThemeClick,
-      changeNav
+      changeNav,
+      isMobile
     };
   }
 }
@@ -326,45 +396,73 @@ export default {
 @media (max-width: 768px) {
   .fixed-header {
     height: auto;
-    padding: 10px 0;
+    padding: 10px 15px;
   }
   
   .fixed-header-content {
     flex-direction: column;
-    padding: 0 10px;
+    padding: 0;
     gap: 10px;
   }
   
   .header-left {
     width: 100%;
     min-width: auto;
-    padding-left: 10px;
-    justify-content: space-between;
-    height: 50px;
+    padding: 0;
+    height: 40px;
+    justify-content: center;
+  }
+
+  .app-title {
+    font-size: 20px;
   }
   
   .header-center {
-    width: 100%;
-    overflow-x: auto;
-    justify-content: flex-start;
-    padding: 0 10px;
+    width: auto;
+    justify-content: center;
   }
-  
+
   .nav-menu {
-    gap: 10px;
-    padding-bottom: 5px;
-  }
-  
-  .nav-item {
-    font-size: 14px;
-    padding: 6px 12px;
-    white-space: nowrap;
+    gap: 15px;
+    justify-content: center;
   }
   
   .header-right {
+    width: auto;
+    padding: 0;
+    gap: 12px;
+    justify-content: center;
+  }
+
+  .api-badge {
+    padding: 4px 10px;
+    font-size: 13px;
+  }
+
+  .api-badge .api-tag {
+    font-size: 9px;
+    padding: 1px 4px;
+  }
+
+  .control-buttons {
+    gap: 6px;
+  }
+
+  .control-buttons .el-button {
+    padding: 8px;
+  }
+
+  .control-buttons .el-icon {
+    font-size: 16px;
+  }
+
+  /* 移动端特有的布局容器 */
+  .header-center-right-container {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 15px;
     width: 100%;
-    padding: 0 10px;
-    justify-content: flex-end;
   }
 }
 </style> 
