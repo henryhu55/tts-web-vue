@@ -727,6 +727,7 @@ const isSidebarCollapsed = ref(false);
 
 // 切换侧边栏
 const toggleSidebar = () => {
+  console.log('切换侧边栏状态:', { 当前状态: isSidebarCollapsed.value });
   isSidebarCollapsed.value = !isSidebarCollapsed.value;
 };
 
@@ -778,6 +779,49 @@ const handleNavChange = (nav) => {
     ttsStore.page.asideIndex = '5';
   }
 };
+
+// 处理应用区域点击
+const handleAppClick = (event) => {
+  // 如果是移动端且侧边栏展开状态
+  if (isMobileView.value && !isSidebarCollapsed.value) {
+    // 检查点击是否在侧边栏内
+    const sidebarEl = document.querySelector('.modern-aside');
+    const handleEl = document.querySelector('.mobile-handle');
+    
+    // 如果点击不在侧边栏内且不在把手按钮上，则收起侧边栏
+    if (sidebarEl && !sidebarEl.contains(event.target) && 
+        handleEl && !handleEl.contains(event.target)) {
+      isSidebarCollapsed.value = true;
+    }
+  }
+};
+
+// 添加点击主容器处理函数
+const handleMainContainerClick = () => {
+  if (isMobileView && !isSidebarCollapsed) {
+    isSidebarCollapsed = true;
+  }
+};
+
+// 处理内容区域点击
+const handleContentClick = (event) => {
+  console.log('内容区域被点击:', {
+    是否移动端: isMobileView.value,
+    侧边栏状态: isSidebarCollapsed.value,
+    点击目标: event.target,
+    点击坐标: { x: event.clientX, y: event.clientY }
+  });
+
+  if (isMobileView.value && !isSidebarCollapsed.value) {
+    console.log('准备收起侧边栏');
+    isSidebarCollapsed.value = true;
+  }
+};
+
+// 监听侧边栏状态变化
+watch(isSidebarCollapsed, (newValue) => {
+  console.log('侧边栏状态变化:', { 新状态: newValue });
+});
 </script>
 
 <template>
@@ -786,30 +830,39 @@ const handleNavChange = (nav) => {
       'app-container', 
       { 'dark-theme': isDarkTheme, 'app-mobile': isMobileView }
     ]"
-    @click="handleAppClick"
   >
     <!-- 导航栏与主容器 -->
     <div class="main-container">
       <!-- 侧边栏 -->
       <div 
         :class="[
-          'sidebar-container', 
-          { 'sidebar-collapsed': !isSidebarCollapsed }, 
-          { 'sidebar-mobile': isMobileView }
+          'sidebar-container',
+          { 'sidebar-mobile': !isSidebarCollapsed }
         ]"
+        @click.stop
       >
         <Aside ref="asideRef" />
-    </div>
+      </div>
 
-      <!-- 内容区域 - 包括主内容、页脚等 -->
+      <!-- 移动端侧边栏控制把手 -->
+      <div 
+        v-if="isMobileView && isSidebarCollapsed" 
+        class="mobile-handle"
+        @click.stop="toggleSidebar"
+      >
+        <el-icon><ArrowRight /></el-icon>
+      </div>
+
+      <!-- 内容区域 -->
       <div 
         class="content-wrapper"
         :class="{ 'content-mobile': isMobileView }"
+        @click="handleContentClick"
       >
         <Main ref="mainRef" />
-    </div>
       </div>
-      
+    </div>
+
     <!-- 新手引导系统 -->
     <div v-if="showUserGuide" class="guide-overlay" @click="completeGuide">
       <!-- 高亮区域 -->
@@ -1026,16 +1079,26 @@ body {
   top: var(--header-height);
   left: 0;
   z-index: 1001;
-  transition: width 0.3s ease, transform 0.3s ease;
-  overflow-x: hidden;
-  box-shadow: var(--shadow-light);
-  background-color: var(--card-background);
-  border-right: 1px solid var(--border-light);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  overflow: hidden;
+  background-color: transparent;
 }
 
-/* 侧边栏折叠状态 */
-.sidebar-collapsed {
-  width: var(--sidebar-collapsed-width);
+/* 移动端样式 */
+.app-mobile .sidebar-container {
+  position: fixed;
+  top: var(--header-height);
+  left: -64px; /* 初始位置在屏幕外 */
+  bottom: 0;
+  width: 64px;
+  background-color: var(--card-background);
+  box-shadow: 2px 0 8px rgba(0, 0, 0, 0.1);
+  z-index: 1001;
+  transition: left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.app-mobile .sidebar-container.sidebar-mobile {
+  left: 0;
 }
 
 /* 内容区域 */
@@ -1044,32 +1107,28 @@ body {
   margin-left: 64px;
   min-height: 100vh;
   position: relative;
-  transition: margin-left 0.3s ease;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   padding-bottom: var(--footer-height);
   width: calc(100% - 64px);
 }
 
-/* 移动端样式 */
-.app-mobile .sidebar-container {
-  transform: translateX(-100%);
-  box-shadow: none;
-  z-index: 1000;
-}
-
-.app-mobile .sidebar-mobile {
-  transform: translateX(0);
-  box-shadow: var(--shadow-medium);
-}
-
+/* 移动端内容区域 */
 .app-mobile .content-wrapper {
   margin-left: 0;
   width: 100%;
-  }
+  min-height: 100vh;
+}
 
-.app-mobile .content-mobile {
-  margin-left: 0;
-  width: 100%;
-  }
+/* 主内容区域卡片样式 */
+.app-mobile .input-area-card,
+.app-mobile .batch-area-card,
+.app-mobile .config-page-container,
+.app-mobile .doc-page-container {
+  margin: 0;
+  border-radius: 0;
+  box-shadow: none;
+  border: none;
+}
 
 /* 引导系统 */
 .guide-overlay {
@@ -1273,5 +1332,29 @@ body {
     justify-content: center;
     margin-bottom: 8px;
   }
+}
+
+/* 移动端把手按钮样式 */
+.mobile-handle {
+  position: fixed;
+  top: 50%;
+  left: 0;
+  transform: translateY(-50%);
+  width: 24px;
+  height: 48px;
+  background: var(--primary-color);
+  border-radius: 0 24px 24px 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  cursor: pointer;
+  z-index: 1000;
+  box-shadow: 2px 0 8px rgba(0, 0, 0, 0.1);
+  transition: all 0.3s ease;
+}
+
+.mobile-handle:active {
+  transform: translateY(-50%) scale(0.95);
 }
 </style>

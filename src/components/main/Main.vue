@@ -2515,7 +2515,7 @@ const playAudioBlob = (audioBlob) => {
 // 调整内容区域的顶部边距
 const adjustContentMargins = () => {
   nextTick(() => {
-    const headerHeight = 0; // 固定标题栏高度
+    const isMobile = window.innerWidth <= 768;
     
     // 获取当前激活的内容区域
     let activeContent;
@@ -2527,7 +2527,7 @@ const adjustContentMargins = () => {
       // 批量处理页面
       activeContent = document.querySelector('.batch-area-card');
     } else if (page.value.asideIndex === '3') {
-      // 配置页面
+      // 设置页面
       activeContent = document.querySelector('.config-page-container');
     } else if (page.value.asideIndex === '4') {
       // 文档页面
@@ -2535,22 +2535,40 @@ const adjustContentMargins = () => {
     } else if (page.value.asideIndex === '5') {
       // 在线生成字幕页面
       activeContent = document.querySelector('.content-area');
-}
+    }
 
-    // 如果找到元素，则调整其顶部边距
     if (activeContent) {
-      // 对于桌面设备，使用更大的边距
-      if (window.innerWidth > 768) {
-        activeContent.style.marginTop = `${headerHeight + 10}px`;
+      if (isMobile) {
+        // 移动端设置 - 不再设置marginTop，由CSS处理
+        activeContent.style.paddingTop = '10px';
+        activeContent.style.borderRadius = '0';
+        activeContent.style.width = '100%';
+        activeContent.style.maxWidth = '100%';
+        activeContent.style.boxShadow = 'none';
+        activeContent.style.border = 'none';
       } else {
-        // 对于移动设备，使用较小的边距
-        activeContent.style.marginTop = `${headerHeight + 5}px`;
-}
-
-      console.log(`已调整 ${activeContent.className} 的顶部边距`);
-}
+        // PC端设置
+        activeContent.style.marginTop = '0px';
+        activeContent.style.paddingTop = '0';
+        activeContent.style.borderRadius = 'var(--border-radius-large)';
+        activeContent.style.width = '100%';
+        activeContent.style.maxWidth = '1000px';
+        activeContent.style.boxShadow = 'var(--shadow-medium)';
+        activeContent.style.border = '1px solid var(--border-color)';
+      }
+    }
   });
 };
+
+// 监听窗口大小变化
+onMounted(() => {
+  adjustContentMargins();
+  window.addEventListener('resize', adjustContentMargins);
+});
+
+onUnmounted(() => {
+  window.removeEventListener('resize', adjustContentMargins);
+});
 
 // 处理导航变化
 const handleNavChange = (nav) => {
@@ -2636,18 +2654,49 @@ const handleNavChange = (nav) => {
 
 @media (max-width: 768px) {
   .modern-main {
-    padding: 10px;
-}
-
-  .input-area-card,
-  .player-card,
-  .site-footer {
-    max-width: 100%;
+    padding: 0;
   }
-  
-  .compact-controls-bar {
-  flex-direction: column;
-  gap: 16px;
+
+  /* 使用更高优先级的选择器 */
+  .modern-main .input-area-card,
+  .modern-main .batch-area-card,
+  .modern-main .config-page-container,
+  .modern-main .doc-page-container,
+  .modern-main .content-area {
+    margin-top: 80px !important; /* 使用!important确保不被覆盖 */
+    padding: 10px;
+    width: 100%;
+    border-radius: 0;
+    box-shadow: none;
+    border: none;
+  }
+
+  /* 在线生成字幕页面的空状态样式 */
+  .modern-main .content-area .empty-state {
+    margin-top: 80px !important;
+    padding: 20px;
+    text-align: center;
+  }
+
+  .modern-main .compact-controls-bar {
+    padding: 16px;
+    margin-top: 10px;
+    background-color: var(--card-background);
+    border-top: 1px solid var(--border-color);
+  }
+
+  .modern-main .player-card {
+    margin-top: 10px;
+    border-radius: 0;
+    box-shadow: none;
+    border-top: 1px solid var(--border-color);
+    border-bottom: 1px solid var(--border-color);
+  }
+
+  .modern-main .site-footer {
+    margin-top: 10px;
+    border-radius: 0;
+    box-shadow: none;
   }
   
   .compact-selects {
@@ -2684,6 +2733,41 @@ const handleNavChange = (nav) => {
   .audio-player {
     width: 100%;
   }
+}
+
+/* 在线生成字幕页面的空状态样式 */
+.content-area {
+  width: 100%;
+  max-width: 1000px;
+  margin: 20px auto;
+  background-color: var(--card-background);
+  border-radius: var(--border-radius-large);
+  box-shadow: var(--shadow-medium);
+  border: 1px solid var(--border-color);
+}
+
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 40px 20px;
+  text-align: center;
+}
+
+.empty-icon {
+  color: var(--primary-color);
+  margin-bottom: 20px;
+}
+
+.empty-state h2 {
+  margin: 0 0 10px;
+  color: var(--text-primary);
+}
+
+.empty-state p {
+  margin: 0 0 20px;
+  color: var(--text-secondary);
 }
 </style>
 

@@ -601,8 +601,8 @@
 
 /* 主容器样式优化 */
 .modern-main {
-  padding: 0 !important;  /* 移除内边距 */
-  padding-top: 0 !important;  /* 移除顶部内边距 */
+  padding: 0 !important;
+  padding-top: 0 !important;
   margin: 0 !important;
   overflow: auto;
   width: 100%;
@@ -612,9 +612,44 @@
 
 /* 内容区域样式 */
 .main-content {
-  padding: 20px;  /* 内容区域保持内边距 */
+  padding: 20px;
   box-sizing: border-box;
   width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+@media screen and (max-width: 768px) {
+  .modern-main {
+    padding: 0 !important;
+  }
+
+  .main-content {
+    padding: 10px;
+  }
+
+  .input-area-card,
+  .batch-area-card,
+  .config-page-container,
+  .doc-page-container {
+    margin: 0 !important;
+    border-radius: 0 !important;
+    box-shadow: none !important;
+    border: none !important;
+  }
+
+  .card-header {
+    padding: 12px !important;
+  }
+
+  .card-body {
+    padding: 10px !important;
+  }
+
+  .text-area-container {
+    margin: 8px 0 !important;
+    border-radius: 8px !important;
+  }
 }
 
 /* 确保内容区域不会被压缩 */
