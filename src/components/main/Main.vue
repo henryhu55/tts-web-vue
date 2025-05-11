@@ -2663,7 +2663,6 @@ const handleNavChange = (nav) => {
   .modern-main .config-page-container,
   .modern-main .doc-page-container,
   .modern-main .content-area {
-    margin-top: 80px !important; /* 使用!important确保不被覆盖 */
     padding: 10px;
     width: 100%;
     border-radius: 0;
@@ -2673,7 +2672,6 @@ const handleNavChange = (nav) => {
 
   /* 在线生成字幕页面的空状态样式 */
   .modern-main .content-area .empty-state {
-    margin-top: 80px !important;
     padding: 20px;
     text-align: center;
   }

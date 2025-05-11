@@ -67,14 +67,6 @@
 
       <!-- 移动端布局 -->
       <template v-else>
-        <!-- Logo -->
-        <div class="header-left">
-          <div class="app-branding">
-            <span class="app-title">TTS Web Vue</span>
-          </div>
-        </div>
-
-        <!-- 中间和右侧区域的容器 -->
         <div class="header-center-right-container">
           <!-- 中间区域：功能导航 -->
           <div class="header-center">
@@ -395,43 +387,43 @@ export default {
 /* 响应式样式 */
 @media (max-width: 768px) {
   .fixed-header {
-    height: auto;
-    padding: 10px 15px;
+    height: 50px;
+    padding: 0 15px;
   }
   
   .fixed-header-content {
-    flex-direction: column;
+    flex-direction: row;
     padding: 0;
-    gap: 10px;
-  }
-  
-  .header-left {
-    width: 100%;
-    min-width: auto;
-    padding: 0;
-    height: 40px;
-    justify-content: center;
+    height: 100%;
   }
 
-  .app-title {
-    font-size: 20px;
+  .header-center-right-container {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    height: 100%;
   }
   
   .header-center {
     width: auto;
-    justify-content: center;
   }
 
   .nav-menu {
     gap: 15px;
-    justify-content: center;
+  }
+
+  .nav-item {
+    font-size: 15px;
+    padding: 6px 12px;
   }
   
   .header-right {
     width: auto;
     padding: 0;
     gap: 12px;
-    justify-content: center;
+    display: flex;
+    align-items: center;
   }
 
   .api-badge {
@@ -446,6 +438,8 @@ export default {
 
   .control-buttons {
     gap: 6px;
+    display: flex;
+    align-items: center;
   }
 
   .control-buttons .el-button {
@@ -454,15 +448,6 @@ export default {
 
   .control-buttons .el-icon {
     font-size: 16px;
-  }
-
-  /* 移动端特有的布局容器 */
-  .header-center-right-container {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 15px;
-    width: 100%;
   }
 }
 </style> 
