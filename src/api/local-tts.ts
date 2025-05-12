@@ -5,6 +5,11 @@ export interface LocalTTSConfig {
   baseUrl: string;  // 服务器地址，例如：http://localhost:8080
   defaultVoice: string;  // 默认语音
   defaultLanguage: string;  // 默认语言
+  retryCount: number;
+  retryInterval: number;
+  defaultAudioFormat: string;
+  autoPlay: boolean;
+  enabled: boolean;
 }
 
 // TTS请求参数接口
@@ -274,5 +279,10 @@ export async function getFreeTTS(
 export const DEFAULT_LOCAL_TTS_CONFIG: LocalTTSConfig = {
   baseUrl: 'https://free.tts88.top', // 修改为您的实际服务器地址
   defaultVoice: 'zh-CN-XiaoxiaoNeural',
-  defaultLanguage: 'zh-CN'
+  defaultLanguage: 'zh-CN',
+  retryCount: 3,
+  retryInterval: 2000,
+  defaultAudioFormat: 'mp3',
+  autoPlay: true,
+  enabled: true
 }; 

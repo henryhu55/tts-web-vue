@@ -118,7 +118,7 @@
                     <div class="settings-item">
                       <span class="settings-label">服务地址</span>
                       <el-input 
-                        v-model="localTTSStore.config.serverUrl" 
+                        v-model="localTTSStore.config.baseUrl" 
                         placeholder="请输入服务地址"
                         size="default"
                       />
@@ -657,7 +657,7 @@
           <div class="settings-item">
             <span class="settings-label">服务地址</span>
             <el-input 
-              v-model="localTTSStore.config.serverUrl" 
+              v-model="localTTSStore.config.baseUrl" 
               placeholder="请输入服务地址"
               size="default"
             />
@@ -731,6 +731,7 @@ import { storeToRefs } from "pinia";
 import { useI18n } from 'vue-i18n';
 import WebStore from "@/store/web-store";
 import { getTTSData } from "@/store/play";
+import { DEFAULT_LOCAL_TTS_CONFIG } from "@/api/local-tts";
 import { 
   Connection, ChatDotRound, Microphone, UserFilled, Mic, 
   Aim, Timer, Headset, TrendCharts, Star,
@@ -1043,36 +1044,11 @@ const currentView = ref('quota'); // 默认显示额度信息
 
 // 设置默认配置值
 onMounted(() => {
-  // 如果配置为空，设置默认值
-  if (!localTTSStore.config) {
-    localTTSStore.config = {
-      serverUrl: 'https://free.tts88.top',  // 使用local-tts.ts中的默认地址
-      retryCount: 3,
-      retryInterval: 2000,
-      defaultAudioFormat: 'mp3',
-      autoPlay: true,
-      enabled: true,
-      defaultVoice: 'zh-CN-XiaoxiaoNeural',
-      defaultLanguage: 'zh-CN'
-    };
-  }
-  
-  // 确保所有必要的配置项都有默认值
+  // 合并默认配置和已有配置，已有配置优先生效
   localTTSStore.config = {
-    ...{
-      serverUrl: 'https://free.tts88.top',  // 使用local-tts.ts中的默认地址
-      retryCount: 3,
-      retryInterval: 2000,
-      defaultAudioFormat: 'mp3',
-      autoPlay: true,
-      enabled: true,
-      defaultVoice: 'zh-CN-XiaoxiaoNeural',
-      defaultLanguage: 'zh-CN'
-    },
+    ...DEFAULT_LOCAL_TTS_CONFIG,
     ...localTTSStore.config
   };
-  
-  // 保存默认配置
   localTTSStore.saveConfig();
 });
 
