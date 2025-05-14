@@ -191,7 +191,6 @@ export async function handleApiError(error: any): Promise<never> {
  * @returns 免费额度信息
  */
 export async function getFreeLimitInfo(config: LocalTTSConfig): Promise<FreeLimitInfo> {
-  console.log('获取免费额度信息');
   try {
     // 请求配置，添加浏览器指纹头
     const requestConfig = {
@@ -200,8 +199,6 @@ export async function getFreeLimitInfo(config: LocalTTSConfig): Promise<FreeLimi
       },
       timeout: 5000 // 5秒超时
     };
-    
-    console.log('查询免费额度信息');
     
     const response = await axios.get(
       `${config.baseUrl}/api/v1/free-limit`,

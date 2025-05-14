@@ -9,7 +9,7 @@
           <div class="option-item">
             <div class="option-label">
               <span>API服务</span>
-              <el-icon><Connection /></el-icon>
+              <div class="icon-container"><el-icon><Connection /></el-icon></div>
             </div>
             <el-select
               v-model="formConfig.api"
@@ -45,7 +45,6 @@
             <div v-if="formConfig.api === 5" class="free-tts-card">
               <div class="free-tts-header">
                 <div class="header-left">
-                  <el-tag size="small" type="success" effect="plain">无需API密钥</el-tag>
                   <span class="free-tts-title">免费TTS服务</span>
                 </div>
                 <div class="header-actions">
@@ -153,13 +152,14 @@
                 <!-- 高级配置视图 -->
                 <div v-else class="settings-info">
                   <div class="settings-section">
-                    <h4>服务配置</h4>
+                    <h4 class="settings-title">服务配置</h4>
                     <div class="settings-item">
                       <span class="settings-label">服务地址</span>
                       <el-input 
                         v-model="localTTSStore.config.baseUrl" 
                         placeholder="请输入服务地址"
                         size="default"
+                        class="setting-input"
                       />
                     </div>
                     <div class="settings-item">
@@ -169,6 +169,7 @@
                         :min="0"
                         :max="5"
                         size="default"
+                        class="setting-input"
                       />
                     </div>
                     <div class="settings-item">
@@ -179,17 +180,19 @@
                         :max="5000"
                         :step="500"
                         size="default"
+                        class="setting-input"
                       />
                     </div>
                   </div>
                   
                   <div class="settings-section">
-                    <h4>音频设置</h4>
+                    <h4 class="settings-title">音频设置</h4>
                     <div class="settings-item">
                       <span class="settings-label">默认音频格式</span>
                       <el-select
                         v-model="localTTSStore.config.defaultAudioFormat"
                         size="default"
+                        class="setting-input"
                       >
                         <el-option label="MP3" value="mp3" />
                         <el-option label="WAV" value="wav" />
@@ -198,14 +201,18 @@
                     </div>
                     <div class="settings-item">
                       <span class="settings-label">自动播放</span>
-                      <el-switch
-                        v-model="localTTSStore.config.autoPlay"
-                      />
+                      <div class="switch-container">
+                        <el-switch
+                          v-model="localTTSStore.config.autoPlay"
+                          class="setting-switch"
+                        />
+                      </div>
                     </div>
                   </div>
 
                   <div class="settings-actions">
-                    <el-button type="primary" @click="saveAdvancedSettings">
+                    <el-button type="primary" @click="saveAdvancedSettings" class="save-button">
+                      <el-icon><Check /></el-icon>
                       保存设置
                     </el-button>
                   </div>
@@ -225,7 +232,7 @@
           <div class="option-item">
             <div class="option-label">
               <span>语言</span>
-              <el-icon><ChatDotRound /></el-icon>
+              <div class="icon-container"><el-icon><ChatDotRound /></el-icon></div>
             </div>
             <el-select
               v-model="formConfig.languageSelect"
@@ -247,7 +254,7 @@
           <div class="option-item full-width-item">
             <div class="option-label">
               <span>声音</span>
-              <el-icon><Microphone /></el-icon>
+              <div class="icon-container"><el-icon><Microphone /></el-icon></div>
             </div>
             <el-select
               v-model="formConfig.voiceSelect"
@@ -401,7 +408,7 @@
           <div class="option-item">
             <div class="option-label">
               <span>{{ t('options.speakingStyle') }}</span>
-              <el-icon><Mic /></el-icon>
+              <div class="icon-container"><el-icon><Mic /></el-icon></div>
             </div>
             <el-select
               v-model="formConfig.voiceStyleSelect"
@@ -428,7 +435,7 @@
           <div class="option-item">
             <div class="option-label">
               <span>{{ t('options.rolePlaying') }}</span>
-              <el-icon><UserFilled /></el-icon>
+              <div class="icon-container"><el-icon><UserFilled /></el-icon></div>
             </div>
             <template v-if="rolePlayList.length > 0 && rolePlayList[0] !== ''">
               <el-select 
@@ -478,7 +485,7 @@
           <div class="option-item">
             <div class="option-label">
               <span>快速预设</span>
-              <el-icon><Star /></el-icon>
+              <div class="icon-container"><el-icon><Star /></el-icon></div>
             </div>
             <el-select
               v-model="currentPreset"
@@ -505,7 +512,7 @@
           <div class="option-item">
             <div class="option-label">
               <span>语音主播</span>
-              <el-icon><Microphone /></el-icon>
+              <div class="icon-container"><el-icon><Microphone /></el-icon></div>
             </div>
             <el-button 
               type="primary" 
@@ -529,7 +536,7 @@
           <div class="option-item">
             <div class="option-label">
               <span>{{ t('options.audioFormat') }}</span>
-              <el-icon><Document /></el-icon>
+              <div class="icon-container"><el-icon><Document /></el-icon></div>
             </div>
             <el-select
               v-model="formConfig.audioFormat"
@@ -554,7 +561,7 @@
           <div class="option-item">
             <div class="option-label">
               <span>{{ t('options.audioQuality') }}</span>
-              <el-icon><Star /></el-icon>
+              <div class="icon-container"><el-icon><Star /></el-icon></div>
             </div>
             <el-select
               v-model="formConfig.audioQuality"
@@ -615,16 +622,18 @@
       width="500px"
       :close-on-click-modal="false"
       destroy-on-close
+      class="advanced-settings-dialog"
     >
       <div class="advanced-settings-content">
         <div class="settings-section">
-          <h4>服务配置</h4>
+          <h4 class="settings-title">服务配置</h4>
           <div class="settings-item">
             <span class="settings-label">服务地址</span>
             <el-input 
               v-model="localTTSStore.config.baseUrl" 
               placeholder="请输入服务地址"
               size="default"
+              class="setting-input"
             />
           </div>
           <div class="settings-item">
@@ -634,6 +643,7 @@
               :min="0"
               :max="5"
               size="default"
+              class="setting-input"
             />
           </div>
           <div class="settings-item">
@@ -644,17 +654,19 @@
               :max="5000"
               :step="500"
               size="default"
+              class="setting-input"
             />
           </div>
         </div>
         
         <div class="settings-section">
-          <h4>音频设置</h4>
+          <h4 class="settings-title">音频设置</h4>
           <div class="settings-item">
             <span class="settings-label">默认音频格式</span>
             <el-select
               v-model="localTTSStore.config.defaultAudioFormat"
               size="default"
+              class="setting-input"
             >
               <el-option label="MP3" value="mp3" />
               <el-option label="WAV" value="wav" />
@@ -663,9 +675,12 @@
           </div>
           <div class="settings-item">
             <span class="settings-label">自动播放</span>
-            <el-switch
-              v-model="localTTSStore.config.autoPlay"
-            />
+            <div class="switch-container">
+              <el-switch
+                v-model="localTTSStore.config.autoPlay"
+                class="setting-switch"
+              />
+            </div>
           </div>
         </div>
       </div>
@@ -673,7 +688,8 @@
       <template #footer>
         <div class="dialog-footer">
           <el-button @click="showAdvancedSettings = false">取消</el-button>
-          <el-button type="primary" @click="saveAdvancedSettings">
+          <el-button type="primary" @click="saveAdvancedSettings" class="save-button">
+            <el-icon><Check /></el-icon>
             保存设置
           </el-button>
         </div>
@@ -759,50 +775,58 @@ const {
 .drawer-mode {
   display: flex;
   flex-direction: column;
-  gap: 20px; /* 从24px减小到20px */
+  gap: 28px; /* 增加部分间距 */
 }
 
 .option-section {
   background-color: var(--card-background-light, #f5f7fa);
-  border-radius: 8px;
-  padding: 12px; /* 从16px减小到12px */
+  border-radius: 10px;
+  padding: 18px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  transition: all 0.3s ease;
+}
+
+.option-section:hover {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
 }
 
 .section-title {
   font-size: 16px;
   font-weight: 600;
   color: var(--text-primary);
-  margin: 0 0 12px 0; /* 从16px减小到12px */
-  padding-bottom: 8px;
+  margin: 0 0 18px 0;
+  padding-bottom: 12px;
   border-bottom: 1px solid var(--border-color);
 }
 
 .option-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-  gap: 12px; /* 从16px减小到12px */
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 20px;
 }
 
 .option-item {
-  margin-bottom: 8px; /* 减小底部间距 */
+  margin-bottom: 14px;
 }
 
 .option-label {
-  margin-bottom: 4px; /* 减小标签底部间距 */
-}
-
-.full-width-item {
-  grid-column: 1 / -1;
-}
-
-.option-label {
-  display: grid;
-  grid-template-columns: 80px minmax(0, 1fr); /* 固定标签宽度为80px */
+  display: flex;
+  justify-content: space-between;
   align-items: center;
   font-size: 14px;
   color: var(--text-secondary);
   min-height: 22px;
-  column-gap: 12px; /* 添加标签和控件之间的间距 */
+  margin-bottom: 8px; /* 增加标签底部间距 */
+}
+
+.icon-container {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+}
+
+.full-width-item {
+  grid-column: 1 / -1;
 }
 
 .option-label span:first-child {
@@ -880,15 +904,10 @@ const {
   display: flex;
   align-items: center;
   gap: 8px;
-  margin-bottom: 16px;
   padding: 12px;
-  background-color: rgba(103, 194, 58, 0.1);
-  border-radius: 6px;
-  padding: 10px;
-  margin-bottom: 15px;
-  display: flex;
-  align-items: center;
-  gap: 8px;
+  border-radius: 8px;
+  background-color: rgba(103, 194, 58, 0.08);
+  margin-bottom: 18px;
   font-size: 14px;
   color: #67c23a;
 }
@@ -979,5 +998,119 @@ const {
 :deep(.el-alert__description) {
   margin: 5px 0;
   font-size: 14px;
+}
+
+.free-tts-card {
+  margin-top: 20px;
+  padding: 16px;
+  border-radius: 10px;
+  background-color: var(--el-color-info-light-9);
+  border: 1px solid var(--el-border-color-light);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.03);
+}
+
+.free-tts-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.free-tts-title {
+  font-weight: 500;
+  font-size: 15px;
+  color: var(--text-primary);
+}
+
+.free-tts-content {
+  margin-top: 10px;
+}
+
+.voice-option {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+  padding: 4px 0;
+}
+
+.settings-info {
+  padding: 6px 0;
+}
+
+.settings-section {
+  background-color: var(--el-color-info-light-9);
+  border-radius: 8px;
+  padding: 16px;
+  margin-bottom: 16px;
+  border: 1px solid var(--el-border-color-lighter);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.03);
+}
+
+.settings-title {
+  font-size: 16px;
+  font-weight: 500;
+  color: var(--text-primary);
+  margin: 0 0 16px 0;
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--el-border-color-lighter);
+}
+
+.settings-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 14px;
+}
+
+.settings-item:last-child {
+  margin-bottom: 0;
+}
+
+.settings-label {
+  font-size: 14px;
+  color: var(--text-secondary);
+  margin-right: 12px;
+  flex: 0 0 100px;
+}
+
+.setting-input {
+  flex: 1;
+}
+
+.switch-container {
+  display: flex;
+  justify-content: flex-start;
+  flex: 1;
+}
+
+.settings-actions {
+  display: flex;
+  justify-content: center;
+  margin-top: 20px;
+}
+
+.save-button {
+  padding: 10px 24px;
+}
+
+.save-button .el-icon {
+  margin-right: 4px;
+}
+
+.advanced-settings-dialog :deep(.el-dialog__body) {
+  padding: 20px;
+}
+
+.advanced-settings-content {
+  max-height: 60vh;
+  overflow-y: auto;
+}
+
+.dialog-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  padding-top: 10px;
 }
 </style>
