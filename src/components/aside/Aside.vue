@@ -147,7 +147,14 @@ onUnmounted(() => {
 
 const menuChange = (index: number) => {
   // 更新状态
+  console.log('Aside: 菜单切换，当前选择:', index.toString(), '原状态:', page.value.asideIndex);
   page.value.asideIndex = index.toString();
+  console.log('Aside: 菜单状态已更新为:', page.value.asideIndex);
+  
+  // 确保页面状态已更新
+  nextTick(() => {
+    console.log('Aside: 页面刷新后的菜单状态:', page.value.asideIndex);
+  });
   
   // 如果是移动端，延迟隐藏侧边栏
   if (isMobile.value) {

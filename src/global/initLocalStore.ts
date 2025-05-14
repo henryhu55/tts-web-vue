@@ -16,7 +16,8 @@ export default async function initStore() {
       localStorage.setItem("msVoicesList", JSON.stringify(voices));
     }
   }
-  const locale = i18n.global.locale.value;
+  // 获取当前语言设置
+  const locale = i18n.global.locale || 'zh';
 
   const formConfigDefault = {
     es: {
@@ -26,7 +27,7 @@ export default async function initStore() {
       role: "",
       speed: 1.0,
       pitch: 1.0,
-      api: 4, // 使用TTS88 API
+      api: 5, // 使用免费TTS服务
     },
     en: {
       languageSelect: "en-US",
@@ -35,7 +36,7 @@ export default async function initStore() {
       role: "",
       speed: 1.0,
       pitch: 1.0,
-      api: 4, // 使用TTS88 API
+      api: 5, // 使用免费TTS服务
     },
     zh: {
       languageSelect: "zh-CN",
@@ -44,7 +45,7 @@ export default async function initStore() {
       role: "",
       speed: 1.0,
       pitch: 1.0,
-      api: 4, // 使用TTS88 API
+      api: 5, // 使用免费TTS服务
     },
   };
 

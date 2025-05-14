@@ -4,8 +4,8 @@ interface VoiceData {
   activeIndex: string;
   ssmlContent: string;
   inputContent: string;
-  retryCount: number;
-  retryInterval: number;
+  retryCount?: number;
+  retryInterval?: number;
 }
 
 interface TTSParams {
@@ -22,9 +22,10 @@ export interface TTSResponse {
   audibleUrl?: string;
   buffer?: ArrayBuffer;
   error?: string;
+  errorCode?: string;
 }
 
-export async function getTTSData(params: TTSParams): Promise<TTSResponse> {
+export async function callTTSApi(params: TTSParams): Promise<TTSResponse> {
   try {
     const { api, voiceData, speechKey, region, thirdPartyApi, tts88Key } = params;
     
@@ -35,7 +36,7 @@ export async function getTTSData(params: TTSParams): Promise<TTSResponse> {
       'X-Microsoft-OutputFormat': 'audio-16khz-128kbitrate-mono-mp3',
     };
 
-    if (api === 4 && thirdPartyApi) {
+    if (api === 4) {
       apiUrl = thirdPartyApi;
       // TTS88 API 使用 tts88Key
       if (tts88Key) {
@@ -43,57 +44,116 @@ export async function getTTSData(params: TTSParams): Promise<TTSResponse> {
       }
     } else if (api === 5) {
       // 导入本地TTS服务相关功能
-      const { useLocalTTSStore } = await import('@/store/local-tts-store');
-      const localTTSStore = useLocalTTSStore();
-      
-      if (!localTTSStore.config.enabled || !localTTSStore.config.baseUrl) {
-        throw new Error("本地TTS服务未启用或未配置");
-      }
-      
-      // 使用本地TTS服务的getAudioStream方法
-      const isSSML = voiceData.activeIndex === "1"; // 判断是否为SSML内容
-      const content = isSSML ? voiceData.ssmlContent : voiceData.inputContent;
-      
-      if (!content) {
-        throw new Error("没有可转换的内容");
-      }
-      
       try {
-        // 获取音频URL
-        const audioUrl = await localTTSStore.getAudioStream(
-          content,
-          undefined, // 使用默认voice
-          undefined, // 使用默认language
-          "mp3",
-          isSSML
-        );
+      const { useFreeTTSstore } = await import('@/store/play');
+      const localTTSStore = useFreeTTSstore();
+      
+        // 获取配置
+        const config = localTTSStore.fullConfig;
         
-        if (!audioUrl) {
-          throw new Error("获取本地TTS音频失败");
+        // 准备API请求的URL和参数
+        apiUrl = `${config.baseUrl}/api/v1/free-tts-stream`;
+        
+        // 获取本地TTS所需的参数
+      const isSSML = voiceData.activeIndex === "1"; // 判断是否为SSML内容
+        
+        // 对于免费服务，优先使用纯文本，因为SSML可能导致错误
+        // 即使activeIndex为1，也尝试提取纯文本内容
+        let content = "";
+        if (isSSML) {
+          // 从SSML中尝试提取纯文本内容
+          try {
+            // 尝试简单提取SSML中的文本
+            content = voiceData.ssmlContent
+              .replace(/<[^>]*>/g, '') // 移除所有XML标签
+              .replace(/\s+/g, ' ')    // 将多个空格合并为单个空格
+              .trim();                 // 移除前后空格
+            
+            console.log('从SSML中提取的纯文本:', content);
+            
+            // 如果提取失败或内容为空，则使用原始SSML
+      if (!content) {
+              content = voiceData.ssmlContent;
+              console.log('提取纯文本失败，使用原始SSML');
+            }
+          } catch (e) {
+            console.error('提取纯文本时出错:', e);
+            content = voiceData.ssmlContent;
+          }
+        } else {
+          content = voiceData.inputContent;
         }
         
-        // 返回可播放的URL
+        const { useTtsStore } = await import('@/store/store');
+        const ttsStore = useTtsStore();
+        const selectedVoice = ttsStore.formConfig.voiceSelect;
+        const speed = ttsStore.formConfig.speed;
+        const pitch = ttsStore.formConfig.pitch;
+        
+        // 获取浏览器指纹
+        const fingerprint = await generateBrowserFingerprint();
+        
+        // 设置请求头
+        headers = {
+          'Content-Type': 'application/json',
+          'X-Browser-Fingerprint': fingerprint
+        };
+        
+        console.log('发送请求到免费TTS服务，使用的声音:', selectedVoice);
+        
+        // 使用正确的参数格式
+        // 对于免费服务，尝试使用纯文本模式，避免SSML解析错误
+        const requestBody = {
+          text: content,
+          is_ssml: false, // 强制设置为false，使用纯文本模式
+          voice: selectedVoice || 'zh-CN-XiaoxiaoNeural',
+          language: ttsStore.formConfig.languageSelect || 'zh-CN',
+          format: 'mp3',
+          speed: speed || 1.0,
+          pitch: pitch || 1.0
+        };
+        
+        console.log('发送到免费TTS服务的请求参数:', requestBody);
+        
+        // 发送请求
+        const response = await axios.post(
+          apiUrl,
+          requestBody,
+          {
+            headers,
+            responseType: 'arraybuffer',
+            timeout: 30000
+          }
+        );
+        
+        // 返回二进制音频数据
         return {
-          audibleUrl: audioUrl
+          buffer: response.data
         };
       } catch (localError: any) {
-        throw new Error(`FreeTTS服务错误: ${localError.message}`);
+        return {
+          error: `FreeTTS服务错误: ${localError.message}`,
+          errorCode: "LOCAL_TTS_ERROR"
+        };
       }
     } else {
+      // Azure API
       apiUrl = `https://${region}.tts.speech.microsoft.com/cognitiveservices/v1`;
       // Azure API 直接使用 speechKey
       headers['Ocp-Apim-Subscription-Key'] = speechKey;
     }
 
-    // 只有API类型1-4才需要发送HTTP请求
-    if (api !== 5) {
+    // 所有API类型都需要发送HTTP请求
+    if (api !== 5) { // 上面已经处理了API类型5的情况
+      try {
       // 发送请求
       const response = await axios.post(
         apiUrl,
         voiceData.ssmlContent,
         {
           headers,
-          responseType: 'arraybuffer'
+            responseType: 'arraybuffer',
+            timeout: 30000 // 设置30秒超时
         }
       );
 
@@ -108,18 +168,65 @@ export async function getTTSData(params: TTSParams): Promise<TTSResponse> {
         buffer: response.data,
         audioContent: base64Audio
       };
+      } catch (httpError: any) {
+        // 简化错误处理，只返回基本错误信息和状态码
+        return {
+          error: httpError.message || '获取语音数据失败',
+          errorCode: httpError.response?.status ? `HTTP_${httpError.response.status}` : "HTTP_ERROR"
+        };
+      }
     }
 
     // 如果执行到这里且未返回，返回一个默认错误
     return {
-      error: "未知错误，无法处理API请求"
+      error: "未知错误，无法处理API请求",
+      errorCode: "UNKNOWN_ERROR"
     };
   } catch (error: any) {
-    console.error('TTS API Error:', error);
+    // 全局错误处理
     return {
       audioContent: '',
-      error: error.response?.data?.message || error.message || '获取语音数据失败'
+      error: error.message || '获取语音数据失败',
+      errorCode: "GLOBAL_ERROR"
     };
+  }
+}
+
+// 生成浏览器指纹
+async function generateBrowserFingerprint(): Promise<string> {
+  try {
+    const screenInfo = `${window.screen.width}x${window.screen.height}x${window.screen.colorDepth}`;
+    const timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+    const languages = navigator.languages ? navigator.languages.join(',') : navigator.language;
+    const canvas = document.createElement('canvas');
+    const gl = canvas.getContext('webgl');
+    const glInfo = gl ? gl.getParameter(gl.RENDERER) : 'no-webgl';
+    
+    // 组合所有信息
+    const components = [
+      navigator.userAgent,
+      screenInfo,
+      timeZone,
+      languages,
+      glInfo,
+      navigator.platform,
+      new Date().getTimezoneOffset()
+    ];
+    
+    // 创建一个简单的哈希
+    let hash = 0;
+    const str = components.join('|');
+    for (let i = 0; i < str.length; i++) {
+      const char = str.charCodeAt(i);
+      hash = ((hash << 5) - hash) + char;
+      hash = hash & hash; // 转换为32位整数
+    }
+    
+    return hash.toString(16);
+  } catch (e) {
+    // 如果发生任何错误，返回一个随机值
+    console.error('生成浏览器指纹时出错:', e);
+    return Math.random().toString(36).substring(2, 15);
   }
 }
 

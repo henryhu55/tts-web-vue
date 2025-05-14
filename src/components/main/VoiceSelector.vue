@@ -406,6 +406,16 @@ const playVoiceSample = async (voice: CategoryVoice) => {
       retryInterval: store.config.retryInterval,
     };
     
+    // 检查API相关配置
+    if (formConfig.value.api === 4 && !store.config.thirdPartyApi) {
+      ElMessage({
+        message: "请先在设置中配置TTS88 API地址",
+        type: "error",
+        duration: 3000,
+      });
+      return;
+    }
+    
     // 调用API获取音频数据
     const res = await getTTSData({
       api: formConfig.value.api || 4,
@@ -416,8 +426,39 @@ const playVoiceSample = async (voice: CategoryVoice) => {
       tts88Key: store.config.tts88Key,
     });
     
-    // 播放获取到的音频
+    // 处理响应
     if (res) {
+      // 检查错误
+      if (res.error) {
+        // 确定消息类型
+        let messageType = "error";
+        
+        // 根据错误代码调整反馈
+        if (res.errorCode === 'QUOTA_EXCEEDED' || res.errorCode === 'RATE_LIMITED') {
+          messageType = "warning";
+        }
+        
+        // 显示错误消息
+        ElMessage({
+          message: res.error,
+          type: messageType,
+          duration: 3000,
+        });
+        
+        // 特定错误的特殊处理
+        if (res.errorCode === 'QUOTA_EXCEEDED') {
+          // 提示切换API
+          ElMessage({
+            message: "可以在设置中切换到其他API类型继续使用",
+            type: "info",
+            duration: 4000,
+          });
+        }
+        
+        return;
+      }
+      
+      // 成功处理
       if (res.buffer) {
         const audioBlob = new Blob([res.buffer], { type: 'audio/mpeg' });
         const audioUrl = URL.createObjectURL(audioBlob);

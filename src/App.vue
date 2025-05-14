@@ -59,8 +59,8 @@ const guideSteps = ref([
 
 // 确保默认值被正确设置
 if (!store.get("api")) {
-  store.set("api", 4);  // 设置默认 API 为 TTS88
-  ttsStore.config.api = 4;
+  store.set("api", 5);  // 设置默认 API 为免费TTS服务
+  ttsStore.config.api = 5;
 }
 
 // 确保 FormConfig 存在
@@ -73,7 +73,7 @@ if (!store.get("FormConfig")) {
       role: "",
       speed: 1,
       pitch: 1,
-      api: 4
+      api: 5 // 设置为免费TTS服务
     }
   };
   store.set("FormConfig", defaultConfig);
@@ -798,8 +798,8 @@ const handleAppClick = (event) => {
 
 // 添加点击主容器处理函数
 const handleMainContainerClick = () => {
-  if (isMobileView && !isSidebarCollapsed) {
-    isSidebarCollapsed = true;
+  if (isMobileView.value && !isSidebarCollapsed.value) {
+    isSidebarCollapsed.value = true;
   }
 };
 

@@ -4,6 +4,7 @@ import { defineStore } from "pinia";
 import { getTTSData, getDataGPT, createBatchTask, getBatchTaskStatus } from "./play";
 import { ElMessage } from "element-plus";
 import WebStore from "./web-store";
+import { ref } from 'vue';
 
 // 使用Web版本的Store
 const store = new WebStore();
@@ -14,7 +15,15 @@ export const useTtsStore = defineStore("ttsStore", {
   // 定义state，用来存储状态的
   state: () => {
     // 获取默认配置
-    const defaultFormConfig = store.get("FormConfig.默认");
+    const defaultFormConfig = store.get("FormConfig.默认") || {
+      languageSelect: "zh-CN",
+      voiceSelect: "zh-CN-XiaoxiaoNeural",
+      voiceStyleSelect: "Default",
+      role: "",
+      speed: 1,
+      pitch: 1,
+      api: 5  // 默认使用免费TTS服务
+    };
     
     return {
       inputs: {
@@ -26,34 +35,34 @@ export const useTtsStore = defineStore("ttsStore", {
         asideIndex: "1",
         tabIndex: "1",
       },
-      tableData: <any>[], // 文件列表的数据
+      tableData: [], // 修改为直接初始化为空数组
       currConfigName: "默认", // 当前配置的名字
       config: {
-        language: store.get("language"),
-        formConfigJson: store.get("FormConfig"),
-        formConfigList: <any>[],
-        configLabel: <any>[],
-        audition: store.get("audition"),
-        autoplay: store.get("autoplay"),
-        updateNotification: store.get("updateNotification"),
-        titleStyle: store.get("titleStyle"),
-        api: store.get("api"),  // 这里会读取到默认值 4
-        formatType: store.get("formatType"),
-        speechKey: store.get("speechKey"),
-        serviceRegion: store.get("serviceRegion"),
-        thirdPartyApi: store.get("thirdPartyApi"),
-        disclaimers: store.get("disclaimers"),
-        retryCount: store.get("retryCount"),
-        retryInterval: store.get("retryInterval"),
-        openAIKey: store.get("openAIKey"),
-        gptModel: store.get("gptModel"),
-        tts88Key: store.get("tts88Key"),
-        openAIBaseUrl: store.get("openAIBaseUrl"),
+        language: store.get("language") || "zh",
+        formConfigJson: store.get("FormConfig") || {},
+        formConfigList: [],
+        configLabel: [],
+        audition: store.get("audition") || "如果你觉得这个项目还不错， 欢迎Star、Fork和PR。你的Star是对作者最好的鼓励。",
+        autoplay: store.get("autoplay") !== undefined ? store.get("autoplay") : true,
+        updateNotification: store.get("updateNotification") !== undefined ? store.get("updateNotification") : true,
+        titleStyle: store.get("titleStyle") || "custom",
+        api: store.get("api") || 5,  // 默认值为5，免费TTS服务
+        formatType: store.get("formatType") || "mp3",
+        speechKey: store.get("speechKey") || "",
+        serviceRegion: store.get("serviceRegion") || "",
+        thirdPartyApi: store.get("thirdPartyApi") || "",
+        disclaimers: store.get("disclaimers") || false,
+        retryCount: store.get("retryCount") || 3,
+        retryInterval: store.get("retryInterval") || 1000,
+        openAIKey: store.get("openAIKey") || "",
+        gptModel: store.get("gptModel") || "gpt-3.5-turbo",
+        tts88Key: store.get("tts88Key") || "",
+        openAIBaseUrl: store.get("openAIBaseUrl") || "",
       },
       isLoading: false,
       currMp3Buffer: null,
-      currMp3Url: "",
-      audioPlayer: null as HTMLAudioElement | null,
+      currMp3Url: ref(""),
+      audioPlayer: null,
       batchTaskId: "",
       batchTaskStatus: "",
       batchProgress: 0,
@@ -252,11 +261,11 @@ export const useTtsStore = defineStore("ttsStore", {
       console.log("清空缓存中");
       let resFlag = true;
       this.currMp3Buffer = null;
-      this.currMp3Url = "";
+      this.currMp3Url = ref("");
       
       // 单文本转换
       if (this.page.asideIndex == "1") {
-        this.currMp3Url = "";
+        this.currMp3Url = ref("");
         const value = {
           activeIndex: this.page.tabIndex,
           ssmlContent: this.inputs.ssmlValue,
@@ -280,18 +289,18 @@ export const useTtsStore = defineStore("ttsStore", {
             // 成功获取到数据
             if (res.audibleUrl) {
               // 如果返回了可播放的URL
-              this.currMp3Url = res.audibleUrl;
+              this.currMp3Url = ref(res.audibleUrl);
               // 播放音频
               if (this.config.autoplay) {
-                this.audition(this.currMp3Url);
+                this.audition(this.currMp3Url.value);
               }
             } else if (res.buffer) {
               // 如果返回了音频buffer
               const audioBlob = new Blob([res.buffer], { type: 'audio/mpeg' });
-              this.currMp3Url = URL.createObjectURL(audioBlob);
+              this.currMp3Url = ref(URL.createObjectURL(audioBlob));
               // 播放音频
               if (this.config.autoplay) {
-                this.audition(this.currMp3Url);
+                this.audition(this.currMp3Url.value);
               }
             }
             ElMessage({
@@ -668,14 +677,14 @@ export const useTtsStore = defineStore("ttsStore", {
         if (res) {
           if (res.audibleUrl) {
             console.log('收到audibleUrl:', res.audibleUrl);
-            this.currMp3Url = res.audibleUrl;
-            this.audition(this.currMp3Url);
+            this.currMp3Url = ref(res.audibleUrl);
+            this.audition(this.currMp3Url.value);
           } else if (res.buffer) {
             console.log('收到buffer数据，长度:', res.buffer.byteLength);
             const audioBlob = new Blob([res.buffer], { type: 'audio/mpeg' });
-            this.currMp3Url = URL.createObjectURL(audioBlob);
-            console.log('生成的音频URL:', this.currMp3Url);
-            this.audition(this.currMp3Url);
+            this.currMp3Url = ref(URL.createObjectURL(audioBlob));
+            console.log('生成的音频URL:', this.currMp3Url.value);
+            this.audition(this.currMp3Url.value);
           } else {
             console.error('收到的响应中没有可用的音频数据');
             throw new Error('收到的响应中没有可用的音频数据');

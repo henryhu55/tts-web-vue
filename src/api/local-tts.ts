@@ -33,6 +33,13 @@ export interface FreeLimitInfo {
   debug?: any;  // 调试信息
 }
 
+// 错误响应接口
+export interface ErrorResponse {
+  message: string;
+  code: number;
+  status?: number;
+}
+
 /**
  * 检查服务器连接性
  * @param config 服务器配置
@@ -46,7 +53,7 @@ export async function checkServerConnection(config: LocalTTSConfig): Promise<boo
     return response.status === 200 && response.data?.status === 'ok';
   } catch (error) {
     console.error('无法连接到TTS服务器:', error);
-    return false;
+    throw error; // 向上抛出错误，让调用者处理
   }
 }
 
@@ -92,11 +99,99 @@ export function generateBrowserFingerprint(): string {
 }
 
 /**
+ * 处理API错误
+ * @param error 错误对象
+ * @returns 抛出增强的错误对象
+ */
+export async function handleApiError(error: any): Promise<never> {
+  console.error('API请求错误:', error);
+  
+  // 默认错误响应
+  const errorResponse: ErrorResponse = {
+    message: '未知错误',
+    code: 500,
+    status: 500
+  };
+  
+  if (!error) {
+    throw new Error(errorResponse.message);
+  }
+  
+  // 处理不同类型的错误
+  if (error.response) {
+    // 服务器返回了错误状态码
+    errorResponse.status = error.response.status;
+    
+    // 尝试解析响应内容
+    if (error.response.data) {
+      try {
+        // 如果响应是Blob，需要先转换
+        if (error.response.data instanceof Blob) {
+          const text = await error.response.data.text();
+          try {
+            const jsonData = JSON.parse(text);
+            errorResponse.message = jsonData.message || '服务器错误';
+            errorResponse.code = jsonData.code || error.response.status;
+          } catch (e) {
+            // 不是JSON格式，直接使用文本
+            errorResponse.message = text || '服务器返回了无效的响应';
+          }
+        } else {
+          // 直接使用响应数据
+          errorResponse.message = error.response.data.message || '服务器错误';
+          errorResponse.code = error.response.data.code || error.response.status;
+        }
+      } catch (e) {
+        // 无法解析响应内容
+        errorResponse.message = '无法解析错误响应';
+      }
+    }
+    
+    // 使用状态码设置特定的错误消息
+    switch (error.response.status) {
+      case 402:
+        errorResponse.message = errorResponse.message || '免费额度不足，请明天再试';
+        break;
+      case 403:
+        errorResponse.message = errorResponse.message || '您的账户已被暂时限制使用';
+        break;
+      case 429:
+        errorResponse.message = errorResponse.message || '请求过于频繁，请稍后再试';
+        break;
+      case 500:
+      case 502:
+      case 503:
+      case 504:
+        errorResponse.message = errorResponse.message || '服务器内部错误';
+        break;
+    }
+  } else if (error.request) {
+    // 请求已发出但没有收到响应
+    errorResponse.message = '服务器未响应，请检查网络连接';
+    errorResponse.status = -1;
+    errorResponse.code = -1;
+  } else {
+    // 设置请求时发生错误
+    errorResponse.message = error.message || '请求设置错误';
+  }
+  
+  // 抛出完整的错误对象
+  const enhancedError = new Error(errorResponse.message);
+  (enhancedError as any).response = {
+    status: errorResponse.status,
+    data: { message: errorResponse.message, code: errorResponse.code }
+  };
+  
+  throw enhancedError;
+}
+
+/**
  * 获取免费额度信息
  * @param config 服务器配置
  * @returns 免费额度信息
  */
 export async function getFreeLimitInfo(config: LocalTTSConfig): Promise<FreeLimitInfo> {
+  console.log('获取免费额度信息');
   try {
     // 请求配置，添加浏览器指纹头
     const requestConfig = {
@@ -118,160 +213,7 @@ export async function getFreeLimitInfo(config: LocalTTSConfig): Promise<FreeLimi
     }
     throw new Error('获取免费额度信息失败');
   } catch (error: any) {
-    console.error('获取免费额度信息失败:', error);
-    
-    // 添加更详细的错误处理
-    if (error.response) {
-      // 服务器返回了错误状态码
-      if (error.response.status === 429) {
-        throw new Error('请求过于频繁，请稍后再试');
-      } else if (error.response.data && error.response.data.message) {
-        throw new Error(`服务器错误: ${error.response.data.message}`);
-      }
-    } else if (error.request) {
-      // 请求发出但没有收到响应
-      throw new Error('服务器未响应，请检查连接');
-    }
-    
-    // 如果是其他错误，直接抛出
-    throw error;
-  }
-}
-
-/**
- * 获取TTS音频流
- * @param config 服务器配置
- * @param params TTS请求参数
- * @returns 音频数据的Blob对象
- */
-export async function getFreeTTSStream(config: LocalTTSConfig, params: TTSRequestParams): Promise<Blob> {
-  try {
-    // 请求配置，添加浏览器指纹头和设置响应类型为blob
-    const requestConfig = {
-      headers: {
-        'X-Browser-Fingerprint': generateBrowserFingerprint(),
-        'Content-Type': 'application/json'
-      },
-      responseType: 'blob' as 'blob',
-      timeout: 10000 // 10秒超时，合成语音可能需要更长时间
-    };
-    
-    // 确保参数中有text或ssml
-    if (!params.text && !params.ssml) {
-      throw new Error('必须提供text或ssml参数');
-    }
-    
-    // 设置默认值
-    const requestParams = {
-      ...params,
-      speed: params.speed || 1.0,
-      pitch: params.pitch || 1.0
-    };
-    
-    console.log('请求TTS音频流，参数:', requestParams);
-    
-    const response = await axios.post(
-      `${config.baseUrl}/api/v1/free-tts-stream`,
-      requestParams,
-      requestConfig
-    );
-    
-    if (response.status === 200) {
-      // 从响应头中获取剩余配额信息
-      const usedQuota = response.headers['x-free-usage'];
-      const remainingQuota = response.headers['x-remaining-quota'];
-      const dailyLimit = response.headers['x-daily-limit'];
-      
-      if (usedQuota && remainingQuota && dailyLimit) {
-        console.log(`TTS请求成功 - 本次使用: ${usedQuota}字符, 剩余: ${remainingQuota}/${dailyLimit}字符`);
-      }
-      
-      return response.data as Blob;
-    }
-    
-    throw new Error('获取TTS音频失败');
-  } catch (error: any) {
-    console.error('获取TTS音频失败:', error);
-    
-    // 添加更详细的错误处理
-    if (error.response) {
-      // 服务器返回了错误状态码
-      if (error.response.status === 402) {
-        throw new Error('免费额度不足，请明天再试');
-      } else if (error.response.status === 429) {
-        throw new Error('请求过于频繁，请稍后再试');
-      } else if (error.response.data) {
-        // 尝试读取blob中的错误信息
-        try {
-          const errorBlob = error.response.data as Blob;
-          const errorText = await errorBlob.text();
-          const errorJson = JSON.parse(errorText);
-          if (errorJson.message) {
-            throw new Error(`服务器错误: ${errorJson.message}`);
-          }
-        } catch (e) {
-          // 无法解析错误内容，使用通用错误信息
-          throw new Error(`服务器返回错误: ${error.response.status}`);
-        }
-      }
-    } else if (error.request) {
-      // 请求发出但没有收到响应
-      throw new Error('服务器未响应，请检查连接');
-    }
-    
-    // 如果是其他错误，直接抛出
-    throw error;
-  }
-}
-
-/**
- * 使用JSON格式的免费TTS API获取音频（Base64编码）
- * @param config 服务器配置
- * @param params TTS请求参数
- * @returns 包含Base64编码音频数据的响应
- */
-export async function getFreeTTS(
-  config: LocalTTSConfig, 
-  params: TTSRequestParams
-): Promise<{ audio_base64: string; format: string }> {
-  try {
-    console.log('调用本地TTS服务器免费JSON API:', params);
-    
-    // 设置默认值
-    const requestParams: TTSRequestParams = {
-      voice: params.voice || config.defaultVoice,
-      language: params.language || config.defaultLanguage,
-      format: params.format || 'mp3',
-      text: params.text,
-      ssml: params.ssml
-    };
-    
-    // 请求配置
-    const requestConfig = {
-      headers: {
-        'Content-Type': 'application/json',
-        'X-Browser-Fingerprint': generateBrowserFingerprint()
-      }
-    };
-    
-    // 发送请求
-    const response = await axios.post(
-      `${config.baseUrl}/api/v1/free-tts`,
-      requestParams,
-      requestConfig
-    );
-    
-    if (response.status === 200 && response.data?.data) {
-      return {
-        audio_base64: response.data.data.audio_base64,
-        format: response.data.data.format || 'mp3'
-      };
-    }
-    
-    throw new Error('响应格式不正确');
-  } catch (error) {
-    console.error('获取TTS音频失败:', error);
-    throw error;
+    return handleApiError(error);
   }
 }
 

@@ -142,6 +142,13 @@ export default {
     Link
   },
   emits: ['toggle-theme', 'toggle-sidebar', 'update:isSSMLMode', 'nav-change'],
+  props: {
+    // 用于接收当前侧边栏激活的索引
+    asideIndex: {
+      type: String,
+      default: '1'
+    }
+  },
   setup(props, { emit }) {
     // 添加调试日志
     console.log('FixedHeader setup 被调用');
@@ -179,6 +186,25 @@ export default {
       emit('nav-change', nav);
     };
 
+    // 根据侧边栏索引更新顶部导航状态
+    const updateActiveNav = (asideIndex) => {
+      console.log('FixedHeader: 根据asideIndex更新activeNav:', asideIndex);
+      if (asideIndex === '1') {
+        activeNav.value = 'tts';
+      } else if (asideIndex === '4') {
+        activeNav.value = 'docs';
+      } else if (asideIndex === '5') {
+        activeNav.value = 'subtitle';
+      }
+      console.log('FixedHeader: 更新后的activeNav:', activeNav.value);
+    };
+
+    // 监听props.asideIndex变化
+    watch(() => props.asideIndex, (newIndex) => {
+      console.log('FixedHeader: 监测到asideIndex变化:', newIndex);
+      updateActiveNav(newIndex);
+    });
+
     // 添加一个直接触发主题切换的方法
     const handleThemeClick = () => {
       console.log('FixedHeader: 主题按钮被点击');
@@ -199,6 +225,8 @@ export default {
       window.addEventListener('scroll', handleScroll);
       checkMobile();
       window.addEventListener('resize', checkMobile);
+      // 初始化时根据传入的asideIndex更新导航状态
+      updateActiveNav(props.asideIndex);
     });
 
     onBeforeUnmount(() => {
@@ -220,6 +248,7 @@ export default {
       showUserGuide,
       handleThemeClick,
       changeNav,
+      updateActiveNav,
       isMobile
     };
   }
