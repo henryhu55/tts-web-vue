@@ -20,7 +20,11 @@ class WebStore {
   get(key: string): any {
     try {
       const value = localStorage.getItem(key);
-      return value ? JSON.parse(value) : null;
+      // 处理"undefined"和null的情况
+      if (value === null || value === "undefined") {
+        return null;
+      }
+      return JSON.parse(value);
     } catch (error) {
       console.error('Error reading from localStorage:', error);
       return null;

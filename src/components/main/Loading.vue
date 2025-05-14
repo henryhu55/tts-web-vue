@@ -1,5 +1,5 @@
 <template>
-  <div class="loading-container" v-if="visible">
+  <div class="loading-container" v-if="visible" :class="{'fade-in': fadeIn}">
     <div class="loading-card">
       <div class="loading-animation">
         <div class="loading-pulse"></div>
@@ -65,10 +65,15 @@ const props = defineProps({
   estimatedTime: {
     type: Number,
     default: 0 // 预计耗时，单位为秒
+  },
+  minDisplayTime: {
+    type: Number,
+    default: 800 // 最小显示时间，避免闪烁
   }
 });
 
 const emit = defineEmits(['cancel']);
+const fadeIn = ref(false);
 
 const onCancel = () => {
   emit('cancel');
@@ -83,11 +88,20 @@ watch(() => props.visible, (isVisible) => {
     // 重置计时器
     elapsedTime.value = 0;
     
+    // 延迟显示，避免闪烁
+    fadeIn.value = false;
+    setTimeout(() => {
+      fadeIn.value = true;
+    }, 100); // 短暂延迟后显示
+    
     // 开始计时
     intervalId.value = window.setInterval(() => {
       elapsedTime.value += 1;
     }, 1000);
   } else if (intervalId.value !== null) {
+    // 淡出动画
+    fadeIn.value = false;
+    
     // 清除计时器
     clearInterval(intervalId.value);
     intervalId.value = null;
@@ -108,6 +122,14 @@ watch(() => props.visible, (isVisible) => {
   align-items: center;
   z-index: 9999;
   backdrop-filter: blur(4px);
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  pointer-events: none;
+}
+
+.loading-container.fade-in {
+  opacity: 1;
+  pointer-events: auto;
 }
 
 .loading-card {
@@ -121,7 +143,12 @@ watch(() => props.visible, (isVisible) => {
   flex-direction: column;
   align-items: center;
   text-align: center;
-  animation: fadeIn 0.3s ease;
+  transform: translateY(20px);
+  transition: transform 0.3s ease;
+}
+
+.fade-in .loading-card {
+  transform: translateY(0);
 }
 
 @keyframes fadeIn {

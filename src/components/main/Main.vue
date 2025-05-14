@@ -319,18 +319,16 @@
             <!-- 音频播放器 -->
             <div class="audio-player">
               <audio
-                ref="audioEl"
-                :src="currMp3Url || null"
+                ref="audioPlayerRef"
+                src=""
+                :autoplay="playerConfig.autoplay"
                 controls
-                autoplay
                 controlslist="nodownload"
                 class="modern-audio-player"
-                @error="(e) => console.warn('音频加载错误，可能是初始化或无效源', e)"
-                v-show="currMp3Url"
+                @error="handleAudioError"
+                @play="handleAudioPlay"
+                @canplay="handleAudioCanPlay"
               ></audio>
-              <div v-if="!currMp3Url" class="audio-placeholder">
-                请转换文本以生成音频
-              </div>
             </div>
             
             <!-- 下载按钮 -->
@@ -344,7 +342,7 @@
                   type="primary"
                   circle
                   @click="download"
-                  :disabled="currMp3Url == ''"
+                  :disabled="false"
                   :loading="isDownloading"
                 >
                   <el-icon><Download /></el-icon>
@@ -882,6 +880,7 @@ import i18n from '@/assets/i18n/i18n';
 import { useTtsStore } from "@/store/store";
 import { useLocalTTSStore } from "@/store/local-tts-store";
 import { storeToRefs } from "pinia";
+import { optionsConfig } from "@/components/main/options-config"; // 导入optionsConfig
 
 // 导入从main.ts提取的所有变量、函数和响应式状态
 import { 
@@ -980,7 +979,8 @@ import {
   formatOptions,
   isDownloading,
   initGlobalRefs,
-  audioPlayerRef
+  audioPlayerRef,
+  globalCurrMp3Url
 } from '@/composables/main';
 
 // 在组件setup中初始化i18n和store
@@ -995,51 +995,90 @@ if (!ttsStore.tableData) {
   console.log('已初始化ttsStore.tableData.value');
 }
 
-// 绑定audioEl到composable中
-import { nextTick, onMounted, ref } from 'vue';
+// 确保currMp3Url存在
+if (!ttsStore.currMp3Url) {
+  console.log('初始化ttsStore.currMp3Url为空值');
+  ttsStore.currMp3Url = ref('');
+} else if (typeof ttsStore.currMp3Url === 'string') {
+  // 如果是字符串，转换为ref对象
+  const oldValue = ttsStore.currMp3Url;
+  ttsStore.currMp3Url = ref(oldValue);
+  console.log('将ttsStore.currMp3Url从字符串转换为ref对象');
+}
 
-// 获取audioEl的DOM引用 
-const audioEl = ref(null);
+// 初始化全局引用，确保在setup函数外部的函数也能访问到store数据
 onMounted(() => {
-  // 初始化全局引用，确保在setup函数外部的函数也能访问到store数据
+  console.log('Main.vue组件已挂载');
+  
+  // 初始化全局引用
   initGlobalRefs();
-
-  // 确保audioEl已经挂载，然后更新composable中的audioEl
-  nextTick(() => {
-    if (audioEl.value) {
-      console.log('音频元素已挂载，更新audioPlayerRef');
-      
-      // 安全地检查并更新audioPlayerRef
-      if (typeof audioPlayerRef !== 'undefined' && audioPlayerRef !== null) {
-        audioPlayerRef.value = audioEl.value;
+  
+  // 使用全局引用更新currMp3Url
+  const updateAudioSrc = () => {
+    try {
+      if (audioPlayerRef.value) {
+        console.log('音频元素已挂载，准备更新src');
         
-        // 启用自动播放
-        audioEl.value.autoplay = true;
-        console.log('已设置audio元素自动播放为true');
+        // 尝试从全局引用和store中获取音频URL
+        let audioUrl = '';
         
-        // 只有当有有效的音频URL时才设置src
-        if (currMp3Url && currMp3Url.value) {
-          audioEl.value.src = currMp3Url.value;
+        // 尝试来源1: globalCurrMp3Url
+        if (globalCurrMp3Url && typeof globalCurrMp3Url === 'object' && 'value' in globalCurrMp3Url) {
+          audioUrl = globalCurrMp3Url.value;
+          console.log('从globalCurrMp3Url获取到URL:', audioUrl);
+        }
+        
+        // 尝试来源2: ttsStore.currMp3Url
+        if ((!audioUrl || audioUrl === '') && ttsStore.currMp3Url) {
+          if (typeof ttsStore.currMp3Url === 'object' && 'value' in ttsStore.currMp3Url) {
+            audioUrl = ttsStore.currMp3Url.value;
+            console.log('从ttsStore.currMp3Url获取到URL:', audioUrl);
+          } else if (typeof ttsStore.currMp3Url === 'string') {
+            audioUrl = ttsStore.currMp3Url;
+            console.log('从ttsStore.currMp3Url字符串获取到URL:', audioUrl);
+          }
+        }
+        
+        if (audioUrl && audioUrl !== '') {
+          console.log('设置音频src:', audioUrl);
+          audioPlayerRef.value.src = audioUrl;
+          
+          // 如果设置了自动播放，尝试播放
+          if (playerConfig.autoplay) {
+            console.log('尝试自动播放音频');
+            audioPlayerRef.value.load();
+            audioPlayerRef.value.play().catch(err => {
+              console.warn('自动播放失败 (可能是浏览器限制):', err);
+            });
+          }
+        } else {
+          console.log('没有有效的音频URL');
         }
         
         // 添加事件监听
-        audioEl.value.addEventListener('play', () => {
+        audioPlayerRef.value.addEventListener('play', () => {
           console.log('音频开始播放');
         });
         
-        audioEl.value.addEventListener('error', (e) => {
+        audioPlayerRef.value.addEventListener('error', (e) => {
           // 只有当src不为空时才报告错误
-          if (audioEl.value.src && audioEl.value.src !== 'null' && audioEl.value.src !== window.location.href) {
+          if (audioPlayerRef.value.src && 
+              audioPlayerRef.value.src !== '' && 
+              audioPlayerRef.value.src !== 'null' && 
+              audioPlayerRef.value.src !== window.location.href) {
             console.error('音频播放错误:', e);
           }
         });
       } else {
-        console.warn('audioPlayerRef未定义或为null');
+        console.warn('音频元素未找到');
       }
-    } else {
-      console.warn('音频元素未找到');
+    } catch (err) {
+      console.error('更新音频src时出错:', err);
     }
-  });
+  };
+  
+  // 确保audioPlayerRef已经挂载
+  nextTick(updateAudioSrc);
 });
 
 // 当语言选择变化时，更新语音列表
@@ -1051,7 +1090,7 @@ watch(() => formConfig.languageSelect, (newValue, oldValue) => {
 });
 
 // 确保页面加载时有语音列表
-    nextTick(() => {
+nextTick(() => {
   // 检查语音列表是否为空
   if (!voiceSelectList.value || voiceSelectList.value.length === 0) {
     const currentLang = formConfig.languageSelect || 'zh-CN';
@@ -1064,9 +1103,32 @@ watch(() => formConfig.languageSelect, (newValue, oldValue) => {
         voiceSelectList.value && voiceSelectList.value.length > 0) {
       console.log('设置默认语音:', voiceSelectList.value[0].ShortName);
       formConfig.voiceSelect = voiceSelectList.value[0].ShortName;
-        }
-      }
+    }
+  }
+});
+
+// 音频事件处理
+const handleAudioError = (e) => {
+  // 只在src不为空时记录错误
+  if (audioPlayerRef.value && audioPlayerRef.value.src && 
+      audioPlayerRef.value.src !== 'null' && 
+      audioPlayerRef.value.src !== window.location.href) {
+    console.error('音频加载出错:', e);
+  }
+};
+
+const handleAudioPlay = () => {
+  console.log('音频开始播放');
+};
+
+const handleAudioCanPlay = () => {
+  console.log('音频可以播放');
+  if (audioPlayerRef.value && playerConfig.autoplay) {
+    audioPlayerRef.value.play().catch(e => {
+      console.warn('自动播放失败 (可能是浏览器限制):', e);
     });
+  }
+};
 </script>
 
 <style>

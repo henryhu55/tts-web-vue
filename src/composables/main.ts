@@ -54,6 +54,7 @@ let globalInputs = ref({});
 let globalPage = ref({});
 let globalFormConfig = ref({});
 let globalConfig = ref({});
+let globalCurrMp3Url = ref(''); // 添加全局currMp3Url引用
 
 // 创建一个函数初始化全局引用，确保在setup调用后可以使用
 const initGlobalRefs = () => {
@@ -141,14 +142,32 @@ const initGlobalRefs = () => {
     globalFormConfig = ref(ttsStore.formConfig);
     globalConfig = ref(ttsStore.config);
     
-    // 确保currMp3Url是一个ref对象
-    if (!ttsStore.currMp3Url) {
-      console.warn('ttsStore中缺少currMp3Url属性，创建空值');
-      ttsStore.currMp3Url = ref('');
-    } else if (typeof ttsStore.currMp3Url === 'string') {
-      const oldValue = ttsStore.currMp3Url;
-      ttsStore.currMp3Url = ref(oldValue);
-      console.log('将currMp3Url从字符串转换为ref对象');
+    // 确保currMp3Url是ref对象并设置到全局变量
+    try {
+      if (ttsStore.currMp3Url) {
+        if (typeof ttsStore.currMp3Url === 'object' && 'value' in ttsStore.currMp3Url) {
+          globalCurrMp3Url = ttsStore.currMp3Url;
+          console.log('初始化全局currMp3Url引用');
+        } else {
+          console.log('ttsStore.currMp3Url不是ref对象，创建新的全局ref');
+          globalCurrMp3Url = ref(ttsStore.currMp3Url);
+          // 同步回store
+          ttsStore.currMp3Url = globalCurrMp3Url;
+        }
+      } else {
+        console.log('ttsStore中没有currMp3Url，创建全局空ref');
+        globalCurrMp3Url = ref('');
+        // 同步回store
+        ttsStore.currMp3Url = globalCurrMp3Url;
+      }
+    } catch (err) {
+      console.error('初始化全局currMp3Url时出错:', err);
+      globalCurrMp3Url = ref('');
+      try {
+        ttsStore.currMp3Url = globalCurrMp3Url;
+      } catch (storeErr) {
+        console.error('无法将全局currMp3Url同步回store:', storeErr);
+      }
     }
     
     // 确保audioPlayer存在
@@ -193,7 +212,55 @@ function useMainSetup() {
   
   const tableData = ttsStore.tableData ? ref(ttsStore.tableData) : ref([]);
   
-  const currMp3Url = ttsStore.currMp3Url || ref("");
+  // 确保currMp3Url始终是ref对象
+  let currMp3Url;
+  try {
+    // 优先使用全局的globalCurrMp3Url
+    if (globalCurrMp3Url && typeof globalCurrMp3Url === 'object' && 'value' in globalCurrMp3Url) {
+      currMp3Url = globalCurrMp3Url;
+      console.log('useMainSetup: 使用全局globalCurrMp3Url');
+      
+      // 确保store中的currMp3Url与全局保持一致
+      if (ttsStore && ttsStore.currMp3Url !== globalCurrMp3Url) {
+        ttsStore.currMp3Url = globalCurrMp3Url;
+        console.log('useMainSetup: 已将ttsStore.currMp3Url同步为全局引用');
+      }
+    } 
+    // 如果全局变量无效，则尝试使用store中的变量
+    else if (ttsStore.currMp3Url) {
+      if (typeof ttsStore.currMp3Url === 'object' && 'value' in ttsStore.currMp3Url) {
+        currMp3Url = ttsStore.currMp3Url;
+        console.log('useMainSetup: 使用ttsStore中的currMp3Url ref');
+        // 更新全局引用
+        globalCurrMp3Url = currMp3Url;
+      } else {
+        console.log('useMainSetup: ttsStore.currMp3Url不是ref对象，创建新的ref');
+        currMp3Url = ref(ttsStore.currMp3Url);
+        // 同步回store和全局引用
+        ttsStore.currMp3Url = currMp3Url;
+        globalCurrMp3Url = currMp3Url;
+      }
+    } 
+    // 如果store和全局变量都无效，则创建新变量
+    else {
+      console.log('useMainSetup: 全局和store中都没有currMp3Url，创建空ref');
+      currMp3Url = ref('');
+      // 同步回store和全局引用
+      ttsStore.currMp3Url = currMp3Url;
+      globalCurrMp3Url = currMp3Url;
+    }
+  } catch (err) {
+    console.error('useMainSetup: 处理currMp3Url时出错:', err);
+    // 确保我们至少有一个可用的currMp3Url ref
+    currMp3Url = ref('');
+    try {
+      ttsStore.currMp3Url = currMp3Url;
+      globalCurrMp3Url = currMp3Url;
+      console.log('useMainSetup: 重置了currMp3Url引用');
+    } catch (storeErr) {
+      console.error('useMainSetup: 无法同步currMp3Url:', storeErr);
+    }
+  }
   
   const config = ttsStore.config ? ref(ttsStore.config) : ref({});
   
@@ -755,6 +822,76 @@ const voiceSelectChange = (value) => {
 // 开始按钮
 const startBtn = async () => {
   console.log("开始转换");
+  
+  // 验证有转换内容
+  if (!globalInputs.value?.inputValue && !globalInputs.value?.ssmlValue) {
+    ElMessage({
+      message: "请先输入要转换的文本",
+      type: "warning",
+      duration: 2000,
+    });
+    return;
+  }
+  
+  // 针对免费TTS服务，先检查额度
+  if (globalFormConfig.value?.api === 5) {
+    try {
+      const localTTSStore = useFreeTTSstore();
+      
+      // 先检查连接状态
+      const isConnected = await localTTSStore.checkServerConnection();
+      if (!isConnected) {
+        ElMessage({
+          message: "无法连接到免费TTS服务，请检查网络连接",
+          type: "warning",
+          duration: 3000,
+        });
+        return;
+      }
+      
+      // 检查可用额度
+      const quotaInfo = await localTTSStore.getFreeLimitInfo();
+      
+      // 检查是否有足够的额度
+      if (quotaInfo) {
+        const inputText = isSSMLMode.value ? globalInputs.value?.ssmlValue : globalInputs.value?.inputValue;
+        const textLength = inputText?.length || 0;
+        
+        if (quotaInfo.remaining < textLength) {
+          // 额度不足，显示提示并终止转换
+          ElMessage({
+            message: `免费额度不足: 剩余${quotaInfo.remaining}字符，需要${textLength}字符`,
+            type: "warning",
+            duration: 5000,
+          });
+          
+          // 展示使用TTS88API的提示
+          ElMessageBox.confirm(
+            '您的免费额度不足以转换当前文本，可使用TTS88API解锁无限使用。是否前往获取API密钥？',
+            '额度不足提示',
+            {
+              confirmButtonText: '获取API密钥',
+              cancelButtonText: '暂不需要',
+              type: 'warning',
+            }
+          )
+            .then(() => {
+              // 打开API站点
+              openApiSite();
+            })
+            .catch(() => {
+              console.log('用户取消跳转到API站点');
+            });
+          return;
+        }
+      }
+    } catch (err) {
+      console.error('检查免费TTS额度失败:', err);
+      // 继续处理，让转换函数处理错误
+    }
+  }
+  
+  // 通过了前置检查，现在显示加载界面并开始转换
   isLoading.value = true;
   convertProgress.value = 0;
   
@@ -766,12 +903,7 @@ const startBtn = async () => {
   }, 300);
   
   try {
-    // 使用全局变量引用
-    // 验证有转换内容
-    if (!globalInputs.value?.inputValue && !globalInputs.value?.ssmlValue) {
-      throw new Error("请先输入要转换的文本");
-    }
-    
+    // 使用全局变量引用    
     // 构建请求参数
     const voiceData = {
       activeIndex: globalPage.value?.tabIndex || "0",
@@ -825,9 +957,7 @@ const startBtn = async () => {
     let audioUrl = '';
     
     if (result.buffer) {
-      // 将Buffer转换为Blob并创建URL
-      const audioBlob = new Blob([result.buffer], { type: 'audio/mpeg' });
-      audioUrl = URL.createObjectURL(audioBlob);
+      audioUrl = handleAudioBlob(result.buffer);
     } else if (result.audibleUrl) {
       // 直接使用返回的URL
       audioUrl = result.audibleUrl;
@@ -845,9 +975,26 @@ const startBtn = async () => {
     if (audioUrl && globalTtsStore) {
       // 设置音频播放URL - 检查类型并安全赋值
       console.log('准备设置currMp3Url:', audioUrl);
-      console.log('globalTtsStore.currMp3Url类型:', typeof globalTtsStore.currMp3Url);
       
       try {
+        // 首先检查globalTtsStore是否已定义
+        if (!globalTtsStore) {
+          console.error('globalTtsStore未定义');
+          throw new Error('全局TTS Store未初始化');
+        }
+        
+        console.log('globalTtsStore.currMp3Url类型:', typeof globalTtsStore.currMp3Url);
+        
+        // 确保有一个引用可以使用
+        let localCurrMp3Url = globalCurrMp3Url;
+        
+        // 检查全局引用是否有效
+        if (!localCurrMp3Url || typeof localCurrMp3Url !== 'object' || !('value' in localCurrMp3Url)) {
+          console.log('全局globalCurrMp3Url无效，创建新的引用');
+          localCurrMp3Url = ref('');
+          globalCurrMp3Url = localCurrMp3Url;
+        }
+        
         // 检查是否是ref对象
         if (globalTtsStore.currMp3Url && 
             typeof globalTtsStore.currMp3Url === 'object' && 
@@ -856,29 +1003,58 @@ const startBtn = async () => {
           globalTtsStore.currMp3Url.value = audioUrl;
           console.log('成功更新currMp3Url.value:', audioUrl);
         } else {
-          // 不是ref对象，可能是字符串或其他类型，直接赋值
-          globalTtsStore.currMp3Url = audioUrl;
-          console.log('直接设置currMp3Url:', audioUrl);
+          // 不是ref对象，重新创建ref
+          console.log('非ref对象，创建新的currMp3Url ref');
+          globalTtsStore.currMp3Url = localCurrMp3Url;
+          globalTtsStore.currMp3Url.value = audioUrl;
+          console.log('创建新的currMp3Url ref:', audioUrl);
         }
+        
+        // 确保全局变量和store中的引用一致
+        globalCurrMp3Url = globalTtsStore.currMp3Url;
+        localCurrMp3Url = globalTtsStore.currMp3Url;
+        
+        // 更新本地引用的值
+        localCurrMp3Url.value = audioUrl;
+        console.log('同步更新本地currMp3Url值为:', audioUrl);
       } catch (err) {
         console.error('设置currMp3Url时出错:', err);
-        // 备用方案:使用已导入的ref
-        globalTtsStore.currMp3Url = ref(audioUrl);
-        console.log('创建了新的currMp3Url ref');
+        
+        // 如果globalTtsStore.currMp3Url处理失败，尝试直接使用局部变量
+        try {
+          // 创建新的ref
+          let localCurrMp3Url = ref(audioUrl);
+          console.log('创建了新的本地currMp3Url ref');
+          
+          // 更新全局引用
+          globalCurrMp3Url = localCurrMp3Url;
+          
+          // 再次尝试更新globalTtsStore
+          if (globalTtsStore) {
+            globalTtsStore.currMp3Url = localCurrMp3Url;
+            console.log('已将本地currMp3Url同步到全局store');
+          }
+        } catch (secondError) {
+          console.error('备用方案也失败:', secondError);
+          // 此时只能依靠下面的音频播放逻辑尝试播放
+        }
       }
       
       // 尝试播放
       try {
         console.log('尝试播放生成的音频');
         
-        // 不再重复设置currMp3Url，只检查DOM状态
-        
         // 稍微延迟执行播放操作，确保DOM已经更新
         setTimeout(() => {
-          // 先尝试使用页面中的audio元素
           if (audioPlayerRef.value) {
             console.log('找到audioPlayerRef元素，尝试播放');
-            // 不需要再次设置src，因为已经通过绑定更新了
+            // 设置src属性
+            audioPlayerRef.value.src = audioUrl;
+            // 确保autoplay为true
+            audioPlayerRef.value.autoplay = true;
+            // 加载并播放
+            audioPlayerRef.value.load();
+            
             if (audioPlayerRef.value.paused) {
               let playPromise = audioPlayerRef.value.play();
               
@@ -897,11 +1073,11 @@ const startBtn = async () => {
             // 没有找到页面audio元素，尝试其他方式播放
             tryAlternativePlayback();
           }
-        }, 100);
+        }, 200);  // 使用单一延迟，避免重复播放
         
         // 辅助函数：尝试替代播放方式
         function tryAlternativePlayback() {
-          if (globalTtsStore.audioPlayer) {
+          if (globalTtsStore && globalTtsStore.audioPlayer) {
             console.log('使用store中的audioPlayer播放');
             globalTtsStore.audioPlayer.src = audioUrl;
             globalTtsStore.audioPlayer.play().catch(error => {
@@ -915,7 +1091,9 @@ const startBtn = async () => {
               console.error('临时Audio实例播放失败:', err);
             });
             // 保存到store中
-            globalTtsStore.audioPlayer = tempAudio;
+            if (globalTtsStore) {
+              globalTtsStore.audioPlayer = tempAudio;
+            }
           }
         }
       } catch (e) {
@@ -923,41 +1101,12 @@ const startBtn = async () => {
       }
       
       // 成功提示
-        ElMessage({
+      ElMessage({
         message: "转换成功",
-          type: "success",
-          duration: 2000,
-        });
-        
-      // 自动播放音频（无论配置如何）
-      console.log('准备播放转换好的音频');
-      // 延迟一点执行播放，确保UI已经更新
-      setTimeout(() => {
-        // 直接播放音频，不依赖config.autoplay设置
-        if (audioPlayerRef.value) {
-          console.log('使用audioPlayerRef播放音频');
-          // 确保autoplay为true
-          audioPlayerRef.value.autoplay = true;
-          
-          // 重置src并加载以触发自动播放
-          const currentSrc = audioPlayerRef.value.src;
-          audioPlayerRef.value.src = "";
-          setTimeout(() => {
-            audioPlayerRef.value.src = audioUrl;
-            audioPlayerRef.value.load();
-            audioPlayerRef.value.play().catch(err => {
-              console.error('播放失败，尝试替代方法:', err);
-              // 如果audioPlayerRef播放失败，尝试使用audition函数
-              audition(audioUrl);
-            });
-          }, 50);
-  } else {
-          // 使用audition函数播放
-          console.log('使用audition函数播放音频');
-          audition(audioUrl);
-        }
-      }, 300);
-
+        type: "success",
+        duration: 2000,
+      });
+      
       // 添加到历史记录表
       if (globalTtsStore.tableData) {
         // 确保tableData不为空且有value属性
@@ -995,14 +1144,55 @@ const startBtn = async () => {
   } catch (error) {
     // 错误处理
     clearInterval(progressInterval);
-    isLoading.value = false;
-    convertProgress.value = 0;
     
-    ElMessage({
-      message: "转换失败: " + (error instanceof Error ? error.message : String(error)),
-      type: "error",
-      duration: 3000,
-    });
+    // 延迟隐藏加载状态，避免闪烁
+    setTimeout(() => {
+      isLoading.value = false;
+      convertProgress.value = 0;
+    }, 400);
+    
+    // 检查是否为额度不足错误（HTTP 403 或包含"超出剩余配额"的消息）
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    const isQuotaError = errorMessage.includes('文本长度超出剩余配额') || 
+                          errorMessage.includes('403') || 
+                          errorMessage.includes('quota exceeded') ||
+                          errorMessage.includes('免费额度');
+    
+    if (isQuotaError) {
+      // 显示额度不足的提示
+      ElMessage({
+        message: "免费额度不足，转换失败",
+        type: "warning",
+        duration: 5000,
+      });
+      
+      // 展示使用TTS88API的提示
+      setTimeout(() => {
+        ElMessageBox.confirm(
+          '您的免费额度已不足，可使用TTS88API解锁无限使用。是否前往获取API密钥？',
+          '额度不足提示',
+          {
+            confirmButtonText: '获取API密钥',
+            cancelButtonText: '暂不需要',
+            type: 'warning',
+          }
+        )
+          .then(() => {
+            // 打开API站点
+            openApiSite();
+          })
+          .catch(() => {
+            console.log('用户取消跳转到API站点');
+          });
+      }, 500); // 延迟显示对话框，先让加载状态完全消失
+    } else {
+      // 其他类型错误的普通提示
+      ElMessage({
+        message: "转换失败: " + errorMessage,
+        type: "error",
+        duration: 3000,
+      });
+    }
   }
 };
 
@@ -1114,36 +1304,73 @@ const download = () => {
   console.log("下载音频");
   isDownloading.value = true;
   
-  // 获取当前的音频URL
+  // 获取当前的音频URL - 从多个来源尝试获取
   let audioUrl = '';
   
-  // 检查全局store中的currMp3Url
+  // 尝试来源1: 全局store中的currMp3Url
   if (globalTtsStore && globalTtsStore.currMp3Url) {
     // 处理ref对象或字符串
     if (typeof globalTtsStore.currMp3Url === 'object' && 'value' in globalTtsStore.currMp3Url) {
       audioUrl = globalTtsStore.currMp3Url.value;
-    } else {
+      console.log("从ref对象获取到URL:", audioUrl);
+    } else if (typeof globalTtsStore.currMp3Url === 'string') {
       audioUrl = globalTtsStore.currMp3Url;
+      console.log("从非ref对象获取到URL:", audioUrl);
+    }
+  }
+  
+  // 尝试来源2: 全局globalCurrMp3Url变量
+  if ((!audioUrl || audioUrl === '') && globalCurrMp3Url) {
+    if (typeof globalCurrMp3Url === 'object' && 'value' in globalCurrMp3Url) {
+      audioUrl = globalCurrMp3Url.value;
+      console.log("从全局globalCurrMp3Url获取到URL:", audioUrl);
+    }
+  }
+  
+  // 尝试来源3: audio元素的src属性
+  if ((!audioUrl || audioUrl === '') && audioPlayerRef && audioPlayerRef.value) {
+    const playerSrc = audioPlayerRef.value.src;
+    if (playerSrc && playerSrc !== '' && playerSrc !== 'null' && playerSrc !== window.location.href) {
+      audioUrl = playerSrc;
+      console.log("从audioPlayerRef获取到URL:", audioUrl);
+    }
+  }
+
+  // 尝试来源4: 全局audioPlayer
+  if ((!audioUrl || audioUrl === '') && globalTtsStore && globalTtsStore.audioPlayer) {
+    const globalPlayerSrc = globalTtsStore.audioPlayer.src;
+    if (globalPlayerSrc && globalPlayerSrc !== '' && globalPlayerSrc !== 'null' && globalPlayerSrc !== window.location.href) {
+      audioUrl = globalPlayerSrc;
+      console.log("从全局audioPlayer获取到URL:", audioUrl);
     }
   }
   
   // 确保有有效的URL
-  if (audioUrl) {
+  if (audioUrl && audioUrl !== '') {
     console.log("创建下载链接:", audioUrl);
     
-    // 创建一个隐藏的a标签来触发下载
-    const a = document.createElement('a');
-    a.href = audioUrl;
-    a.download = `tts-audio-${new Date().getTime()}.${playerConfig.formatType || 'mp3'}`;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    
-    ElMessage({
-      message: "开始下载音频",
-      type: "success",
-      duration: 2000,
-    });
+    try {
+      // 创建一个隐藏的a标签来触发下载
+      const a = document.createElement('a');
+      a.href = audioUrl;
+      a.download = `tts-audio-${new Date().getTime()}.${playerConfig.formatType || 'mp3'}`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      
+      ElMessage({
+        message: "开始下载音频",
+        type: "success",
+        duration: 2000,
+      });
+    } catch (error) {
+      console.error("下载过程中出错:", error);
+      ElMessage({
+        message: "下载失败: " + (error instanceof Error ? error.message : String(error)),
+        type: "error",
+        duration: 2000,
+      });
+    }
   } else {
     console.warn("没有可用的音频URL可下载");
     
@@ -1167,18 +1394,170 @@ const setFormatType = (value) => {
 
 // 处理音频Blob
 const handleAudioBlob = (audioBlob) => {
-  console.log("处理音频Blob");
-  return "";
+  try {
+    if (!audioBlob) {
+      console.error('handleAudioBlob: 接收到无效的audioBlob');
+      return null;
+    }
+    
+    // 安全地访问全局currMp3Url引用
+    let currMp3UrlRef = globalCurrMp3Url;
+    
+    // 如果全局引用不可用，尝试使用局部变量或创建新的
+    if (!currMp3UrlRef || typeof currMp3UrlRef !== 'object' || !('value' in currMp3UrlRef)) {
+      console.warn('handleAudioBlob: 全局currMp3Url引用无效，尝试其他方式');
+      
+      // 尝试使用store中的currMp3Url
+      if (globalTtsStore && globalTtsStore.currMp3Url && 
+          typeof globalTtsStore.currMp3Url === 'object' && 'value' in globalTtsStore.currMp3Url) {
+        currMp3UrlRef = globalTtsStore.currMp3Url;
+        console.log('handleAudioBlob: 使用store中的currMp3Url');
+      } else {
+        // 创建新的ref
+        currMp3UrlRef = ref('');
+        console.log('handleAudioBlob: 创建新的currMp3Url ref');
+        
+        // 更新全局引用和store
+        globalCurrMp3Url = currMp3UrlRef;
+        if (globalTtsStore) {
+          globalTtsStore.currMp3Url = currMp3UrlRef;
+        }
+      }
+    }
+    
+    // 安全地检查并释放旧的URL
+    try {
+      if (currMp3UrlRef.value && typeof currMp3UrlRef.value === 'string' && currMp3UrlRef.value.startsWith('blob:')) {
+        URL.revokeObjectURL(currMp3UrlRef.value);
+        console.log('handleAudioBlob: 已释放旧的blob URL');
+      }
+    } catch (err) {
+      console.error('handleAudioBlob: 释放URL时出错:', err);
+      // 继续执行，不中断主流程
+    }
+
+    // 创建新的URL
+    const audioUrl = URL.createObjectURL(new Blob([audioBlob], { type: `audio/${playerConfig.formatType || 'mp3'}` }));
+    console.log('handleAudioBlob: 创建了新的blob URL:', audioUrl);
+    
+    // 更新URL到全局引用和store
+    if (currMp3UrlRef) {
+      currMp3UrlRef.value = audioUrl;
+      console.log('handleAudioBlob: 已更新currMp3Url值为:', audioUrl);
+      
+      // 确保所有引用指向同一个ref对象
+      globalCurrMp3Url = currMp3UrlRef;
+      if (globalTtsStore) {
+        globalTtsStore.currMp3Url = currMp3UrlRef;
+      }
+    } else {
+      console.warn('handleAudioBlob: currMp3UrlRef无效，无法更新全局引用');
+    }
+    
+    return audioUrl;
+  } catch (error) {
+    console.error('handleAudioBlob: 处理音频Blob时出错:', error);
+    
+    // 尝试恢复 - 创建一个新的ref和URL
+    try {
+      const audioUrl = URL.createObjectURL(new Blob([audioBlob], { type: `audio/${playerConfig.formatType || 'mp3'}` }));
+      const newRef = ref(audioUrl);
+      
+      // 更新所有引用
+      globalCurrMp3Url = newRef;
+      if (globalTtsStore) {
+        globalTtsStore.currMp3Url = newRef;
+      }
+      
+      console.log('handleAudioBlob: 重新创建了currMp3Url ref');
+      return audioUrl;
+    } catch (fallbackError) {
+      console.error('handleAudioBlob: 备用处理也失败:', fallbackError);
+      return null;
+    }
+  }
 };
 
 // 播放音频Blob
 const playAudioBlob = (audioBlob) => {
-  console.log("播放音频Blob");
+  try {
+    // 创建音频URL
+    const audioUrl = handleAudioBlob(audioBlob);
+    
+    // 播放音频
+    if (audioPlayerRef.value) {
+      audioPlayerRef.value.src = audioUrl;
+      audioPlayerRef.value.play().catch(err => {
+        console.error('播放失败:', err);
+        // 可能是因为浏览器策略限制自动播放
+        ElMessage({
+          message: "播放失败，请点击播放按钮手动播放",
+          type: "info",
+          duration: 3000,
+        });
+      });
+    } else {
+      console.error('找不到音频播放器元素');
+    }
+    
+    return audioUrl;
+  } catch (error) {
+    console.error('播放二进制音频失败:', error);
+    ElMessage({
+      message: "播放失败: " + (error instanceof Error ? error.message : String(error)),
+      type: "error",
+      duration: 3000,
+    });
+    return null;
+}
 };
 
 // 调整内容边距
 const adjustContentMargins = () => {
-  console.log("调整内容边距");
+  nextTick(() => {
+    const isMobile = window.innerWidth <= 768;
+    
+    // 获取当前激活的内容区域
+    let activeContent;
+    
+    if (page.value.asideIndex === '1') {
+      // 文本转语音页面
+      activeContent = document.querySelector('.input-area-card');
+    } else if (page.value.asideIndex === '2') {
+      // 批量处理页面
+      activeContent = document.querySelector('.batch-area-card');
+    } else if (page.value.asideIndex === '3') {
+      // 设置页面
+      activeContent = document.querySelector('.config-page-container');
+    } else if (page.value.asideIndex === '4') {
+      // 文档页面
+      activeContent = document.querySelector('.doc-page-container');
+    } else if (page.value.asideIndex === '5') {
+      // 在线生成字幕页面
+      activeContent = document.querySelector('.content-area');
+    }
+
+    if (activeContent) {
+      if (isMobile) {
+        // 移动端设置 - 不再设置marginTop，由CSS处理
+        activeContent.style.paddingTop = '10px';
+        activeContent.style.borderRadius = '0';
+        activeContent.style.width = '100%';
+        activeContent.style.maxWidth = '100%';
+        activeContent.style.boxShadow = 'none';
+        activeContent.style.border = 'none';
+      } else {
+        // PC端设置
+        activeContent.style.marginTop = '0px';
+        activeContent.style.paddingTop = '0';
+        activeContent.style.borderRadius = 'var(--border-radius-large)';
+        activeContent.style.width = '100%';
+        activeContent.style.maxWidth = '1000px';
+        activeContent.style.boxShadow = 'var(--shadow-medium)';
+        activeContent.style.border = '1px solid var(--border-color)';
+      }
+    }
+  });
 };
 
 // 处理导航更改
@@ -1265,6 +1644,7 @@ export {
   iframeLoaded,
   iframeError,
   iframeCurrentSrc,
+  globalCurrMp3Url, // 添加导出globalCurrMp3Url变量
   
   // 其他状态
   isSSMLMode,

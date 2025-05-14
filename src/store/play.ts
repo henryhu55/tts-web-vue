@@ -432,7 +432,7 @@ async function getTTSData(params: TTSParams): Promise<TTSResponse> {
       const quotaInfo = await localTTSStore.getFreeLimitInfo();
       if (quotaInfo && quotaInfo.remaining <= 0) {
         return {
-          error: "您的免费额度已用完，请等待下次重置或使用其他API",
+          error: "您的免费额度已用完，请使用TTS88API解锁无限使用",
           errorCode: "QUOTA_EXCEEDED"
         };
       }
@@ -506,8 +506,14 @@ async function getTTSData(params: TTSParams): Promise<TTSResponse> {
             errorMessage = `服务器错误: 请稍后再试`;
             errorCode = "SERVER_ERROR";
           } else if (errorCode === "LOCAL_TTS_ERROR" && result.error.includes("quota exceeded")) {
-            errorMessage = "您的免费额度已用完，请等待下次重置或使用其他API";
+            errorMessage = "您的免费额度已用完，请使用TTS88API解锁无限使用";
             errorCode = "QUOTA_EXCEEDED";
+            // 对于额度不足错误，不进行重试
+            console.log("检测到额度不足错误，不再重试");
+            return {
+              error: errorMessage,
+              errorCode: errorCode
+            };
           } else if (errorCode === "LOCAL_TTS_ERROR" && result.error.includes("rate limited")) {
             errorMessage = "请求频率过高，请稍后再试";
             errorCode = "RATE_LIMITED";
@@ -524,6 +530,18 @@ async function getTTSData(params: TTSParams): Promise<TTSResponse> {
       } catch (error: any) {
         console.error(`TTS API调用失败 (尝试 ${retry + 1}/${retryCount}):`, error);
         lastError = error;
+        
+        // 检查是否是HTTP 403错误，表示额度不足
+        if (error.message && (error.message.includes('403') || 
+                              error.message.includes('文本长度超出剩余配额') || 
+                              error.message.includes('quota exceeded'))) {
+          console.log("检测到HTTP 403或额度不足错误，不再重试");
+          return {
+            error: "免费TTS额度不足，请使用TTS88API解锁无限使用",
+            errorCode: "QUOTA_EXCEEDED"
+          };
+        }
+        
         console.log(`等待 ${retryInterval} 秒后重试...`);
         await sleep(retryInterval * 1000);
         retry++;
@@ -537,6 +555,36 @@ async function getTTSData(params: TTSParams): Promise<TTSResponse> {
     };
   } catch (error: any) {
     console.error("TTS转换失败:", error);
+    
+    // 检查是否是额度不足的错误
+    const errorMessage = error.message || '';
+    const responseData = error.response?.data || {};
+    
+    // 判断是否是配额相关错误 - 查找关键词和HTTP状态码
+    const isQuotaError = (errorMessage.includes('403') || 
+                         errorMessage.includes('文本长度超出剩余配额') || 
+                         errorMessage.includes('quota exceeded') ||
+                         responseData.error?.includes('文本长度超出剩余配额') ||
+                         responseData.error?.includes('quota exceeded') ||
+                         error.response?.status === 403);
+    
+    // 如果是配额错误，返回更友好的提示信息
+    if (isQuotaError) {
+      let remaining = responseData.remaining || 0;
+      let requested = responseData.requested || 0;
+      
+      // 构建用户友好的错误消息
+      let quotaMessage = "免费TTS额度不足";
+      if (remaining > 0 && requested > 0) {
+        quotaMessage = `免费TTS额度不足：剩余${remaining}字符，需要${requested}字符`;
+      }
+      
+      return {
+        error: quotaMessage,
+        errorCode: "QUOTA_EXCEEDED"
+      };
+    }
+    
     return {
       error: error.message || "TTS转换失败",
       errorCode: "GENERAL_ERROR"
