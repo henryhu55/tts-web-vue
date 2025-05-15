@@ -355,8 +355,8 @@ const dialogVisible = ref(false);
 const modalInput = ref('');
 const dialogLoading = ref(false);
 const isDownloading = ref(false);
-const audioPlayerRef = ref(null);
 const drawerOptions = ref(null);
+const audioPlayerRef = ref(null);
 const showModal = ref(false);
 const uploadRef = ref();
 
@@ -735,8 +735,137 @@ const clearAll = () => {
 };
 
 // 播放
-const play = (val) => {
-  console.log("播放音频:", val);
+const playAudio = (url: string, options = { autoplay: true }) => {
+  console.log('统一播放函数被调用:', url);
+  
+  if (!url) {
+    console.warn('播放失败: 无有效的音频URL');
+    return Promise.reject(new Error('无效的音频URL'));
+  }
+  
+  return new Promise((resolve, reject) => {
+    try {
+      // 确保audioPlayerRef存在
+      if (!audioPlayerRef.value) {
+        console.error('audioPlayerRef不存在');
+        reject(new Error('播放器引用不可用'));
+        return;
+      }
+      
+      // 设置音频源
+      audioPlayerRef.value.src = url;
+      
+      // 更新全局状态中的URL
+      if (globalTtsStore && globalTtsStore.currMp3Url) {
+        if (typeof globalTtsStore.currMp3Url === 'object' && 'value' in globalTtsStore.currMp3Url) {
+          globalTtsStore.currMp3Url.value = url;
+        }
+      }
+      
+      if (globalCurrMp3Url && 'value' in globalCurrMp3Url) {
+        globalCurrMp3Url.value = url;
+      }
+      
+      // 加载音频
+      audioPlayerRef.value.load();
+      
+      // 只在需要自动播放时播放
+      if (options.autoplay) {
+        // 检查是否已经在播放
+        if (audioPlayerRef.value.paused) {
+          let playPromise = audioPlayerRef.value.play();
+          
+          if (playPromise !== undefined) {
+            playPromise
+              .then(() => {
+                console.log('音频播放成功');
+                resolve(true);
+              })
+              .catch(error => {
+                console.error('主播放器播放失败:', error);
+                // 尝试备选播放方式
+                tryAlternativePlayback(url)
+                  .then(resolve)
+                  .catch(reject);
+              });
+          } else {
+            console.log('播放已开始，但没有返回Promise');
+            resolve(true);
+          }
+        } else {
+          console.log('音频已经在播放中');
+          resolve(true);
+        }
+      } else {
+        console.log('不自动播放，仅设置音频源');
+        resolve(false);
+      }
+    } catch (error) {
+      console.error('播放过程发生异常:', error);
+      // 尝试备选播放方式
+      tryAlternativePlayback(url)
+        .then(resolve)
+        .catch(() => {
+          reject(error);
+        });
+    }
+  });
+};
+
+// 备选播放方式
+const tryAlternativePlayback = (url: string) => {
+  console.log('尝试备选播放方式:', url);
+  
+  return new Promise((resolve, reject) => {
+    try {
+      // 尝试使用全局store中的播放器
+      if (globalTtsStore && globalTtsStore.audioPlayer) {
+        console.log('使用store中的audioPlayer播放');
+        // 检查是否为ref对象
+        const audioPlayer = 'value' in globalTtsStore.audioPlayer 
+          ? globalTtsStore.audioPlayer.value 
+          : globalTtsStore.audioPlayer;
+          
+        if (audioPlayer) {
+          audioPlayer.src = url;
+          const playPromise = audioPlayer.play();
+          
+          if (playPromise) {
+            playPromise
+              .then(() => resolve(true))
+              .catch(error => {
+                console.error('store audioPlayer播放失败:', error);
+                createNewAudioInstance();
+              });
+            return;
+          }
+        }
+      }
+      
+      createNewAudioInstance();
+      
+      // 创建新的Audio实例的函数
+      function createNewAudioInstance() {
+        console.log('创建新的Audio实例播放');
+        const tempAudio = new Audio(url);
+        tempAudio.play()
+          .then(() => {
+            // 保存到store中
+            if (globalTtsStore) {
+              globalTtsStore.audioPlayer = tempAudio;
+            }
+            resolve(true);
+          })
+          .catch(err => {
+            console.error('临时Audio实例播放失败:', err);
+            reject(err);
+          });
+      }
+    } catch (e) {
+      console.error('备选播放方式异常:', e);
+      reject(e);
+    }
+  });
 };
 
 // 在文件夹中打开
@@ -744,59 +873,26 @@ const openInFolder = (val) => {
   console.log("在文件夹中打开:", val);
 };
 
-// 试听
-const audition = async (value) => {
+// 修改现有的audition函数，使用新的统一播放逻辑
+const audition = async (value: string) => {
   console.log("试听:", value);
   
-  // 检查是否有有效的音频URL
   if (!value) {
     console.warn('试听失败: 无有效的音频URL');
+    ElMessage({
+      message: "试听失败: 无有效音频",
+      type: "warning",
+      duration: 2000,
+    });
     return;
   }
   
-  // 尝试播放音频
   try {
-    // 处理audioPlayerRef
-    if (audioPlayerRef.value) {
-      console.log('使用audioPlayerRef播放:', value);
-      audioPlayerRef.value.src = value;
-      audioPlayerRef.value.load();
-      let playPromise = audioPlayerRef.value.play();
-      
-      if (playPromise !== undefined) {
-        playPromise
-          .then(() => {
-            console.log('音频播放成功');
-          })
-          .catch(error => {
-            console.error('音频播放失败:', error);
-    ElMessage({
-              message: "播放失败: " + error.message,
-              type: "warning",
-      duration: 2000,
-    });
-          });
-      }
-    } else if (globalTtsStore && globalTtsStore.audioPlayer && globalTtsStore.audioPlayer.value) {
-      // 使用全局audio元素
-      console.log('使用全局audioPlayer播放:', value);
-      globalTtsStore.audioPlayer.value.src = value;
-      globalTtsStore.audioPlayer.value.load();
-      globalTtsStore.audioPlayer.value.play().catch(error => {
-        console.error('全局audio播放失败:', error);
-    });
-  } else {
-      // 创建临时audio元素
-      console.log('创建临时audio元素播放:', value);
-      const audio = new Audio(value);
-      audio.play().catch(error => {
-        console.error('临时audio播放失败:', error);
-      });
-    }
+    await playAudio(value);
   } catch (error) {
-    console.error('音频播放时发生异常:', error);
+    console.error('试听失败:', error);
     ElMessage({
-      message: "播放失败: " + error.message,
+      message: "播放失败: " + (error instanceof Error ? error.message : String(error)),
       type: "warning",
       duration: 2000,
     });
@@ -973,9 +1069,7 @@ const startBtn = async () => {
     }
     
     if (audioUrl && globalTtsStore) {
-      // 设置音频播放URL - 检查类型并安全赋值
-      console.log('准备设置currMp3Url:', audioUrl);
-      
+      // 设置音频播放URL - 完全重写这部分逻辑，确保类型一致性
       try {
         // 首先检查globalTtsStore是否已定义
         if (!globalTtsStore) {
@@ -983,121 +1077,28 @@ const startBtn = async () => {
           throw new Error('全局TTS Store未初始化');
         }
         
-        console.log('globalTtsStore.currMp3Url类型:', typeof globalTtsStore.currMp3Url);
+        // 记录当前类型，用于调试
+        console.log('当前globalTtsStore.currMp3Url类型:', typeof globalTtsStore.currMp3Url);
         
-        // 确保有一个引用可以使用
-        let localCurrMp3Url = globalCurrMp3Url;
+        // 创建一个新的ref对象，确保类型一致性
+        const newUrlRef = ref(audioUrl);
         
-        // 检查全局引用是否有效
-        if (!localCurrMp3Url || typeof localCurrMp3Url !== 'object' || !('value' in localCurrMp3Url)) {
-          console.log('全局globalCurrMp3Url无效，创建新的引用');
-          localCurrMp3Url = ref('');
-          globalCurrMp3Url = localCurrMp3Url;
-        }
+        // 直接替换store中的引用，不尝试修改现有对象
+        globalTtsStore.currMp3Url = newUrlRef;
         
-        // 检查是否是ref对象
-        if (globalTtsStore.currMp3Url && 
-            typeof globalTtsStore.currMp3Url === 'object' && 
-            'value' in globalTtsStore.currMp3Url) {
-          // 是ref对象，可以安全赋值
-          globalTtsStore.currMp3Url.value = audioUrl;
-          console.log('成功更新currMp3Url.value:', audioUrl);
-        } else {
-          // 不是ref对象，重新创建ref
-          console.log('非ref对象，创建新的currMp3Url ref');
-          globalTtsStore.currMp3Url = localCurrMp3Url;
-          globalTtsStore.currMp3Url.value = audioUrl;
-          console.log('创建新的currMp3Url ref:', audioUrl);
-        }
+        // 同步到全局变量
+        globalCurrMp3Url = newUrlRef;
         
-        // 确保全局变量和store中的引用一致
-        globalCurrMp3Url = globalTtsStore.currMp3Url;
-        localCurrMp3Url = globalTtsStore.currMp3Url;
+        console.log('已创建新的currMp3Url ref并更新到store:', audioUrl);
         
-        // 更新本地引用的值
-        localCurrMp3Url.value = audioUrl;
-        console.log('同步更新本地currMp3Url值为:', audioUrl);
-      } catch (err) {
-        console.error('设置currMp3Url时出错:', err);
-        
-        // 如果globalTtsStore.currMp3Url处理失败，尝试直接使用局部变量
-        try {
-          // 创建新的ref
-          let localCurrMp3Url = ref(audioUrl);
-          console.log('创建了新的本地currMp3Url ref');
-          
-          // 更新全局引用
-          globalCurrMp3Url = localCurrMp3Url;
-          
-          // 再次尝试更新globalTtsStore
-          if (globalTtsStore) {
-            globalTtsStore.currMp3Url = localCurrMp3Url;
-            console.log('已将本地currMp3Url同步到全局store');
-          }
-        } catch (secondError) {
-          console.error('备用方案也失败:', secondError);
-          // 此时只能依靠下面的音频播放逻辑尝试播放
-        }
-      }
-      
-      // 尝试播放
-      try {
-        console.log('尝试播放生成的音频');
-        
-        // 稍微延迟执行播放操作，确保DOM已经更新
+        // 使用新的统一播放函数
         setTimeout(() => {
-          if (audioPlayerRef.value) {
-            console.log('找到audioPlayerRef元素，尝试播放');
-            // 设置src属性
-            audioPlayerRef.value.src = audioUrl;
-            // 确保autoplay为true
-            audioPlayerRef.value.autoplay = true;
-            // 加载并播放
-            audioPlayerRef.value.load();
-            
-            if (audioPlayerRef.value.paused) {
-              let playPromise = audioPlayerRef.value.play();
-              
-              if (playPromise !== undefined) {
-                playPromise.catch(error => {
-                  console.error('页面audio元素播放失败:', error);
-                  // 只在真正失败时尝试其他方式
-                  tryAlternativePlayback();
-                });
-              }
-            } else {
-              console.log('audioPlayerRef已经在播放中');
-            }
-          } else {
-            console.log('未找到页面audio元素，尝试其他播放方式');
-            // 没有找到页面audio元素，尝试其他方式播放
-            tryAlternativePlayback();
-          }
-        }, 200);  // 使用单一延迟，避免重复播放
-        
-        // 辅助函数：尝试替代播放方式
-        function tryAlternativePlayback() {
-          if (globalTtsStore && globalTtsStore.audioPlayer) {
-            console.log('使用store中的audioPlayer播放');
-            globalTtsStore.audioPlayer.src = audioUrl;
-            globalTtsStore.audioPlayer.play().catch(error => {
-              console.error('store audioPlayer播放失败:', error);
-            });
-          } else {
-            console.log('创建新的Audio实例播放');
-            // 创建一个新的Audio实例播放
-            const tempAudio = new Audio(audioUrl);
-            tempAudio.play().catch(err => {
-              console.error('临时Audio实例播放失败:', err);
-            });
-            // 保存到store中
-            if (globalTtsStore) {
-              globalTtsStore.audioPlayer = tempAudio;
-            }
-          }
-        }
-      } catch (e) {
-        console.error('播放尝试失败:', e);
+          playAudio(audioUrl).catch(error => {
+            console.error('使用统一播放函数播放失败:', error);
+          });
+        }, 200);
+      } catch (err) {
+        console.error('设置currMp3Url或播放时出错:', err);
       }
       
       // 成功提示
@@ -1478,39 +1479,6 @@ const handleAudioBlob = (audioBlob) => {
   }
 };
 
-// 播放音频Blob
-const playAudioBlob = (audioBlob) => {
-  try {
-    // 创建音频URL
-    const audioUrl = handleAudioBlob(audioBlob);
-    
-    // 播放音频
-    if (audioPlayerRef.value) {
-      audioPlayerRef.value.src = audioUrl;
-      audioPlayerRef.value.play().catch(err => {
-        console.error('播放失败:', err);
-        // 可能是因为浏览器策略限制自动播放
-        ElMessage({
-          message: "播放失败，请点击播放按钮手动播放",
-          type: "info",
-          duration: 3000,
-        });
-      });
-    } else {
-      console.error('找不到音频播放器元素');
-    }
-    
-    return audioUrl;
-  } catch (error) {
-    console.error('播放二进制音频失败:', error);
-    ElMessage({
-      message: "播放失败: " + (error instanceof Error ? error.message : String(error)),
-      type: "error",
-      duration: 3000,
-    });
-    return null;
-}
-};
 
 // 调整内容边距
 const adjustContentMargins = () => {
@@ -1677,7 +1645,7 @@ export {
   fileChange,
   fileRemove,
   clearAll,
-  play,
+  playAudio,
   openInFolder,
   audition,
   apiChange,
@@ -1701,7 +1669,6 @@ export {
   formatXML,
   updateSSML,
   handleAudioBlob,
-  playAudioBlob,
   adjustContentMargins,
   getTTSData,
   initGlobalRefs,

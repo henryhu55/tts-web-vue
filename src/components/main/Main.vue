@@ -937,7 +937,6 @@ import {
   fileChange,
   fileRemove,
   clearAll,
-  play,
   openInFolder,
   getChineseName,
   audition,
@@ -979,6 +978,7 @@ import {
   formatOptions,
   isDownloading,
   initGlobalRefs,
+  playAudio,
   audioPlayerRef,
   globalCurrMp3Url
 } from '@/composables/main';
@@ -1040,16 +1040,19 @@ onMounted(() => {
         }
         
         if (audioUrl && audioUrl !== '') {
-          console.log('设置音频src:', audioUrl);
-          audioPlayerRef.value.src = audioUrl;
+          console.log('检测到有效的音频URL:', audioUrl);
           
-          // 如果设置了自动播放，尝试播放
+          // 使用统一的播放函数
           if (playerConfig.autoplay) {
-            console.log('尝试自动播放音频');
-            audioPlayerRef.value.load();
-            audioPlayerRef.value.play().catch(err => {
-              console.warn('自动播放失败 (可能是浏览器限制):', err);
+            console.log('配置为自动播放，调用统一播放函数');
+            // 导入的playAudio函数
+            playAudio(audioUrl, { autoplay: true }).catch(err => {
+              console.warn('自动播放失败:', err);
             });
+          } else {
+            console.log('不自动播放，仅设置音频源');
+            // 仍然设置src，但不播放
+            playAudio(audioUrl, { autoplay: false });
           }
         } else {
           console.log('没有有效的音频URL');
@@ -1057,7 +1060,7 @@ onMounted(() => {
         
         // 添加事件监听
         audioPlayerRef.value.addEventListener('play', () => {
-          console.log('音频开始播放');
+          console.log('监听到音频开始播放');
         });
         
         audioPlayerRef.value.addEventListener('error', (e) => {
