@@ -360,6 +360,24 @@ const audioPlayerRef = ref(null);
 const showModal = ref(false);
 const uploadRef = ref();
 
+// 添加对isSSMLMode的监听
+watch(isSSMLMode, (newValue, oldValue) => {
+  console.log(`输入模式切换: ${oldValue ? 'SSML' : '纯文本'} -> ${newValue ? 'SSML' : '纯文本'}`);
+  
+  if (newValue && !oldValue) {
+    // 从纯文本切换到SSML模式
+    console.log('将纯文本转换为SSML');
+    const ttsStore = useTtsStore();
+    if (ttsStore) {
+      ttsStore.setSSMLValue(); // 使用store中的方法生成SSML
+    }
+  } else if (!newValue && oldValue) {
+    // 从SSML切换到纯文本模式
+    // 不需要处理，因为纯文本内容已经存在
+    console.log('已切换到纯文本模式，保持现有纯文本内容');
+  }
+});
+
 // 选项列表
 const apiOptions = optionsConfig.apiSelect;
 const languageOptions = optionsConfig.languageSelect;

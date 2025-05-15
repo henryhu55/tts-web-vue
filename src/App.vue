@@ -805,12 +805,12 @@ const handleMainContainerClick = () => {
 
 // 处理内容区域点击
 const handleContentClick = (event) => {
-  console.log('内容区域被点击:', {
-    是否移动端: isMobileView.value,
-    侧边栏状态: isSidebarCollapsed.value,
-    点击目标: event.target,
-    点击坐标: { x: event.clientX, y: event.clientY }
-  });
+  // console.log('内容区域被点击:', {
+  //   是否移动端: isMobileView.value,
+  //   侧边栏状态: isSidebarCollapsed.value,
+  //   点击目标: event.target,
+  //   点击坐标: { x: event.clientX, y: event.clientY }
+  // });
 
   if (isMobileView.value && !isSidebarCollapsed.value) {
     console.log('准备收起侧边栏');
