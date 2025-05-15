@@ -758,7 +758,13 @@ const clearAll = () => {
 const playAudio = (url: string, options = { autoplay: true }) => {
   console.log('统一播放函数被调用:', url);
   
-  if (!url) {
+  // 增强URL有效性检查
+  if (!url || url === '' || 
+      url === 'null' || 
+      url === 'undefined' ||
+      url === window.location.href ||
+      url.includes('127.0.0.1:3344') ||
+      url.includes('localhost:3344')) {
     console.warn('播放失败: 无有效的音频URL');
     return Promise.reject(new Error('无效的音频URL'));
   }
@@ -1352,6 +1358,79 @@ const openApiSite = () => {
   console.log('打开API购买页面');
 };
 
+// 检查是否有可用的音频
+const isAudioAvailable = () => {
+  let audioUrl = '';
+  
+  // 尝试来源1: 全局store中的currMp3Url
+  if (globalTtsStore && globalTtsStore.currMp3Url) {
+    // 处理ref对象或字符串
+    if (typeof globalTtsStore.currMp3Url === 'object' && 'value' in globalTtsStore.currMp3Url) {
+      audioUrl = globalTtsStore.currMp3Url.value;
+    } else if (typeof globalTtsStore.currMp3Url === 'string') {
+      audioUrl = globalTtsStore.currMp3Url;
+    }
+  }
+  
+  // 尝试来源2: 全局globalCurrMp3Url变量
+  if ((!audioUrl || audioUrl === '') && globalCurrMp3Url) {
+    if (typeof globalCurrMp3Url === 'object' && 'value' in globalCurrMp3Url) {
+      audioUrl = globalCurrMp3Url.value;
+    }
+  }
+  
+  // 尝试来源3: audio元素的src属性
+  if ((!audioUrl || audioUrl === '') && audioPlayerRef && audioPlayerRef.value) {
+    const playerSrc = audioPlayerRef.value.src;
+    if (playerSrc && playerSrc !== '' && playerSrc !== 'null' && playerSrc !== window.location.href) {
+      // 确保不是本地服务器地址
+      if (!playerSrc.includes('127.0.0.1:3344') && !playerSrc.includes('localhost:3344')) {
+        audioUrl = playerSrc;
+      }
+    }
+  }
+
+  // 尝试来源4: 全局audioPlayer
+  if ((!audioUrl || audioUrl === '') && globalTtsStore && globalTtsStore.audioPlayer) {
+    const globalPlayerSrc = globalTtsStore.audioPlayer.src;
+    if (globalPlayerSrc && globalPlayerSrc !== '' && globalPlayerSrc !== 'null' && globalPlayerSrc !== window.location.href) {
+      // 确保不是本地服务器地址
+      if (!globalPlayerSrc.includes('127.0.0.1:3344') && !globalPlayerSrc.includes('localhost:3344')) {
+        audioUrl = globalPlayerSrc;
+      }
+    }
+  }
+  
+  // 检查URL是否有效
+  // 1. 必须存在且不为空
+  // 2. 不能是默认的服务器地址 (例如http://127.0.0.1:3344/)
+  // 3. 不能是空值或浏览器默认值
+  if (!audioUrl || audioUrl === '') {
+    return false;
+  }
+  
+  // 过滤掉本地服务器地址
+  if (audioUrl.includes('127.0.0.1:3344') || 
+      audioUrl.includes('localhost:3344') ||
+      audioUrl === window.location.href ||
+      audioUrl === 'null' ||
+      audioUrl === 'undefined') {
+    return false;
+  }
+  
+  // 如果是blob类型的URL或基于data:的URL，几乎肯定是有效的
+  if (audioUrl.startsWith('blob:') || audioUrl.startsWith('data:')) {
+    return true;
+  }
+  
+  // 附加检查：确保URL至少长于8个字符（http://a）
+  if (audioUrl.length < 8) {
+    return false;
+  }
+  
+  return true;
+};
+
 // 下载
 const download = () => {
   console.log("下载音频");
@@ -1400,29 +1479,44 @@ const download = () => {
   
   // 确保有有效的URL
   if (audioUrl && audioUrl !== '') {
-    console.log("创建下载链接:", audioUrl);
-    
-    try {
-      // 创建一个隐藏的a标签来触发下载
-      const a = document.createElement('a');
-      a.href = audioUrl;
-      a.download = `tts-audio-${new Date().getTime()}.${playerConfig.formatType || 'mp3'}`;
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
+    // 过滤掉本地服务器地址和无效URL
+    if (audioUrl.includes('127.0.0.1:3344') || 
+        audioUrl.includes('localhost:3344') ||
+        audioUrl === window.location.href ||
+        audioUrl === 'null' ||
+        audioUrl === 'undefined') {
+      console.warn("检测到无效的音频URL:", audioUrl);
       
       ElMessage({
-        message: "开始下载音频",
-        type: "success",
+        message: "没有可用的音频可下载",
+        type: "warning",
         duration: 2000,
       });
-    } catch (error) {
-      console.error("下载过程中出错:", error);
-      ElMessage({
-        message: "下载失败: " + (error instanceof Error ? error.message : String(error)),
-        type: "error",
-        duration: 2000,
-      });
+    } else {
+      console.log("创建下载链接:", audioUrl);
+      
+      try {
+        // 创建一个隐藏的a标签来触发下载
+        const a = document.createElement('a');
+        a.href = audioUrl;
+        a.download = `tts-audio-${new Date().getTime()}.${playerConfig.formatType || 'mp3'}`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        
+        ElMessage({
+          message: "开始下载音频",
+          type: "success",
+          duration: 2000,
+        });
+      } catch (error) {
+        console.error("下载过程中出错:", error);
+        ElMessage({
+          message: "下载失败: " + (error instanceof Error ? error.message : String(error)),
+          type: "error",
+          duration: 2000,
+        });
+      }
     }
   } else {
     console.warn("没有可用的音频URL可下载");
@@ -1718,5 +1812,6 @@ export {
   getTTSData,
   initGlobalRefs,
   audioPlayerRef, // 导出audioPlayerRef以便组件可以绑定
-  trimUrl
+  trimUrl,
+  isAudioAvailable
 };

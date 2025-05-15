@@ -134,7 +134,6 @@ const loadHistory = () => {
     
     // 获取原始数据
     const rawData = localStorage.getItem('tts-history');
-    console.log('原始数据:', rawData);
     
     // 如果数据为null或undefined
     if (!rawData) {
@@ -443,7 +442,6 @@ const addTestRecord = () => {
 const showRawStorageData = () => {
   try {
     const rawData = localStorage.getItem('tts-history');
-    console.log('localStorage中的原始数据:', rawData);
     
     let parsedData = null;
     try {
