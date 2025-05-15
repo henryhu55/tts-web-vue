@@ -475,7 +475,7 @@ async function getTTSData(params: TTSParams): Promise<TTSResponse> {
     
     while (retry < retryCount) {
       try {
-        console.log(`尝试调用TTS API (尝试 ${retry + 1}/${retryCount})`);
+        console.log(`开始调用TTS API (尝试 ${retry + 1}/${retryCount})`);
         
         // 确保参数类型兼容
         const apiParams = {

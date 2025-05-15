@@ -122,7 +122,7 @@ export async function callTTSApi(params: TTSParams): Promise<TTSResponse> {
           {
             headers,
             responseType: 'arraybuffer',
-            timeout: 30000
+            timeout: 300000
           }
         );
         
@@ -153,7 +153,7 @@ export async function callTTSApi(params: TTSParams): Promise<TTSResponse> {
         {
           headers,
             responseType: 'arraybuffer',
-            timeout: 30000 // 设置30秒超时
+            timeout: 300000 // 设置300秒超时
         }
       );
 
