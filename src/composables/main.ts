@@ -1566,6 +1566,12 @@ const handleRefreshConnection = async () => {
   console.log("刷新免费TTS服务连接");
 };
 
+const trimUrl = (field) => {
+  if (config.value && config.value[field]) {
+    config.value[field] = config.value[field].trim();
+  }
+};
+
 // 主要的事件钩子需要在组件内部调用，这里只提供函数定义
 // 组件内调用useMainSetup()获取数据和store
 
@@ -1672,5 +1678,6 @@ export {
   adjustContentMargins,
   getTTSData,
   initGlobalRefs,
-  audioPlayerRef // 导出audioPlayerRef以便组件可以绑定
+  audioPlayerRef, // 导出audioPlayerRef以便组件可以绑定
+  trimUrl
 };

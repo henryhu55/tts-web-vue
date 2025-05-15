@@ -980,7 +980,8 @@ import {
   initGlobalRefs,
   playAudio,
   audioPlayerRef,
-  globalCurrMp3Url
+  globalCurrMp3Url,
+  trimUrl
 } from '@/composables/main';
 
 // 在组件setup中初始化i18n和store
