@@ -168,7 +168,10 @@ const messages = {
       fileFormatTip: "The format of text: *.txt",
       clearAll: "Clear All",
       doc: "Documentation",
-      // Otros textos...
+      textRequired: "Please enter text content",
+      pleaseWait: "Please wait...",
+      converting: "Converting...",
+      conversionFailed: "Conversion failed"
     },
     options: {
       api: "Interface",
@@ -572,16 +575,19 @@ const messages = {
       fileName: "Nombre de Archivo",
       filePath: "Ruta de Archivo",
       fileSize: "Palabras",
-      fileFormatTip: "El formato de texto: *.txt",
       status: "Estado",
       ready: "Listo",
       remove: "Eliminar",
       play: "Reproducir",
       openInFolder: "Abrir en Carpeta",
       selectFiles: "Seleccionar Archivos",
+      fileFormatTip: "El formato de texto: *.txt",
       clearAll: "Limpiar Todo",
       doc: "Documentación",
-      // Otros textos...
+      textRequired: "Por favor, ingrese el contenido del texto",
+      pleaseWait: "Por favor, espere...",
+      converting: "Convertiendo...",
+      conversionFailed: "Conversión fallida"
     },
     options: {
       api: "Interfaz",
@@ -935,6 +941,10 @@ const messages = {
       fileFormatTip: "文本格式：*.txt",
       clearAll: "清空所有",
       doc: "文档",
+      textRequired: "请输入文本内容",
+      pleaseWait: "请稍候...",
+      converting: "正在转换中...",
+      conversionFailed: "转换失败"
     },
     options: {
       api: "接口",

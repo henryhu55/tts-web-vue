@@ -28,6 +28,11 @@
             <el-icon><Notebook /></el-icon>
           </el-tooltip>
         </el-menu-item>
+        <el-menu-item index="6">
+          <el-tooltip content="转换历史" placement="right" :disabled="isMobile">
+            <el-icon><Clock /></el-icon>
+          </el-tooltip>
+        </el-menu-item>
         <el-menu-item index="5">
           <el-tooltip content="在线生成字幕" placement="right" :disabled="isMobile">
             <el-icon><VideoPlay /></el-icon>
@@ -72,7 +77,8 @@ import { storeToRefs } from "pinia";
 import { useI18n } from 'vue-i18n';
 import { ref, onMounted, onUnmounted, nextTick } from 'vue';
 import Version from "./Version.vue";
-import { Document, Files, Setting, Notebook, Help, VideoPlay, ArrowRight } from '@element-plus/icons-vue';
+import { Document, Files, Setting, Notebook, Help, VideoPlay, ArrowRight, Clock } from '@element-plus/icons-vue';
+import router from '@/router/router';
 
 const { t } = useI18n();
 const ttsStore = useTtsStore();
@@ -151,6 +157,15 @@ const menuChange = (index: number) => {
   page.value.asideIndex = index.toString();
   console.log('Aside: 菜单状态已更新为:', page.value.asideIndex);
   
+  // 根据菜单项导航到对应页面
+  if (index.toString() === '6') {
+    // 历史记录页面
+    router.push('/history');
+  } else {
+    // 其他页面保持在首页
+    router.push('/');
+  }
+  
   // 确保页面状态已更新
   nextTick(() => {
     console.log('Aside: 页面刷新后的菜单状态:', page.value.asideIndex);
@@ -186,7 +201,6 @@ const showUserGuide = () => {
   justify-content: space-between;
   border-bottom-left-radius: 0;
   padding: 0;
-  padding-top: 20px;
   box-shadow: inset -1px 0 0 rgba(0, 0, 0, 0.05);
   width: 64px;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
@@ -198,6 +212,7 @@ const showUserGuide = () => {
   flex: 1;
   overflow-y: auto;
   position: relative;
+  padding-top: 60px; /* 为顶部导航条留出空间 */
 }
 
 .version-container {

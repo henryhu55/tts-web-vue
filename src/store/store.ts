@@ -569,7 +569,7 @@ export const useTtsStore = defineStore("ttsStore", {
           type: "error",
           duration: 2000,
         });
-        return;
+        return false;
       }
       
       // 停止当前正在播放的音频
@@ -580,15 +580,25 @@ export const useTtsStore = defineStore("ttsStore", {
       
       // 创建新的音频播放器
       const audioPlayer = new Audio(val);
+      
+      // 添加事件监听
+      audioPlayer.addEventListener('ended', () => {
+        console.log('音频播放结束');
+        document.dispatchEvent(new CustomEvent('audio-playback-ended'));
+      });
+      
+      audioPlayer.addEventListener('error', (e) => {
+        console.error('音频播放出错:', e);
+        document.dispatchEvent(new CustomEvent('audio-playback-error'));
+      });
+      
       this.audioPlayer = audioPlayer;
       
       try {
         await audioPlayer.play();
-        ElMessage({
-          message: "正在播放",
-          type: "success",
-          duration: 2000,
-        });
+        // 移除成功消息，由调用方自行处理
+        console.log('音频播放成功');
+        return true;
       } catch (err) {
         console.error('播放失败:', err);
         ElMessage({
@@ -596,6 +606,9 @@ export const useTtsStore = defineStore("ttsStore", {
           type: "error",
           duration: 2000,
         });
+        // 触发错误事件
+        document.dispatchEvent(new CustomEvent('audio-playback-error'));
+        return false;
       }
     },
     showDisclaimers() {
@@ -782,6 +795,64 @@ export const useTtsStore = defineStore("ttsStore", {
           type: "error",
           duration: 2000,
         });
+      }
+    },
+    // 添加新的转换记录到历史
+    addHistoryRecord(record) {
+      try {
+        console.log('开始保存历史记录:', record);
+        
+        // 从localStorage获取现有历史记录
+        let history = JSON.parse(localStorage.getItem('tts-history') || '[]');
+        console.log('获取到现有历史记录:', history.length, '条');
+        
+        // 确保记录有必要的字段
+        if (!record || typeof record !== 'object') {
+          console.error('历史记录参数无效:', record);
+          return false;
+        }
+        
+        // 创建新记录
+        const newRecord = {
+          id: Date.now(), // 使用时间戳作为唯一ID
+          text: record.text || '',
+          url: record.url || '',
+          voiceName: record.voiceName || '',
+          audioData: record.audioData || null, // 保存音频数据
+          timestamp: Date.now()
+        };
+        
+        console.log('创建新记录ID:', newRecord.id);
+        
+        // 将新记录添加到历史的开头
+        history.unshift(newRecord);
+        
+        // 最多保留100条记录
+        if (history.length > 100) {
+          history = history.slice(0, 100);
+        }
+        
+        // 保存回localStorage
+        localStorage.setItem('tts-history', JSON.stringify(history));
+        
+        console.log('已保存历史记录，当前共', history.length, '条记录');
+        
+        // 检查保存是否成功
+        let savedHistory = JSON.parse(localStorage.getItem('tts-history') || '[]');
+        console.log('验证保存结果:', savedHistory.length, '条记录');
+        
+        // 触发自定义事件通知历史记录更新
+        try {
+          window.dispatchEvent(new CustomEvent('tts-history-updated'));
+          console.log('已触发历史记录更新事件');
+        } catch (e) {
+          console.error('触发历史更新事件失败:', e);
+        }
+        
+        return true;
+      } catch (err) {
+        console.error('保存历史记录失败:', err);
+        return false;
       }
     },
   },

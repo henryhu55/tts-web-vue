@@ -869,6 +869,11 @@
         </el-button>
       </div>
     </div>
+
+    <!-- 添加历史记录页面 -->
+    <div class="history-record-container" v-show="page.asideIndex === '6'">
+      <HistoryRecord></HistoryRecord>
+    </div>
   </div>
 </template>
 
@@ -983,6 +988,9 @@ import {
   globalCurrMp3Url,
   trimUrl
 } from '@/composables/main';
+
+// 添加HistoryRecord组件导入
+import HistoryRecord from "@/components/history/HistoryRecord.vue";
 
 // 在组件setup中初始化i18n和store
 const { t, ttsStore, localTTSStore, inputs, page, tableData, currMp3Url, config, formConfig, audioPlayer } = useMainSetup();
@@ -1211,7 +1219,8 @@ const handleAudioCanPlay = () => {
   .modern-main .batch-area-card,
   .modern-main .config-page-container,
   .modern-main .doc-page-container,
-  .modern-main .content-area {
+  .modern-main .content-area,
+  .modern-main .history-record-container {
     padding: 10px;
     width: 100%;
     border-radius: 0;
@@ -1326,5 +1335,17 @@ const handleAudioCanPlay = () => {
   background-color: #f5f7fa;
   border-radius: 4px;
   font-size: 14px;
+}
+
+/* 历史记录页面样式 */
+.history-record-container {
+  width: 100%;
+  max-width: 1000px;
+  margin: 20px auto;
+  background-color: var(--card-background);
+  border-radius: var(--border-radius-large);
+  box-shadow: var(--shadow-medium);
+  border: 1px solid var(--border-color);
+  overflow: hidden;
 }
 </style>

@@ -8,8 +8,9 @@ import VoiceSelector from "../components/main/VoiceSelector.vue";
 import ConfigPage from "../components/configpage/ConfigPage.vue";
 import { ElMessage, ElMessageBox } from 'element-plus';
 import WebStore from "@/store/web-store";
+import router from '@/router/router';
 
-import { ref, watch, onMounted, nextTick, onUnmounted, reactive } from "vue";
+import { ref, watch, onMounted, nextTick, onUnmounted, reactive, computed } from "vue";
 import { useTtsStore } from "@/store/store";
 import { useFreeTTSstore, FreeTTSErrorType } from "@/store/play";
 import { storeToRefs } from "pinia";
@@ -19,6 +20,7 @@ import Loading from "../components/main/Loading.vue";  // 添加Loading组件引
 import FixedHeader from "../components/header/FixedHeader.vue";  // 添加这一行
 import FreeTTSErrorDisplay from '../components/main/FreeTTSErrorDisplay.vue'; // 导入FreeTTSErrorDisplay组件
 import { getChineseName } from '@/voice-utils'; // 导入getChineseName函数
+import { useLocalTTSStore } from "@/store/local-tts-store";
 
 // 导入图标
 import { 
@@ -1126,30 +1128,62 @@ const startBtn = async () => {
         duration: 2000,
       });
       
-      // 添加到历史记录表
-      if (globalTtsStore.tableData) {
-        // 确保tableData不为空且有value属性
-        if (!globalTtsStore.tableData.value) {
-          globalTtsStore.tableData.value = [];
-          console.log('初始化tableData.value为空数组');
+      // 添加到历史记录
+      try {
+        // 获取当前输入文本
+        const originalText = isSSMLMode.value ? globalInputs.value.ssmlValue : globalInputs.value.inputValue;
+        
+        // 获取当前语音配置
+        const currentVoice = globalFormConfig.value.voiceSelect;
+        
+        // 如果有临时blob URL，尝试获取其音频数据
+        let audioData = null;
+        if (audioUrl && audioUrl.startsWith('blob:')) {
+          try {
+            console.log('正在将blob URL转换为base64数据...');
+            // 获取blob数据
+            const response = await fetch(audioUrl);
+            const blob = await response.blob();
+            
+            // 转换为base64
+            const reader = new FileReader();
+            audioData = await new Promise((resolve) => {
+              reader.onloadend = () => {
+                if (reader.result) {
+                  // 获取base64数据（去掉前缀）
+                  const base64Data = reader.result.toString().split(',')[1];
+                  console.log('已将blob转换为base64数据，长度:', base64Data.length);
+                  resolve(base64Data);
+                } else {
+                  resolve(null);
+                }
+              };
+              reader.readAsDataURL(blob);
+            });
+          } catch (err) {
+            console.error('获取音频blob数据失败:', err);
+          }
         }
         
-        try {
-          globalTtsStore.tableData.value.unshift({
-            id: Date.now(),
-            text: globalInputs.value.inputValue.substring(0, 30) + (globalInputs.value.inputValue.length > 30 ? '...' : ''),
-            voiceName: globalFormConfig.value.voiceSelect,
-            length: '刚刚',
+        // 调用store中的添加历史记录方法
+        if (globalTtsStore && globalTtsStore.addHistoryRecord) {
+          // 创建历史记录对象
+          const historyRecord = {
+            text: originalText.length > 100 ? originalText.substring(0, 100) + '...' : originalText,
             url: audioUrl,
-            file: null
-          });
-          console.log('已添加记录到历史表');
-        } catch (err) {
-          console.error('添加到历史表失败:', err);
-          // 错误不影响主流程，继续执行
+            voiceName: currentVoice,
+            audioData: audioData  // 添加音频数据
+          };
+          
+          console.log('保存历史记录:', historyRecord.text.substring(0, 30) + '...');
+          const success = globalTtsStore.addHistoryRecord(historyRecord);
+          console.log('历史记录保存' + (success ? '成功' : '失败'));
+        } else {
+          console.warn('globalTtsStore.addHistoryRecord未定义，无法添加到历史记录');
         }
-      } else {
-        console.warn('globalTtsStore.tableData未定义，无法添加到历史记录');
+      } catch (err) {
+        console.error('添加到历史记录失败:', err);
+        // 错误不影响主流程，继续执行
       }
     } else {
       throw new Error("未获取到有效的音频数据");
@@ -1546,31 +1580,18 @@ const adjustContentMargins = () => {
   });
 };
 
-// 处理导航更改
-const handleNavChange = (nav) => {
-  console.log("导航更改为:", nav);
-  // 根据顶部导航更新侧边栏选中项
-  if (nav === 'tts') {
-    if (globalPage && globalPage.value) {
-      globalPage.value.asideIndex = '1';
-      console.log('已将侧边栏导航更新为: 1 (文本转语音)');
-    } else {
-      console.warn('globalPage未定义，无法更新侧边栏状态');
-    }
-  } else if (nav === 'docs') {
-    if (globalPage && globalPage.value) {
-      globalPage.value.asideIndex = '4';
-      console.log('已将侧边栏导航更新为: 4 (文档)');
-    } else {
-      console.warn('globalPage未定义，无法更新侧边栏状态');
-    }
-  } else if (nav === 'subtitle') {
-    if (globalPage && globalPage.value) {
-      globalPage.value.asideIndex = '5';
-      console.log('已将侧边栏导航更新为: 5 (在线生成字幕)');
-    } else {
-      console.warn('globalPage未定义，无法更新侧边栏状态');
-    }
+// 导航变化处理函数
+const handleNavChange = (index: string) => {
+  console.log('导航变化:', index);
+  if (index === '1') {
+    // 文本转语音
+    router.push('/');
+  } else if (index === '2') {
+    // 批量处理
+    router.push('/');
+  } else if (index === '6') {
+    // 历史记录
+    router.push('/history');
   }
 };
 
