@@ -146,6 +146,10 @@ export const useTtsStore = defineStore("ttsStore", {
       this.inputs.ssmlValue = ssmlContent;
       console.log("生成的SSML使用声音:", voice);
     },
+    setInputValue(text = "") {
+      if (text === "") text = this.inputs.inputValue;
+      this.inputs.inputValue = text;
+    },
     setLanguage() {
       store.set("language", this.config.language);
     },

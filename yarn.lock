@@ -199,7 +199,7 @@
     "@vue/compiler-dom" "3.5.11"
     "@vue/shared" "3.5.11"
 
-"@vue/devtools-api@^6.5.0":
+"@vue/devtools-api@^6.5.0", "@vue/devtools-api@^6.6.4":
   version "6.6.4"
   resolved "https://registry.npmmirror.com/@vue/devtools-api/-/devtools-api-6.6.4.tgz"
   integrity sha512-sGhTPMuXqZ1rVOk32RylztWkfXTRhuS7vgAKv0zjqk8gbsHkJ7xfFf+jbySxt7tWObEJwyKaHMikV/WGDiQm8g==
@@ -765,6 +765,13 @@ vue-i18n@9.6.5:
     "@intlify/core-base" "9.6.5"
     "@intlify/shared" "9.6.5"
     "@vue/devtools-api" "^6.5.0"
+
+vue-router@^4.5.1:
+  version "4.5.1"
+  resolved "https://registry.npmmirror.com/vue-router/-/vue-router-4.5.1.tgz"
+  integrity sha512-ogAF3P97NPm8fJsE4by9dwSYtDwXIY1nFY9T6DyQnGHd1E2Da94w9JIolpe42LJGIl0DwOHBi8TcRPlPGwbTtw==
+  dependencies:
+    "@vue/devtools-api" "^6.6.4"
 
 vue-template-compiler@^2.7.14:
   version "2.7.16"

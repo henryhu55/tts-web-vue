@@ -372,6 +372,7 @@ watch(isSSMLMode, (newValue, oldValue) => {
     const ttsStore = useTtsStore();
     if (ttsStore) {
       ttsStore.setSSMLValue(); // 使用store中的方法生成SSML
+      ttsStore.setInputValue(); // 使用store中的方法生成纯文本
     }
   } else if (!newValue && oldValue) {
     // 从SSML切换到纯文本模式
@@ -763,8 +764,8 @@ const playAudio = (url: string, options = { autoplay: true }) => {
       url === 'null' || 
       url === 'undefined' ||
       url === window.location.href ||
-      url.includes('127.0.0.1:3344') ||
-      url.includes('localhost:3344')) {
+      url.endsWith('127.0.0.1:3344') ||
+      url.endsWith('localhost:3344')) {
     console.warn('播放失败: 无有效的音频URL');
     return Promise.reject(new Error('无效的音频URL'));
   }
@@ -944,6 +945,12 @@ const voiceSelectChange = (value) => {
 // 开始按钮
 const startBtn = async () => {
   console.log("开始转换");
+
+  const ttsStore = useTtsStore();
+    if (ttsStore) {
+      ttsStore.setSSMLValue(); // 使用store中的方法生成SSML
+      ttsStore.setInputValue(); // 使用store中的方法生成纯文本
+    }
   
   // 验证有转换内容
   if (!globalInputs.value?.inputValue && !globalInputs.value?.ssmlValue) {
@@ -1410,8 +1417,8 @@ const isAudioAvailable = () => {
   }
   
   // 过滤掉本地服务器地址
-  if (audioUrl.includes('127.0.0.1:3344') || 
-      audioUrl.includes('localhost:3344') ||
+  if (audioUrl.endsWith('127.0.0.1:3344') || 
+      audioUrl.endsWith('localhost:3344') ||
       audioUrl === window.location.href ||
       audioUrl === 'null' ||
       audioUrl === 'undefined') {
@@ -1480,8 +1487,8 @@ const download = () => {
   // 确保有有效的URL
   if (audioUrl && audioUrl !== '') {
     // 过滤掉本地服务器地址和无效URL
-    if (audioUrl.includes('127.0.0.1:3344') || 
-        audioUrl.includes('localhost:3344') ||
+    if (audioUrl.endsWith('127.0.0.1:3344') || 
+        audioUrl.endsWith('localhost:3344') ||
         audioUrl === window.location.href ||
         audioUrl === 'null' ||
         audioUrl === 'undefined') {
