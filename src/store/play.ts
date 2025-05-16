@@ -505,6 +505,14 @@ async function getTTSData(params: TTSParams): Promise<TTSResponse> {
           } else if (errorCode && errorCode.startsWith("HTTP_5")) {
             errorMessage = `服务器错误: 请稍后再试`;
             errorCode = "SERVER_ERROR";
+          } else if (errorCode === "HTTP_400" && voiceData.activeIndex === "1") {
+            errorMessage = "SSML格式错误，请检查您的SSML标记语法是否正确";
+            errorCode = "SSML_SYNTAX_ERROR";
+            console.log("检测到SSML格式错误，不再重试");
+            return {
+              error: errorMessage,
+              errorCode: errorCode
+            };
           } else if (errorCode === "LOCAL_TTS_ERROR" && result.error.includes("quota exceeded")) {
             errorMessage = "您的免费额度已用完，请使用TTS88API解锁无限使用";
             errorCode = "QUOTA_EXCEEDED";

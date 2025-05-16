@@ -307,17 +307,13 @@ export const useTtsStore = defineStore("ttsStore", {
           if (res) {
             // 成功获取到数据
             if (res.audibleUrl) {
-              // 如果返回了可播放的URL
               this.currMp3Url = ref(res.audibleUrl);
-              // 播放音频
               if (this.config.autoplay) {
                 this.audition(this.currMp3Url.value);
               }
             } else if (res.buffer) {
-              // 如果返回了音频buffer
               const audioBlob = new Blob([res.buffer], { type: 'audio/mpeg' });
               this.currMp3Url = ref(URL.createObjectURL(audioBlob));
-              // 播放音频
               if (this.config.autoplay) {
                 this.audition(this.currMp3Url.value);
               }
@@ -330,11 +326,21 @@ export const useTtsStore = defineStore("ttsStore", {
           }
         } catch (err: any) {
           console.error(err);
-          ElMessage({
-            message: "转换失败\n" + String(err),
-            type: "error",
-            duration: 3000,
-          });
+          
+          // 处理来自 play.ts 的错误
+          if (err.errorCode) {
+            ElMessage({
+              message: err.error,
+              type: "error",
+              duration: 3000,
+            });
+          } else {
+            ElMessage({
+              message: "转换失败\n" + String(err),
+              type: "error",
+              duration: 3000,
+            });
+          }
           resFlag = false;
         } finally {
           this.isLoading = false;
