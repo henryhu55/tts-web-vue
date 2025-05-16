@@ -57,16 +57,22 @@ const getLatestVsersion = async () => {
   try {
     // 先尝试从 Gitee 获取
     let response = await axios.get(repoConfig.gitee.apiUrl);
-    return {
-      latestVsersion: response.data
-    };
+    if (response.data && response.data.tag_name) {
+      return {
+        latestVsersion: response.data
+      };
+    }
+    throw new Error('Invalid Gitee response');
   } catch (e) {
     try {
       // 如果 Gitee 失败，尝试从 GitHub 获取
       let response = await axios.get(repoConfig.github.apiUrl);
-      return {
-        latestVsersion: response.data
-      };
+      if (response.data && response.data.tag_name) {
+        return {
+          latestVsersion: response.data
+        };
+      }
+      throw new Error('Invalid GitHub response');
     } catch (error) {
       console.error("获取版本信息失败", error);
       // 返回当前版本作为最新版本，避免错误
