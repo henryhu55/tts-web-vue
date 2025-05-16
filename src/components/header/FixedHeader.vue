@@ -338,6 +338,7 @@ export default {
   font-size: 22px;
   color: var(--text-primary);
   background: linear-gradient(90deg, #4886FF, #66A5FF);
+  background-clip: padding-box; /* 标准属性 */
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   text-transform: capitalize;

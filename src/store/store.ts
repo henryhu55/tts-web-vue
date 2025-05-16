@@ -9,6 +9,12 @@ import { ref } from 'vue';
 // 使用Web版本的Store
 const store = new WebStore();
 
+// 定义输入模式常量
+export const INPUT_MODE = {
+  TEXT: "0",
+  SSML: "1"
+} as const;
+
 // 定义并导出容器，第一个参数是容器id，必须唯一，用来将所有的容器
 // 挂载到根容器上
 export const useTtsStore = defineStore("ttsStore", {
@@ -29,6 +35,7 @@ export const useTtsStore = defineStore("ttsStore", {
       inputs: {
         inputValue: "如果你觉得这个项目还不错， 欢迎Star、Fork和PR。你的Star是对作者最好的鼓励。",
         ssmlValue: "如果你觉得这个项目还不错， 欢迎Star、Fork和PR。你的Star是对作者最好的鼓励。",
+        isSSMLManuallyEdited: false, // 添加新状态，跟踪SSML是否被手动编辑
       },
       formConfig: defaultFormConfig,
       page: {
@@ -85,7 +92,15 @@ export const useTtsStore = defineStore("ttsStore", {
         }
       }
     },
-    setSSMLValue(text = "") {
+    setSSMLValue(text = "", forceUpdate = false) {
+      // 如果没有强制更新，且当前是SSML模式，且SSML已被手动编辑
+      if (!forceUpdate && 
+          this.page.tabIndex === INPUT_MODE.SSML && 
+          this.inputs.isSSMLManuallyEdited) {
+        console.log('检测到SSML已被手动编辑，保持当前内容');
+        return;
+      }
+
       if (text === "") text = this.inputs.inputValue;
       const voice = this.formConfig.voiceSelect;
       console.log("setSSMLValue - 当前选择的声音:", voice);

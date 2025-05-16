@@ -371,7 +371,7 @@ watch(isSSMLMode, (newValue, oldValue) => {
     console.log('将纯文本转换为SSML');
     const ttsStore = useTtsStore();
     if (ttsStore) {
-      ttsStore.setSSMLValue(); // 使用store中的方法生成SSML
+      ttsStore.setSSMLValue("", true); // 强制更新SSML
       ttsStore.setInputValue(); // 使用store中的方法生成纯文本
     }
   } else if (!newValue && oldValue) {

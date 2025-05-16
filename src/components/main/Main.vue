@@ -74,6 +74,7 @@
             class="modern-textarea"
             resize="none"
             :rows="18"
+            @input="handleSSMLInput"
           />
           <!-- 文本下方控制区域：简化为文字显示和购买按钮 -->
           <div class="text-footer-controls">
@@ -882,10 +883,11 @@
 import { ref, watch, onMounted, nextTick, reactive } from "vue";
 import { useI18n } from 'vue-i18n';
 import i18n from '@/assets/i18n/i18n';
-import { useTtsStore } from "@/store/store";
+import { useTtsStore, INPUT_MODE } from "@/store/store";
 import { useLocalTTSStore } from "@/store/local-tts-store";
 import { storeToRefs } from "pinia";
 import { optionsConfig } from "@/components/main/options-config"; // 导入optionsConfig
+import { debounce } from 'lodash-es'; // 添加 lodash-es 的 debounce 导入
 
 // 导入从main.ts提取的所有变量、函数和响应式状态
 import { 
@@ -1163,6 +1165,25 @@ const handleAudioCanPlay = () => {
     });
   }
 };
+
+// 使用防抖包装 SSML 输入处理函数
+const handleSSMLInput = debounce(() => {
+  const ttsStore = useTtsStore();
+  if (ttsStore.page.tabIndex === INPUT_MODE.SSML && !ttsStore.inputs.isSSMLManuallyEdited) {
+    ttsStore.inputs.isSSMLManuallyEdited = true;
+    console.log('SSML已被手动编辑，当前tabIndex:', ttsStore.page.tabIndex);
+  }
+}, 300); // 300ms 的防抖延迟
+
+// 监听SSML模式变化
+watch(isSSMLMode, (newValue) => {
+  const ttsStore = useTtsStore();
+  if (!newValue) {
+    // 切换到纯文本模式时，重置手动编辑状态
+    ttsStore.inputs.isSSMLManuallyEdited = false;
+    console.log('切换到纯文本模式，重置SSML编辑状态');
+  }
+});
 </script>
 
 <style>
