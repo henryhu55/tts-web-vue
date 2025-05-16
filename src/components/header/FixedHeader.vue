@@ -130,6 +130,8 @@ import {
   More, 
   Link 
 } from '@element-plus/icons-vue';
+import { useTtsStore } from "@/store/store";
+import { storeToRefs } from "pinia";
 
 export default {
   name: 'FixedHeader',
@@ -183,6 +185,23 @@ export default {
 
     const changeNav = (nav) => {
       activeNav.value = nav;
+      // 添加反向映射
+      let newAsideIndex;
+      switch(nav) {
+        case 'tts':
+          newAsideIndex = '1';
+          break;
+        case 'docs':
+          newAsideIndex = '4';
+          break;
+        case 'subtitle':
+          newAsideIndex = '5';
+          break;
+      }
+      // 更新全局状态
+      if (newAsideIndex) {
+        page.value.asideIndex = newAsideIndex;
+      }
       emit('nav-change', nav);
     };
 
@@ -239,6 +258,9 @@ export default {
       emit('update:isSSMLMode', newValue);
     });
 
+    const ttsStore = useTtsStore();
+    const { page } = storeToRefs(ttsStore);
+
     return {
       isScrolled,
       isSSMLMode,
@@ -249,7 +271,8 @@ export default {
       handleThemeClick,
       changeNav,
       updateActiveNav,
-      isMobile
+      isMobile,
+      page
     };
   }
 }
