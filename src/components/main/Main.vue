@@ -761,27 +761,15 @@
       <iframe 
         ref="docIframe"
         class="doc-frame" 
-        :src="iframeCurrentSrc" 
+        src="https://docs.tts88.top"
         @load="handleIframeLoad"
         @error="handleIframeError"
         allow="fullscreen"
-        referrerpolicy="no-referrer"
+        referrerpolicy="origin"
+        crossorigin="anonymous"
         :class="{'iframe-visible': iframeLoaded}"
-        sandbox="allow-scripts allow-same-origin allow-popups allow-forms"
       >
       </iframe>
-      <div v-if="iframeError" class="iframe-error">
-        <el-icon class="error-icon"><WarningFilled /></el-icon>
-        <p>加载文档失败，请检查网络连接或尝试备用链接。</p>
-        <div class="error-actions">
-          <el-button type="primary" @click="reloadIframe">
-            <el-icon><RefreshRight /></el-icon> 重新加载
-          </el-button>
-          <el-button @click="tryAlternativeUrl">
-            <el-icon><SwitchButton /></el-icon> 尝试备用链接
-          </el-button>
-        </div>
-      </div>
     </div>
 
     <!-- 语音主播对话框 -->
@@ -934,10 +922,8 @@ import {
   iframeCurrentSrc,
   
   // 函数
-  tryAlternativeUrl,
   handleIframeLoad,
   handleIframeError,
-  reloadIframe,
   checkTTSServiceStatus,
   sendToChatGPT,
   handleDelete,

@@ -395,72 +395,6 @@ const playerConfig = reactive({
   autoplay: true
 });
 
-// iframe相关函数
-const initIframe = () => {
-  iframeCurrentSrc.value = '';
-  
-  // 在清除src后，立即设置容器和iframe样式以确保正确显示
-  nextTick(() => {
-    // 修改页面主容器样式，保留基本结构但减少内边距
-    const mainContainer = document.querySelector('.modern-main');
-    if (mainContainer instanceof HTMLElement && page?.value?.asideIndex === '4') {
-      mainContainer.style.padding = '0';
-      mainContainer.style.gap = '0';
-      // 不设置固定高度和位置，避免覆盖左侧菜单
-    }
-    
-    const container = document.querySelector('.doc-page-container');
-    if (container instanceof HTMLElement) {
-      // 设置文档容器填充可用空间，但不使用fixed定位
-      container.style.display = 'flex';
-      container.style.flexDirection = 'column';
-      container.style.height = 'calc(100vh - 40px)'; // 只预留顶部导航栏的空间
-      container.style.margin = '0';
-      container.style.padding = '0';
-      container.style.borderRadius = '0';
-      container.style.boxShadow = 'none';
-      // 不使用fixed定位，避免覆盖左侧菜单
-      container.style.position = 'relative';
-    }
-    
-    if (docIframe.value) {
-      docIframe.value.style.display = 'block';
-      docIframe.value.style.flex = '1';
-      docIframe.value.style.width = '100%';
-      docIframe.value.style.height = '100%';
-      docIframe.value.style.minHeight = '700px';
-      docIframe.value.style.maxHeight = 'none';
-      docIframe.value.style.margin = '0';
-      docIframe.value.style.padding = '0';
-      docIframe.value.style.border = 'none';
-      docIframe.value.style.borderRadius = '0';
-    }
-    
-    // 设置iframe源
-    iframeCurrentSrc.value = docUrl.value;
-    console.log('iframe 初始化源设置为:', docUrl.value);
-  });
-};
-
-// 尝试使用备用链接
-const tryAlternativeUrl = () => {
-  urlIndex.value = (urlIndex.value + 1) % docUrls.length;
-  docUrl.value = docUrls[urlIndex.value];
-  console.log(`尝试备用文档链接: ${docUrl.value}`);
-  
-  iframeLoaded.value = false;
-  iframeError.value = false;
-  
-  // 清空并重新设置src以确保重新加载
-  initIframe();
-  
-  ElMessage({
-    message: `正在尝试备用链接: ${docUrl.value}`,
-    type: "info",
-    duration: 3000,
-  });
-};
-
 // 处理来自iframe的消息
 const handleIframeMessage = (event) => {
   console.log('收到消息:', event);
@@ -571,11 +505,10 @@ const handleIframeLoad = (event) => {
       });
       
       // 尝试调整iframe高度
-      nextTick(() => {
-        adjustIframeHeight();
-        // 发送初始化消息到iframe
-        sendInitMessageToIframe();
-      });
+      // nextTick(() => {
+      //   // 发送初始化消息到iframe
+      //   sendInitMessageToIframe();
+      // });
       
       // 显示加载成功提示
       ElMessage({
@@ -594,63 +527,6 @@ const handleIframeLoad = (event) => {
   }
 };
 
-// 添加新函数用于调整iframe高度
-const adjustIframeHeight = () => {
-  if (!docIframe.value) return;
-  
-  // 获取容器高度
-  const container = document.querySelector('.doc-page-container');
-  if (!container) return;
-  
-  // 修改页面主容器样式，减少内边距但保留基本布局
-  const mainContainer = document.querySelector('.modern-main');
-  if (mainContainer instanceof HTMLElement && page?.value?.asideIndex === '4') {
-    mainContainer.style.padding = '0';
-    mainContainer.style.gap = '0';
-    // 不修改主容器的overflow和高度，保持基本布局
-  }
-  
-  // 获取可用高度（视口高度减去顶部导航栏高度）
-  const availableHeight = window.innerHeight - 40;
-  
-  // 设置container样式以充分利用可用空间
-  if (container instanceof HTMLElement) {
-    container.style.height = `${availableHeight}px`;
-    container.style.maxHeight = `${availableHeight}px`;
-    container.style.margin = '0';
-    container.style.padding = '0';
-    container.style.borderRadius = '0';
-    container.style.boxShadow = 'none';
-    // 使用相对定位，不覆盖左侧菜单
-    container.style.position = 'relative';
-  }
-  
-  // 设置iframe样式以充满容器
-  docIframe.value.style.width = '100%';
-  docIframe.value.style.height = '100%';
-  docIframe.value.style.minHeight = '700px';
-  docIframe.value.style.maxHeight = 'none';
-  docIframe.value.style.display = 'block';
-  docIframe.value.style.flex = '1';
-  docIframe.value.style.margin = '0';
-  docIframe.value.style.padding = '0';
-  docIframe.value.style.border = 'none';
-  docIframe.value.style.borderRadius = '0';
-  
-  // 强制iframe内容与容器大小相匹配
-  try {
-    if (docIframe.value.contentWindow && docIframe.value.contentWindow.document) {
-      const iframeDoc = docIframe.value.contentWindow.document;
-      // 尝试通过样式影响iframe内部文档的大小
-      const styleEl = iframeDoc.createElement('style');
-      styleEl.textContent = 'html, body { height: 100%; margin: 0; padding: 0; overflow: auto; }';
-      iframeDoc.head.appendChild(styleEl);
-    }
-  } catch (error) {
-    console.warn('无法修改iframe内部样式 (跨域限制):', error);
-  }
-};
-
 // 处理 iframe 加载失败
 const handleIframeError = (event) => {
   console.error('iframe 加载失败:', event);
@@ -661,22 +537,6 @@ const handleIframeError = (event) => {
     message: "文档加载失败，请检查网络连接",
     type: "error",
     duration: 3000,
-  });
-};
-
-// 重新加载 iframe
-const reloadIframe = () => {
-  console.log('重新加载 iframe');
-  iframeLoaded.value = false;
-  iframeError.value = false;
-  
-  // 强制 iframe 重新加载
-  initIframe();
-  
-  ElMessage({
-    message: "正在重新加载文档",
-    type: "info",
-    duration: 2000,
   });
 };
 
@@ -1780,10 +1640,8 @@ export {
   
   // 函数
   getChineseName,
-  tryAlternativeUrl,
   handleIframeLoad,
   handleIframeError,
-  reloadIframe,
   checkTTSServiceStatus,
   sendToChatGPT,
   handleDelete,
