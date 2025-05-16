@@ -1037,7 +1037,6 @@ onMounted(() => {
         // 尝试来源1: globalCurrMp3Url
         if (globalCurrMp3Url && typeof globalCurrMp3Url === 'object' && 'value' in globalCurrMp3Url) {
           audioUrl = globalCurrMp3Url.value;
-          console.log('从globalCurrMp3Url获取到URL:', audioUrl);
         }
         
         // 尝试来源2: ttsStore.currMp3Url

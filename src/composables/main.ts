@@ -157,7 +157,6 @@ const initGlobalRefs = () => {
           ttsStore.currMp3Url = globalCurrMp3Url;
         }
       } else {
-        console.log('ttsStore中没有currMp3Url，创建全局空ref');
         globalCurrMp3Url = ref('');
         // 同步回store
         ttsStore.currMp3Url = globalCurrMp3Url;

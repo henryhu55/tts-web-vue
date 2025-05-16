@@ -207,7 +207,6 @@ export default {
 
     // 根据侧边栏索引更新顶部导航状态
     const updateActiveNav = (asideIndex) => {
-      console.log('FixedHeader: 根据asideIndex更新activeNav:', asideIndex);
       if (asideIndex === '1') {
         activeNav.value = 'tts';
       } else if (asideIndex === '4') {
@@ -215,18 +214,15 @@ export default {
       } else if (asideIndex === '5') {
         activeNav.value = 'subtitle';
       }
-      console.log('FixedHeader: 更新后的activeNav:', activeNav.value);
     };
 
     // 监听props.asideIndex变化
     watch(() => props.asideIndex, (newIndex) => {
-      console.log('FixedHeader: 监测到asideIndex变化:', newIndex);
       updateActiveNav(newIndex);
     });
 
     // 添加一个直接触发主题切换的方法
     const handleThemeClick = () => {
-      console.log('FixedHeader: 主题按钮被点击');
       // 使用 emit 触发事件
       emit('toggle-theme');
       // 同时用全局事件作为备份方案
@@ -240,7 +236,6 @@ export default {
 
     // 生命周期钩子
     onMounted(() => {
-      console.log('FixedHeader 组件已挂载');
       window.addEventListener('scroll', handleScroll);
       checkMobile();
       window.addEventListener('resize', checkMobile);

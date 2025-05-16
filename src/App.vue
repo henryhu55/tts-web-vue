@@ -578,8 +578,6 @@ onMounted(() => {
     console.log('App.vue: 收到全局 toggle-theme-event 事件');
     toggleTheme();
   });
-  
-  console.log('App.vue 已挂载，isDarkTheme =', isDarkTheme.value);
 });
 
 // 组件卸载时清理
