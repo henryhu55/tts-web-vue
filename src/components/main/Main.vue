@@ -872,7 +872,7 @@ import { ref, watch, onMounted, nextTick, reactive } from "vue";
 import { useI18n } from 'vue-i18n';
 import i18n from '@/assets/i18n/i18n';
 import { useTtsStore, INPUT_MODE } from "@/store/store";
-import { useLocalTTSStore } from "@/store/local-tts-store";
+import { useFreeTTSstore } from "@/store/play";
 import { storeToRefs } from "pinia";
 import { optionsConfig } from "@/components/main/options-config"; // 导入optionsConfig
 import { debounce } from 'lodash-es'; // 添加 lodash-es 的 debounce 导入
@@ -1010,6 +1010,38 @@ onMounted(() => {
   
   // 初始化全局引用
   initGlobalRefs();
+  
+  // 检查当前API是否为免费TTS服务，如果是则自动获取免费额度信息
+  // 使用更安全的方式检查API类型，默认为5(免费服务)
+  const currentApi = formConfig.api !== undefined ? formConfig.api : 5;
+  console.log('当前API类型:', currentApi);
+  
+  if (currentApi === 5) {
+    console.log('当前使用免费TTS服务，自动检查免费额度');
+    const localTTSStore = useFreeTTSstore();
+    if (localTTSStore) {
+      // 确保免费TTS服务已启用
+      if (!localTTSStore.config.enabled) {
+        localTTSStore.config.enabled = true;
+        localTTSStore.saveConfig();
+      }
+      
+      // 检查连接并获取免费额度信息
+      localTTSStore.checkServerConnection().then(connected => {
+        if (connected) {
+          console.log("已连接到免费TTS服务");
+          // 获取并显示免费额度信息
+          localTTSStore.getFreeLimitInfo().then(freeLimit => {
+            if (freeLimit) {
+              console.log("页面初始化时获取到免费额度信息:", freeLimit);
+            }
+          });
+        } else {
+          console.error("无法连接到免费TTS服务");
+        }
+      });
+    }
+  }
   
   // 使用全局引用更新currMp3Url
   const updateAudioSrc = () => {

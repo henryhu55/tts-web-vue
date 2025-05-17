@@ -138,9 +138,7 @@ export const useFreeTTSstore = Pinia.defineStore('localTTSStore', {
         this.serverStatus.connected = connected;
         this.serverStatus.lastChecked = Date.now();
         
-        if (connected) {
-          await this.getFreeLimitInfo();
-        } else {
+        if (!connected) {
           this.setErrorState('无法连接到免费TTS服务器', FreeTTSErrorType.CONNECTION_ERROR);
         }
         
@@ -191,135 +189,6 @@ export const useFreeTTSstore = Pinia.defineStore('localTTSStore', {
         const errorCode = this.getErrorCodeFromResponse(error);
         this.setErrorState(`获取免费额度信息失败: ${error.message}`, errorCode);
         return null;
-      }
-    },
-    
-    // 使用免费TTS流API获取音频
-    async getAudioStream(
-      text: string, 
-      voice?: string, 
-      language?: string, 
-      format?: string, 
-      isSSML: boolean = false,
-      speed: number = 1.0,
-      pitch: number = 1.0
-    ) {
-      try {
-        // 重置音频错误状态
-        this.audio.error = null;
-        this.audio.errorCode = FreeTTSErrorType.NONE;
-        this.audio.buffer = null;
-        this.audio.url = null;
-        this.audio.isPlaying = false;
-        
-        // 准备参数
-        const params = {
-          ...(isSSML ? { ssml: text } : { text }),
-          voice: voice || this.config.defaultVoice,
-          language: language || this.config.defaultLanguage,
-          format: format || 'mp3',
-          speed: speed,
-          pitch: pitch
-        };
-        
-        // 使用getTTSData替代已弃用的getFreeTTSStream
-        const ttsParams: TTSParams = {
-          api: 5, // 使用本地免费TTS服务
-          voiceData: {
-            activeIndex: voice || this.config.defaultVoice,
-            ssmlContent: isSSML ? text : '',
-            inputContent: isSSML ? '' : text,
-            retryCount: 3,
-            retryInterval: 1
-          }
-        };
-        
-        const result = await getTTSData(ttsParams);
-        
-        if (result.error) {
-          throw new Error(result.error);
-        }
-        
-        if (!result.buffer) {
-          throw new Error('未获取到音频数据');
-        }
-        
-        const buffer = result.buffer;
-        this.audio.buffer = buffer;
-        
-        // 创建URL
-        const blob = new Blob([buffer], { type: `audio/${params.format}` });
-        const url = URL.createObjectURL(blob);
-        this.audio.url = url;
-        
-        // 更新免费额度信息
-        await this.getFreeLimitInfo();
-        
-        return url;
-      } catch (error: any) {
-        // 处理不同类型的错误
-        const errorCode = this.getErrorCodeFromResponse(error);
-        let errorMessage = error.message || '获取音频失败';
-        
-        // 设置错误状态
-        this.setErrorState(errorMessage, errorCode, true);
-        
-        // 如果是额度不足，尝试更新额度信息
-        if (errorCode === FreeTTSErrorType.QUOTA_EXCEEDED) {
-          try {
-            await this.getFreeLimitInfo();
-          } catch (e) {
-            // 忽略获取额度信息的错误
-          }
-        }
-        
-        return null;
-      }
-    },
-    
-    // 播放已获取的音频
-    playAudio() {
-      if (!this.audio.url) {
-        console.error('没有可播放的音频');
-        return;
-      }
-      
-      const audioElement = new Audio(this.audio.url);
-      this.audio.isPlaying = true;
-      
-      audioElement.onended = () => {
-        this.audio.isPlaying = false;
-      };
-      
-      audioElement.onerror = () => {
-        this.audio.isPlaying = false;
-        this.setErrorState('音频播放失败', FreeTTSErrorType.SERVER_ERROR, true);
-      };
-      
-      audioElement.play();
-    },
-    
-    // 一步完成获取并播放音频
-    async getAndPlayAudio(text: string, voice?: string, language?: string, format?: string, isSSML: boolean = false) {
-      const url = await this.getAudioStream(text, voice, language, format, isSSML);
-      if (url) {
-        this.playAudio();
-        return true;
-      }
-      return false;
-    },
-    
-    // 发起API请求但不更改当前音频状态 (用于测试)
-    async testAPIConnection(url?: string) {
-      try {
-        const testConfig = {
-          ...this.fullConfig,
-          ...(url ? { baseUrl: url } : {})
-        };
-        
-        return await checkServerConnection(testConfig);
-      } catch (error: any) {
-        return false;
       }
     }
   }
@@ -532,6 +401,24 @@ async function getTTSData(params: TTSParams): Promise<TTSResponse> {
         
         // 业务逻辑处理: 添加额外的属性或转换
         // 例如: 可以增加播放列表历史记录、统计使用次数等
+        
+        // 如果是免费TTS服务(api=5)，在请求成功后刷新一次额度信息
+        if (api === 5) {
+          try {
+            console.log("请求成功，刷新免费TTS额度信息");
+            const localTTSStore = useFreeTTSstore();
+            // 异步刷新额度，不阻塞主流程
+            localTTSStore.getFreeLimitInfo().then(freeLimit => {
+              if (freeLimit) {
+                console.log("已更新免费额度信息:", freeLimit);
+              }
+            }).catch(err => {
+              console.error("刷新额度信息失败:", err);
+            });
+          } catch (err) {
+            console.error("尝试刷新额度信息时出错:", err);
+          }
+        }
         
         // 存储转换历史，当前实现只返回结果
         return result;

@@ -309,23 +309,6 @@ onMounted(() => {
     formConfig.value.api = 5;
   }
   
-  // 如果当前使用的是免费TTS服务，自动检查连接和获取额度
-  if (formConfig.value.api === 5) {
-    localTTSStore.checkServerConnection().then(connected => {
-      if (connected) {
-        // 获取免费额度信息
-        localTTSStore.getFreeLimitInfo();
-        
-        // 提示用户正在使用免费服务
-        ElMessage({
-          message: "您正在使用免费TTS服务，无需API密钥即可开始使用",
-          type: "success",
-          duration: 3000,
-        });
-      }
-    });
-  }
-  
   // 手动触发一次SSML更新
   updateSSML();
 
@@ -870,46 +853,6 @@ const quotaProgressColor = computed(() => {
 });
 
 const isTestPlaying = ref(false);
-
-// 测试播放功能
-const handleTestPlay = async () => {
-  if (isTestPlaying.value) return;
-  
-  isTestPlaying.value = true;
-  try {
-    const testText = "这是一段测试语音，用于测试免费TTS服务的效果。";
-    
-    // 使用本地TTS服务的getAudioStream方法
-    const audioUrl = await localTTSStore.getAudioStream(
-      testText,
-      undefined, // 使用默认voice
-      undefined, // 使用默认language
-      "mp3",
-      false
-    );
-    
-    if (!audioUrl) {
-      throw new Error("获取测试音频失败");
-    }
-    
-    // 播放音频
-    ttsStore.audition(audioUrl);
-    
-    ElMessage({
-      message: "正在播放测试音频",
-      type: "success",
-      duration: 2000
-    });
-  } catch (error: any) {
-    ElMessage({
-      message: `测试播放失败: ${error.message}`,
-      type: "error",
-      duration: 3000
-    });
-  } finally {
-    isTestPlaying.value = false;
-  }
-};
 
 // 添加处理函数
 const handleVoiceSettingChange = () => {

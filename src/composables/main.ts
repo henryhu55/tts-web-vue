@@ -788,6 +788,36 @@ const audition = async (value: string) => {
 // API更改
 const apiChange = (value) => {
   console.log("API更改为:", value);
+  
+  // 确保value是有效值，默认为5(免费服务)
+  const apiValue = value !== undefined ? value : 5;
+  
+  // 当切换到免费TTS服务(API=5)时，自动检查并显示免费额度
+  if (apiValue === 5) {
+    const localTTSStore = useFreeTTSstore();
+    if (localTTSStore) {
+      // 确保免费TTS服务已启用
+      if (!localTTSStore.config.enabled) {
+        localTTSStore.config.enabled = true;
+        localTTSStore.saveConfig();
+      }
+      
+      // 检查连接并获取免费额度信息
+      localTTSStore.checkServerConnection().then(connected => {
+        if (connected) {
+          console.log("已连接到免费TTS服务");
+          // 获取并显示免费额度信息
+          localTTSStore.getFreeLimitInfo().then(freeLimit => {
+            if (freeLimit) {
+              console.log("获取到免费额度信息:", freeLimit);
+            }
+          });
+        } else {
+          console.error("无法连接到免费TTS服务");
+        }
+      });
+    }
+  }
 };
 
 // 语言选择更改
@@ -806,10 +836,10 @@ const startBtn = async () => {
   console.log("开始转换");
 
   const ttsStore = useTtsStore();
-    if (ttsStore) {
-      ttsStore.setSSMLValue(); // 使用store中的方法生成SSML
-      ttsStore.setInputValue(); // 使用store中的方法生成纯文本
-    }
+  if (ttsStore) {
+    ttsStore.setSSMLValue(); // 使用store中的方法生成SSML
+    ttsStore.setInputValue(); // 使用store中的方法生成纯文本
+  }
   
   // 验证有转换内容
   if (!globalInputs.value?.inputValue && !globalInputs.value?.ssmlValue) {
@@ -821,65 +851,10 @@ const startBtn = async () => {
     return;
   }
   
-  // 针对免费TTS服务，先检查额度
-  if (globalFormConfig.value?.api === 5) {
-    try {
-      const localTTSStore = useFreeTTSstore();
-      
-      // 先检查连接状态
-      const isConnected = await localTTSStore.checkServerConnection();
-      if (!isConnected) {
-        ElMessage({
-          message: "无法连接到免费TTS服务，请检查网络连接",
-          type: "warning",
-          duration: 3000,
-        });
-        return;
-      }
-      
-      // 检查可用额度
-      const quotaInfo = await localTTSStore.getFreeLimitInfo();
-      
-      // 检查是否有足够的额度
-      if (quotaInfo) {
-        const inputText = isSSMLMode.value ? globalInputs.value?.ssmlValue : globalInputs.value?.inputValue;
-        const textLength = inputText?.length || 0;
-        
-        if (quotaInfo.remaining < textLength) {
-          // 额度不足，显示提示并终止转换
-          ElMessage({
-            message: `免费额度不足: 剩余${quotaInfo.remaining}字符，需要${textLength}字符`,
-            type: "warning",
-            duration: 5000,
-          });
-          
-          // 展示使用TTS88API的提示
-          ElMessageBox.confirm(
-            '您的免费额度不足以转换当前文本，可使用TTS88API解锁无限使用。是否前往获取API密钥？',
-            '额度不足提示',
-            {
-              confirmButtonText: '获取API密钥',
-              cancelButtonText: '暂不需要',
-              type: 'warning',
-            }
-          )
-            .then(() => {
-              // 打开API站点
-              openApiSite();
-            })
-            .catch(() => {
-              console.log('用户取消跳转到API站点');
-            });
-          return;
-        }
-      }
-    } catch (err) {
-      console.error('检查免费TTS额度失败:', err);
-      // 继续处理，让转换函数处理错误
-    }
-  }
+  // 获取当前API类型，默认为5(免费服务)
+  const currentApi = globalFormConfig.value?.api !== undefined ? globalFormConfig.value.api : 5;
   
-  // 通过了前置检查，现在显示加载界面并开始转换
+  //额度检查放在API层面做，现在显示加载界面并开始转换
   isLoading.value = true;
   convertProgress.value = 0;
   
@@ -908,7 +883,7 @@ const startBtn = async () => {
     console.log('SSML内容长度:', voiceData.ssmlContent.length);
     
     // 针对免费TTS服务的特殊处理
-    if (globalFormConfig.value?.api === 5) {
+    if (currentApi === 5) {
       console.log('使用免费TTS服务，确保提供有效内容');
       // 如果没有输入文本，但有SSML文本，则强制设置为SSML模式
       if (!voiceData.inputContent && voiceData.ssmlContent) {
@@ -924,7 +899,7 @@ const startBtn = async () => {
     
     // 发起TTS请求
     const result = await getTTSData({
-      api: globalFormConfig.value?.api || 5, // 默认使用免费TTS
+      api: currentApi, // 使用前面定义的currentApi变量
       voiceData,
       speechKey: globalConfig.value?.speechKey || "",
       region: globalConfig.value?.serviceRegion || "",
@@ -1563,6 +1538,48 @@ const handleErrorAction = (errorCode) => {
 // 刷新连接
 const handleRefreshConnection = async () => {
   console.log("刷新免费TTS服务连接");
+  
+  // 获取localTTSStore实例
+  const localTTSStore = useFreeTTSstore();
+  if (!localTTSStore) {
+    console.error("无法获取localTTSStore实例");
+    return;
+  }
+  
+  try {
+    // 重置错误状态
+    localTTSStore.resetErrorState();
+    
+    // 检查连接
+    const connected = await localTTSStore.checkServerConnection();
+    
+    if (connected) {
+      // 连接成功，获取额度信息
+      const freeLimit = await localTTSStore.getFreeLimitInfo();
+      
+      if (freeLimit) {
+        console.log("刷新成功，获取到免费额度信息:", freeLimit);
+        ElMessage({
+          message: '已成功刷新免费TTS服务额度信息',
+          type: 'success',
+          duration: 2000
+        });
+      }
+    } else {
+      ElMessage({
+        message: '无法连接到免费TTS服务，请检查网络连接',
+        type: 'error',
+        duration: 3000
+      });
+    }
+  } catch (error) {
+    console.error('刷新免费TTS服务连接失败:', error);
+    ElMessage({
+      message: '刷新免费TTS服务连接失败',
+      type: 'error',
+      duration: 3000
+    });
+  }
 };
 
 const trimUrl = (field) => {

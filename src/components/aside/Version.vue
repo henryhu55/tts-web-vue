@@ -3,7 +3,7 @@
   <div class="version" @click="checkUpdate">
     <div class="version-badge">
       <!-- @ts-ignore -->
-      <span>v{{ version }}</span>
+      <span>{{ version }}</span>
       <!-- @ts-ignore -->
       <el-icon :class="{ 'update-available': hasUpdate }" :color="hasUpdate ? '#e6a23c' : '#67c23a'">
         <RefreshRight />
@@ -12,7 +12,7 @@
   </div>
 </template>
 
-<script setup lang="ts">
+<script setup lang="ts">  
 // @ts-nocheck
 import pkg from "../../../package.json";
 import { ref, h, nextTick } from "vue";
