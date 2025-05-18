@@ -826,7 +826,7 @@ watch(isSidebarCollapsed, (newValue) => {
   <div 
     :class="[
       'app-container', 
-      { 'dark-theme': isDarkTheme, 'app-mobile': isMobileView }
+      { 'dark-theme': isDarkTheme, 'app-mobile': isMobileView.value }
     ]"
   >
     <!-- 导航栏与主容器 -->
@@ -835,7 +835,7 @@ watch(isSidebarCollapsed, (newValue) => {
       <div 
         :class="[
           'sidebar-container',
-          { 'sidebar-mobile': !isSidebarCollapsed }
+          { 'sidebar-mobile': !isSidebarCollapsed.value }
         ]"
         @click.stop
       >

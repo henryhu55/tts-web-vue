@@ -20,19 +20,29 @@
               <el-option
                 v-for="item in oc.apiSelect"
                 :key="item.value"
-                :label="item.value === 5 ? `${item.label} (推荐免费)` : item.value === 4 ? `${item.label} (无限制使用)` : item.label"
+                :label="
+                  item.value === 5
+                    ? `${item.label} (推荐免费)`
+                    : item.value === 4
+                    ? `${item.label} (无限制使用)`
+                    : item.label
+                "
                 :value="item.value"
               >
                 <template v-if="item.value === 5">
                   <div class="free-api-option">
                     <span>{{ item.label }}</span>
-                    <el-tag size="small" type="success" effect="dark">推荐免费</el-tag>
+                    <el-tag size="small" type="success" effect="dark"
+                      >推荐免费</el-tag
+                    >
                   </div>
                 </template>
                 <template v-else-if="item.value === 4">
                   <div class="free-api-option">
                     <span>{{ item.label }}</span>
-                    <el-tag size="small" type="info" effect="plain">无限制使用</el-tag>
+                    <el-tag size="small" type="info" effect="plain"
+                      >无限制使用</el-tag
+                    >
                   </div>
                 </template>
                 <template v-else>
@@ -54,7 +64,7 @@
                   </el-radio-group>
                 </div>
               </div>
-              
+
               <div class="free-tts-content">
                 <div class="free-service-highlight">
                   <el-icon color="#67C23A"><Check /></el-icon>
@@ -184,7 +194,7 @@
                       />
                     </div>
                   </div>
-                  
+
                   <div class="settings-section">
                     <h4 class="settings-title">音频设置</h4>
                     <div class="settings-item">
@@ -219,7 +229,11 @@
                 </div>
 
                 <div class="connection-status">
-                  <el-tag v-if="localTTSStore.isConnected" size="small" type="success">
+                  <el-tag
+                    v-if="localTTSStore.isConnected"
+                    size="small"
+                    type="success"
+                  >
                     <el-icon><Check /></el-icon>
                     已连接到免费服务
                   </el-tag>
@@ -227,7 +241,7 @@
               </div>
             </div>
           </div>
-          
+
           <!-- 语言选择 -->
           <div class="option-item">
             <div class="option-label">
@@ -249,9 +263,9 @@
               />
             </el-select>
           </div>
-          
+
           <!-- 声音选择 -->
-          <div class="option-item full-width-item">
+          <div class="option-item">
             <div class="option-label">
               <span>声音</span>
               <div class="icon-container"><el-icon><Microphone /></el-icon></div>
@@ -265,7 +279,10 @@
             >
               <template v-if="formConfig.voiceSelect" #trigger>
                 <div class="el-select__selection">
-                  {{ getChineseName(formConfig.voiceSelect) || formConfig.voiceSelect }}
+                  {{
+                    getChineseName(formConfig.voiceSelect) ||
+                    formConfig.voiceSelect
+                  }}
                 </div>
               </template>
               <el-option
@@ -275,20 +292,45 @@
                 :value="item.ShortName"
               >
                 <div class="voice-option">
-                  <span>{{ getChineseName(item.ShortName) || item.DisplayName }}</span>
+                  <span>{{
+                    getChineseName(item.ShortName) || item.DisplayName
+                  }}</span>
                   <el-button
                     size="small"
                     type="primary"
                     circle
                     @click.stop="audition(item.ShortName)"
-                  ><el-icon><CaretRight /></el-icon></el-button>
+                    ><el-icon><CaretRight /></el-icon
+                  ></el-button>
                 </div>
               </el-option>
             </el-select>
           </div>
+
+          <!-- 语气选择 -->
+          <div class="option-item">
+            <div class="option-label">
+              <span>语气</span>
+              <el-icon><ChatDotRound /></el-icon>
+            </div>
+            <el-select
+              v-model="formConfig.voiceStyleSelect"
+              size="default"
+              class="full-width-select"
+              @change="voiceStyleSelectChange"
+              filterable
+            >
+              <el-option
+                v-for="style in voiceStyleSelectList"
+                :key="style"
+                :label="getVoiceStyleName(style)"
+                :value="style"
+              />
+            </el-select>
+          </div>
         </div>
       </div>
-      
+
       <div class="option-section">
         <h3 class="section-title">语音调整</h3>
         <div class="option-grid">
@@ -298,26 +340,26 @@
               <span>语速</span>
               <span class="value-display">{{ formConfig.speed }}x</span>
             </div>
-            <el-slider 
-              v-model="formConfig.speed" 
-              :min="0.5" 
-              :max="2" 
-              :step="0.1" 
+            <el-slider
+              v-model="formConfig.speed"
+              :min="0.5"
+              :max="2"
+              :step="0.1"
               class="option-slider"
               @input="handleVoiceSettingChange"
             />
           </div>
-          
+
           <!-- 音调调节 -->
           <div class="option-item">
             <div class="option-label">
               <span>音调</span>
               <span class="value-display">{{ formConfig.pitch }}x</span>
             </div>
-            <el-slider 
-              v-model="formConfig.pitch" 
-              :min="0.5" 
-              :max="2" 
+            <el-slider
+              v-model="formConfig.pitch"
+              :min="0.5"
+              :max="2"
               :step="0.1"
               class="option-slider"
               @input="handleVoiceSettingChange"
@@ -336,7 +378,14 @@
                 @change="handleVoiceSettingChange"
               >
                 <el-option
-                  v-for="item in ['default', 'extraWeak', 'weak', 'medium', 'strong', 'extraStrong']"
+                  v-for="item in [
+                    'default',
+                    'extraWeak',
+                    'weak',
+                    'medium',
+                    'strong',
+                    'extraStrong',
+                  ]"
                   :key="item"
                   :label="t(`options.${item}`)"
                   :value="item"
@@ -361,7 +410,13 @@
                 @change="handleVoiceSettingChange"
               >
                 <el-option
-                  v-for="item in ['default', 'weak', 'normal', 'strong', 'extraStrong']"
+                  v-for="item in [
+                    'default',
+                    'weak',
+                    'normal',
+                    'strong',
+                    'extraStrong',
+                  ]"
                   :key="item"
                   :label="t(`options.${item}`)"
                   :value="item"
@@ -386,13 +441,24 @@
                 @change="handleVoiceSettingChange"
               >
                 <el-option
-                  v-for="item in ['default', '100ms', '200ms', '300ms', '500ms', '1s']"
+                  v-for="item in [
+                    'default',
+                    '100ms',
+                    '200ms',
+                    '300ms',
+                    '500ms',
+                    '1s',
+                  ]"
                   :key="item"
-                  :label="item === 'default' ? t('options.defaultSilence') : item"
+                  :label="
+                    item === 'default' ? t('options.defaultSilence') : item
+                  "
                   :value="item"
                 >
                   <div class="style-option">
-                    <span>{{ item === 'default' ? t('options.defaultSilence') : item }}</span>
+                    <span>{{
+                      item === "default" ? t("options.defaultSilence") : item
+                    }}</span>
                   </div>
                 </el-option>
               </el-select>
@@ -400,7 +466,7 @@
           </div>
         </div>
       </div>
-      
+
       <div class="option-section">
         <h3 class="section-title">高级语音设置</h3>
         <div class="option-grid">
@@ -424,13 +490,15 @@
                 :value="item"
               >
                 <div class="style-option">
-                  <span class="style-emoji">{{ getStyleDes(item)?.emoji }}</span>
+                  <span class="style-emoji">{{
+                    getStyleDes(item)?.emoji
+                  }}</span>
                   <span>{{ getStyleDes(item)?.word || item }}</span>
                 </div>
               </el-option>
             </el-select>
           </div>
-          
+
           <!-- 角色选择 -->
           <div class="option-item">
             <div class="option-label">
@@ -438,10 +506,10 @@
               <div class="icon-container"><el-icon><UserFilled /></el-icon></div>
             </div>
             <template v-if="rolePlayList.length > 0 && rolePlayList[0] !== ''">
-              <el-select 
-                v-model="formConfig.role" 
+              <el-select
+                v-model="formConfig.role"
                 size="default"
-                :placeholder="t('options.selectRole')" 
+                :placeholder="t('options.selectRole')"
                 :disabled="apiEdge"
                 class="full-width-select"
               >
@@ -452,7 +520,9 @@
                   :value="item"
                 >
                   <div class="style-option">
-                    <span class="style-emoji">{{ getRoleDes(item)?.emoji }}</span>
+                    <span class="style-emoji">{{
+                      getRoleDes(item)?.emoji
+                    }}</span>
                     <span>{{ getRoleDes(item)?.word || item }}</span>
                   </div>
                 </el-option>
@@ -463,16 +533,13 @@
               </div>
             </template>
             <template v-else>
-              <el-select 
+              <el-select
                 disabled
                 size="default"
-                placeholder="当前主播不支持角色切换" 
+                placeholder="当前主播不支持角色切换"
                 class="full-width-select"
               >
-                <el-option
-                  :value="''"
-                  :label="'无可用角色'"
-                />
+                <el-option :value="''" :label="'无可用角色'" />
               </el-select>
               <div class="role-support-hint unsupported">
                 <el-icon color="#909399"><InfoFilled /></el-icon>
@@ -480,7 +547,7 @@
               </div>
             </template>
           </div>
-          
+
           <!-- 预设按钮 -->
           <div class="option-item">
             <div class="option-label">
@@ -507,16 +574,16 @@
               </el-option>
             </el-select>
           </div>
-          
+
           <!-- 添加语音主播按钮 -->
           <div class="option-item">
             <div class="option-label">
               <span>语音主播</span>
               <div class="icon-container"><el-icon><Microphone /></el-icon></div>
             </div>
-            <el-button 
-              type="primary" 
-              size="default" 
+            <el-button
+              type="primary"
+              size="default"
               class="full-width-button"
               @click="$emit('open-voice-selector')"
             >
@@ -528,7 +595,7 @@
           </div>
         </div>
       </div>
-      
+
       <div class="option-section">
         <h3 class="section-title">音频输出设置</h3>
         <div class="option-grid">
@@ -585,7 +652,7 @@
 
         <!-- 自动预览开关 -->
         <div class="option-switch">
-          <span class="switch-label">{{ t('options.autoPreview') }}</span>
+          <span class="switch-label">{{ t("options.autoPreview") }}</span>
           <el-switch
             v-model="formConfig.autoPreview"
             :active-text="t('options.autoPreviewDesc')"
@@ -594,22 +661,14 @@
 
         <!-- 批量下载和云端保存 -->
         <div class="option-buttons">
-          <el-button
-            type="primary"
-            plain
-            @click="handleBatchDownload"
-          >
+          <el-button type="primary" plain @click="handleBatchDownload">
             <el-icon><Download /></el-icon>
-            {{ t('options.batchDownload') }}
+            {{ t("options.batchDownload") }}
           </el-button>
-          
-          <el-button
-            type="success"
-            plain
-            @click="handleSaveToCloud"
-          >
+
+          <el-button type="success" plain @click="handleSaveToCloud">
             <el-icon><Upload /></el-icon>
-            {{ t('options.saveToCloud') }}
+            {{ t("options.saveToCloud") }}
           </el-button>
         </div>
       </div>
@@ -658,7 +717,7 @@
             />
           </div>
         </div>
-        
+
         <div class="settings-section">
           <h4 class="settings-title">音频设置</h4>
           <div class="settings-item">
@@ -684,7 +743,7 @@
           </div>
         </div>
       </div>
-      
+
       <template #footer>
         <div class="dialog-footer">
           <el-button @click="showAdvancedSettings = false">取消</el-button>
