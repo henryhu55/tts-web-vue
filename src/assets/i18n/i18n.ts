@@ -1,9 +1,9 @@
 // src/assets/i18n/i18n.ts
 // 使用TypeScript的非空断言
 // @ts-ignore
-import * as VueI18n from 'vue-i18n'
+import * as VueI18n from "vue-i18n";
 // @ts-ignore
-const createI18n = VueI18n.createI18n
+const createI18n = VueI18n.createI18n;
 
 const messages = {
   en: {
@@ -21,11 +21,11 @@ const messages = {
       saveSuccess: "Configuration saved successfully",
       cancelSave: "Save cancelled",
       inputWarning: "Please enter text content",
-      emptyListWarning: "The list is empty"
+      emptyListWarning: "The list is empty",
     },
     buttons: {
       confirm: "Confirm",
-      cancel: "Cancel"
+      cancel: "Cancel",
     },
     version: {
       checkUpdate: "Check for updates",
@@ -260,7 +260,7 @@ const messages = {
       formatMP3: "MP3 Format",
       formatWAV: "WAV Format",
       formatOGG: "OGG Format",
-      formatFLAC: "FLAC Format"
+      formatFLAC: "FLAC Format",
     },
     lang: {
       AF_ZA: "Afrikaans (South Africa)",
@@ -766,7 +766,8 @@ const messages = {
       YUE_CN: "Chino (cantonés, simplificado)",
       ZH_CN: "Chino (mandarín, simplificado)",
       ZH_CN_Bilingual: "Chino (mandarín, simplificado), inglés bilingüe",
-      ZH_CN_HENAN: "Chino (mandarín Henan de las llanuras centrales, simplificado)",
+      ZH_CN_HENAN:
+        "Chino (mandarín Henan de las llanuras centrales, simplificado)",
       ZH_CN_LIAONING: "Chino (mandarín nororiental, simplificado)",
       ZH_CN_SHAANXI: "Chino (chino mandarín Shaanxi, simplificado)",
       ZH_CN_SHANDONG: "Chino (Jilu Mandarín, simplificado)",
@@ -802,11 +803,11 @@ const messages = {
       saveSuccess: "配置保存成功",
       cancelSave: "取消保存",
       inputWarning: "请输入文本内容",
-      emptyListWarning: "列表为空"
+      emptyListWarning: "列表为空",
     },
     buttons: {
       confirm: "确认",
-      cancel: "取消"
+      cancel: "取消",
     },
     version: {
       checkUpdate: "检查更新",
@@ -818,6 +819,52 @@ const messages = {
       confirm: "确定",
       downloadLinks: "下载链接",
       password: "提取码: em1n",
+      title: "版本信息",
+      goToView: "前往查看",
+      updateNow: "立即更新",
+      updateLater: "稍后更新",
+      updateFailed: "更新失败",
+      updateSuccess: "更新成功",
+      updateProgress: "更新进度",
+      updateDownloading: "正在下载更新...",
+      updateInstalling: "正在安装更新...",
+      updateComplete: "更新完成",
+      updateRestart: "重启应用",
+      updateCancel: "取消更新",
+      updateError: "更新出错",
+      updateRetry: "重试更新",
+      updateSkip: "跳过此版本",
+      updateRemind: "稍后提醒",
+      updateForce: "强制更新",
+      updateOptional: "可选更新",
+      updateRequired: "必需更新",
+      updateSize: "更新大小",
+      updateTime: "更新时间",
+      updateNotes: "更新说明",
+      updateDetails: "更新详情",
+      updateHistory: "更新历史",
+      updateSettings: "更新设置",
+      updateAuto: "自动更新",
+      updateManual: "手动更新",
+      updateCheck: "检查更新",
+      updateDownload: "下载更新",
+      updateInstall: "安装更新",
+      updateRestartNow: "立即重启",
+      updateRestartLater: "稍后重启",
+      updateRestartRequired: "需要重启",
+      updateRestartOptional: "可选重启",
+      updateRestartForce: "强制重启",
+      updateRestartSkip: "跳过重启",
+      updateRestartRemind: "稍后提醒",
+      updateRestartCancel: "取消重启",
+      updateRestartError: "重启出错",
+      updateRestartRetry: "重试重启",
+      updateRestartComplete: "重启完成",
+      updateRestartProgress: "重启进度",
+      updateRestartDownloading: "正在下载重启...",
+      updateRestartInstalling: "正在安装重启...",
+      updateRestartRestart: "重启应用",
+      updateRestartRestartCancel: "取消重启",
     },
     bilibtn: {
       goToBilibili: "前往Bilibili",
@@ -863,8 +910,10 @@ const messages = {
     donate: {
       appreciation: "如果你觉得本项目不错，",
       encouragement: "欢迎Star、Fork和PR，你的Star是对作者最好的鼓励 :)",
-      guideReminder: '如遇到任何问题，请仔细阅读"文档"→"用户指南"部分，包括"功能介绍"和"常见问题"。',
-      feedback: '对于其他意见或建议，可以在"文档"→"加入Q群"中@群主或管理员，或私聊，或在GitHub或Gitee上提出issues。',
+      guideReminder:
+        '如遇到任何问题，请仔细阅读"文档"→"用户指南"部分，包括"功能介绍"和"常见问题"。',
+      feedback:
+        '对于其他意见或建议，可以在"文档"→"加入Q群"中@群主或管理员，或私聊，或在GitHub或Gitee上提出issues。',
       buyCoffeeTitle: "请作者喝杯咖啡 🍻",
       wechatPayment: "使用微信付款",
       hoverForAlipay: "悬停查看支付宝付款",
@@ -881,34 +930,35 @@ const messages = {
       chat: "聊天",
       customerservice: "客服",
       newscast: "新闻播报",
-      affectionate: "深情",
-      angry: "愤怒",
-      calm: "冷静",
+      affectionate: "温柔",
+      angry: "生气",
+      calm: "平静",
       cheerful: "欢快",
       disgruntled: "不满",
-      fearful: "恐惧",
-      gentle: "温柔",
+      fearful: "害怕",
+      gentle: "温和",
       lyrical: "抒情",
       sad: "悲伤",
       serious: "严肃",
+      "poetry-reading": "诗歌朗诵",
+      "narration-professional": "专业旁白",
+      "newscast-casual": "轻松新闻",
       embarrassed: "尴尬",
       depressed: "沮丧",
-      envious: "嫉妒",
-      Advertisement_upbeat: "广告推广",
-      Sports_commentary: "体育评论",
-      Sports_commentary_excited: "体育精彩解说",
-      "documentary-narration": "纪录片解说",
+      envious: "羡慕",
+      "narration-relaxed": "轻松旁白",
+      Advertisement_upbeat: "活力广告",
+      "Narration-relaxed": "轻松旁白",
+      Sports_commentary: "体育解说",
+      Sports_commentary_excited: "激情体育解说",
+      "documentary-narration": "纪录片旁白",
       excited: "兴奋",
       friendly: "友好",
-      terrified: "惊恐",
-      shouting: "大喊",
+      terrified: "恐惧",
+      shouting: "喊叫",
       unfriendly: "不友好",
-      whispering: "轻声细语",
+      whispering: "耳语",
       hopeful: "充满希望",
-      "poetry-reading": "诗歌朗读",
-      "narration-professional": "专业解说",
-      "newscast-casual": "休闲新闻",
-      "Narration-relaxed": "休闲旁白",
     },
     roles: {
       YoungAdultFemale: "青年女性",
@@ -923,7 +973,8 @@ const messages = {
     },
     main: {
       titleGenerateTextGPT: "使用GPT生成文本",
-      descriptionGenerateTextGPT: "使用GPT-3或GPT-4生成文本，这是世界上最强大的AI模型。",
+      descriptionGenerateTextGPT:
+        "使用GPT-3或GPT-4生成文本，这是世界上最强大的AI模型。",
       placeholderGPT: "请输入提示文本",
       action: "操作",
       textTab: "文本",
@@ -962,7 +1013,8 @@ const messages = {
       saveConfig: "保存配置",
       selectConfig: "选择配置",
       startConversion: "开始转换",
-      edgeApiWarning: "Edge接口不支持自动分片，最大文本长度未知，请手动预处理文本。",
+      edgeApiWarning:
+        "Edge接口不支持自动分片，最大文本长度未知，请手动预处理文本。",
       configureAzure: "请先配置Azure的Speech服务密钥和区域。",
       saveSuccess: "配置保存成功。",
       cancelSave: "取消保存。",
@@ -1023,7 +1075,7 @@ const messages = {
       formatMP3: "MP3格式",
       formatWAV: "WAV格式",
       formatOGG: "OGG格式",
-      formatFLAC: "FLAC格式"
+      formatFLAC: "FLAC格式",
     },
     lang: {
       AF_ZA: "南非荷兰语(南非)",
@@ -1205,34 +1257,34 @@ const messages = {
 const getDefaultLanguage = () => {
   // 从本地存储中读取用户设置的语言
   try {
-    const savedLanguage = localStorage.getItem('language');
+    const savedLanguage = localStorage.getItem("language");
     if (savedLanguage) {
       const parsedLanguage = JSON.parse(savedLanguage);
-      if (parsedLanguage === 'zh' || parsedLanguage === 'en') {
+      if (parsedLanguage === "zh" || parsedLanguage === "en") {
         return parsedLanguage;
       }
     }
-    
+
     // 从config中读取
-    const configLanguage = localStorage.getItem('config.language');
+    const configLanguage = localStorage.getItem("config.language");
     if (configLanguage) {
       const parsedLanguage = JSON.parse(configLanguage);
-      if (parsedLanguage === 'zh' || parsedLanguage === 'en') {
+      if (parsedLanguage === "zh" || parsedLanguage === "en") {
         return parsedLanguage;
       }
     }
   } catch (e) {
-    console.error('读取语言设置失败:', e);
+    console.error("读取语言设置失败:", e);
   }
-  
+
   // 如果没有用户设置，则根据浏览器语言确定
   const browserLanguage = navigator.language.toLowerCase();
-  if (browserLanguage.startsWith('zh')) {
-    return 'zh';
+  if (browserLanguage.startsWith("zh")) {
+    return "zh";
   }
-  
+
   // 默认使用中文
-  return 'zh';
+  return "zh";
 };
 
 const defaultLanguage = getDefaultLanguage();
@@ -1240,18 +1292,18 @@ const defaultLanguage = getDefaultLanguage();
 const i18n = createI18n({
   legacy: false, // 使用 Composition API 模式
   locale: defaultLanguage,
-  fallbackLocale: 'zh', // 如果当前语言没有对应的翻译，则使用中文
+  fallbackLocale: "zh", // 如果当前语言没有对应的翻译，则使用中文
   messages,
-  silentTranslationWarn: process.env.NODE_ENV === 'production', // 在生产环境中关闭翻译警告
-  missingWarn: process.env.NODE_ENV !== 'production', // 在开发环境中启用缺失翻译警告
+  silentTranslationWarn: process.env.NODE_ENV === "production", // 在生产环境中关闭翻译警告
+  missingWarn: process.env.NODE_ENV !== "production", // 在开发环境中启用缺失翻译警告
 });
 
 // 确保语言设置被正确应用
-document.addEventListener('DOMContentLoaded', () => {
-  console.log('当前应用的i18n语言:', i18n.global.locale.value);
-  
+document.addEventListener("DOMContentLoaded", () => {
+  console.log("当前应用的i18n语言:", i18n.global.locale.value);
+
   // 设置HTML lang属性
-  document.documentElement.setAttribute('lang', i18n.global.locale.value);
+  document.documentElement.setAttribute("lang", i18n.global.locale.value);
 });
 
 export default i18n;

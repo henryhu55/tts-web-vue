@@ -1,4 +1,4 @@
-import axios from 'axios';
+import axios from "axios";
 
 // 本地TTS服务器的配置接口
 export interface LocalTTSConfig {
@@ -14,23 +14,23 @@ export interface LocalTTSConfig {
 
 // TTS请求参数接口
 export interface TTSRequestParams {
-  text?: string;  // 纯文本
-  ssml?: string;  // SSML格式文本
-  voice: string;  // 语音
-  language: string;  // 语言
-  format?: string;  // 格式，默认mp3
-  speed?: number;  // 语速
-  pitch?: number;  // 音调
+  text?: string; // 纯文本
+  ssml?: string; // SSML格式文本
+  voice: string; // 语音
+  language: string; // 语言
+  format?: string; // 格式，默认mp3
+  speed?: number; // 语速
+  pitch?: number; // 音调
 }
 
 // 免费额度信息接口
 export interface FreeLimitInfo {
-  free_limit: number;  // 总免费额度
-  used: number;  // 已使用
-  remaining: number;  // 剩余
-  reset_date: string;  // 重置日期
+  free_limit: number; // 总免费额度
+  used: number; // 已使用
+  remaining: number; // 剩余
+  reset_date: string; // 重置日期
   days_streak?: number; // 连续使用天数
-  debug?: any;  // 调试信息
+  debug?: any; // 调试信息
 }
 
 // 错误响应接口
@@ -45,12 +45,14 @@ export interface ErrorResponse {
  * @param config 服务器配置
  * @returns 服务器是否可连接
  */
-export async function checkServerConnection(config: LocalTTSConfig): Promise<boolean> {
+export async function checkServerConnection(
+  config: LocalTTSConfig
+): Promise<boolean> {
   try {
     const response = await axios.get(`${config.baseUrl}/api/v1/health`, {
-      timeout: 5000 // 5秒超时
+      timeout: 5000, // 5秒超时
     });
-    return response.status === 200 && response.data?.status === 'ok';
+    return response.status === 200 && response.data?.status === "ok";
   } catch (error) {
     console.error('无法连接到TTS服务器:', error);
     throw error; // 向上抛出错误，让调用者处理
@@ -65,11 +67,13 @@ export function generateBrowserFingerprint(): string {
   try {
     const screenInfo = `${window.screen.width}x${window.screen.height}x${window.screen.colorDepth}`;
     const timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
-    const languages = navigator.languages ? navigator.languages.join(',') : navigator.language;
-    const canvas = document.createElement('canvas');
-    const gl = canvas.getContext('webgl');
-    const glInfo = gl ? gl.getParameter(gl.RENDERER) : 'no-webgl';
-    
+    const languages = navigator.languages
+      ? navigator.languages.join(",")
+      : navigator.language;
+    const canvas = document.createElement("canvas");
+    const gl = canvas.getContext("webgl");
+    const glInfo = gl ? gl.getParameter(gl.RENDERER) : "no-webgl";
+
     // 组合所有信息
     const components = [
       navigator.userAgent,
@@ -78,22 +82,22 @@ export function generateBrowserFingerprint(): string {
       languages,
       glInfo,
       navigator.platform,
-      new Date().getTimezoneOffset()
+      new Date().getTimezoneOffset(),
     ];
-    
+
     // 创建一个简单的哈希
     let hash = 0;
-    const str = components.join('|');
+    const str = components.join("|");
     for (let i = 0; i < str.length; i++) {
       const char = str.charCodeAt(i);
-      hash = ((hash << 5) - hash) + char;
+      hash = (hash << 5) - hash + char;
       hash = hash & hash; // 转换为32位整数
     }
-    
+
     return hash.toString(16);
   } catch (e) {
     // 如果发生任何错误，返回一个随机值
-    console.error('生成浏览器指纹时出错:', e);
+    console.error("生成浏览器指纹时出错:", e);
     return Math.random().toString(36).substring(2, 15);
   }
 }
@@ -190,25 +194,27 @@ export async function handleApiError(error: any): Promise<never> {
  * @param config 服务器配置
  * @returns 免费额度信息
  */
-export async function getFreeLimitInfo(config: LocalTTSConfig): Promise<FreeLimitInfo> {
+export async function getFreeLimitInfo(
+  config: LocalTTSConfig
+): Promise<FreeLimitInfo> {
   try {
     // 请求配置，添加浏览器指纹头
     const requestConfig = {
       headers: {
-        'X-Browser-Fingerprint': generateBrowserFingerprint()
+        "X-Browser-Fingerprint": generateBrowserFingerprint(),
       },
-      timeout: 5000 // 5秒超时
+      timeout: 5000, // 5秒超时
     };
     
     const response = await axios.get(
       `${config.baseUrl}/api/v1/free-limit`,
       requestConfig
     );
-    
+
     if (response.status === 200 && response.data?.data) {
       return response.data.data as FreeLimitInfo;
     }
-    throw new Error('获取免费额度信息失败');
+    throw new Error("获取免费额度信息失败");
   } catch (error: any) {
     return handleApiError(error);
   }

@@ -1,14 +1,19 @@
+<style>
+@import "./MainStyles.css";
+@import "./MainScopedStyles.css";
+</style>
+
 <template>
   <div class="modern-main">
     <!-- 固定标题栏 -->
-    <FixedHeader 
+    <FixedHeader
       v-model:isSSMLMode="isSSMLMode"
       :title="page.asideIndex === '1' ? '文本转语音' : '批量处理'"
       :subtitle="page.asideIndex === '1' ? '将文字转换为自然的语音' : '批量处理文本转语音任务'"
       :asideIndex="page.asideIndex"
       @nav-change="handleNavChange"
     />
-    
+
     <!-- 文本编辑区 -->
     <div class="input-area-card" v-show="page.asideIndex === '1'">
       <div class="card-body">
@@ -16,8 +21,12 @@
           <!-- 文本区域头部，添加模式切换按钮 -->
           <div class="text-area-header">
             <div class="text-area-header-left">
-              <h3>{{ isSSMLMode ? 'SSML 标记语言' : '输入文本' }}</h3>
-              <span class="text-area-hint">{{ isSSMLMode ? '使用SSML可以更精确地控制语音效果，包括语调、停顿和发音' : '在此处输入您想要转换为语音的文本内容' }}</span>
+              <h3>{{ isSSMLMode ? "SSML 标记语言" : "输入文本" }}</h3>
+              <span class="text-area-hint">{{
+                isSSMLMode
+                  ? "使用SSML可以更精确地控制语音效果，包括语调、停顿和发音"
+                  : "在此处输入您想要转换为语音的文本内容"
+              }}</span>
             </div>
             <div class="text-area-header-right">
               <div class="input-mode-toggle">
@@ -35,9 +44,9 @@
                   placement="top"
                   effect="light"
                 >
-                  <el-button 
-                    size="small" 
-                    type="info" 
+                  <el-button
+                    size="small"
+                    type="info"
                     class="ssml-help-button"
                     @click="openSSMLHelp"
                   >
@@ -67,10 +76,10 @@
             resize="none"
             :rows="18"
           />
-          <el-input 
+          <el-input
             v-else
-            v-model="inputs.ssmlValue" 
-            type="textarea" 
+            v-model="inputs.ssmlValue"
+            type="textarea"
             class="modern-textarea"
             resize="none"
             :rows="18"
@@ -79,21 +88,37 @@
           <!-- 文本下方控制区域：简化为文字显示和购买按钮 -->
           <div class="text-footer-controls">
             <!-- 字数限制简化显示 -->
-            <div v-if="formConfig.api === 5 && localTTSStore.serverStatus.freeLimit" class="simple-limit-info">
+            <div
+              v-if="
+                formConfig.api === 5 && localTTSStore.serverStatus.freeLimit
+              "
+              class="simple-limit-info"
+            >
               <el-icon><DocumentChecked /></el-icon>
-              <span>每天限制 <b>{{ localTTSStore.serverStatus.freeLimit.free_limit }}</b> 个字符，剩余 <b>{{ localTTSStore.serverStatus.freeLimit.remaining }}</b></span>
-              <span v-if="localTTSStore.freeLimitUsagePercent > 90" class="quota-warning">(额度即将用完)</span>
+              <span
+                >每天限制
+                <b>{{ localTTSStore.serverStatus.freeLimit.free_limit }}</b>
+                个字符，剩余
+                <b>{{
+                  localTTSStore.serverStatus.freeLimit.remaining
+                }}</b></span
+              >
+              <span
+                v-if="localTTSStore.freeLimitUsagePercent > 90"
+                class="quota-warning"
+                >(额度即将用完)</span
+              >
             </div>
-            
+
             <!-- 修改购买按钮文字 -->
             <el-tooltip
               content="使用API解锁无限制使用"
               placement="top"
               effect="light"
             >
-              <el-button 
-                @click="openApiSite" 
-                type="success" 
+              <el-button
+                @click="openApiSite"
+                type="success"
                 size="small"
                 class="purchase-button"
               >
@@ -104,7 +129,7 @@
           </div>
         </div>
       </div>
-      
+
       <!-- 简洁控制栏 - 取代原来的浮动控制条 -->
       <div class="compact-controls-bar">
         <div class="compact-selects">
@@ -126,19 +151,29 @@
               <el-option
                 v-for="item in apiOptions"
                 :key="item.value"
-                :label="item.value === 5 ? `${item.label} (推荐免费)` : item.value === 4 ? `${item.label} (无限制使用)` : item.label"
+                :label="
+                  item.value === 5
+                    ? `${item.label} (推荐免费)`
+                    : item.value === 4
+                    ? `${item.label} (无限制使用)`
+                    : item.label
+                "
                 :value="item.value"
               >
                 <template v-if="item.value === 5">
                   <div class="free-api-option">
                     <span>{{ item.label }}</span>
-                    <el-tag size="small" type="success" effect="dark">推荐免费</el-tag>
+                    <el-tag size="small" type="success" effect="dark"
+                      >推荐免费</el-tag
+                    >
                   </div>
                 </template>
                 <template v-else-if="item.value === 4">
                   <div class="free-api-option">
                     <span>{{ item.label }}</span>
-                    <el-tag size="small" type="info" effect="plain">无限制使用</el-tag>
+                    <el-tag size="small" type="info" effect="plain"
+                      >无限制使用</el-tag
+                    >
                   </div>
                 </template>
                 <template v-else>
@@ -147,7 +182,7 @@
               </el-option>
             </el-select>
           </el-tooltip>
-          
+
           <el-tooltip
             content="选择语音合成的语言"
             placement="top"
@@ -172,12 +207,29 @@
               />
             </el-select>
           </el-tooltip>
-          
-          <el-tooltip
-            content="选择语音角色"
-            placement="top"
-            effect="light"
-          >
+
+          <el-tooltip content="选择语音风格" placement="top" effect="light">
+            <el-select
+              v-model="formConfig.voiceStyleSelect"
+              size="small"
+              placeholder="语气"
+              class="compact-select"
+              @change="voiceStyleSelectChange"
+              filterable
+            >
+              <template #prefix>
+                <el-icon><ChatDotRound /></el-icon>
+              </template>
+              <el-option
+                v-for="style in voiceStyleSelectList"
+                :key="style"
+                :label="getVoiceStyleName(style)"
+                :value="style"
+              />
+            </el-select>
+          </el-tooltip>
+
+          <el-tooltip content="选择语音角色" placement="top" effect="light">
             <el-select
               v-model="formConfig.voiceSelect"
               size="small"
@@ -191,7 +243,10 @@
               </template>
               <template v-if="formConfig.voiceSelect" #trigger>
                 <div class="el-select__selection">
-                  {{ getChineseName(formConfig.voiceSelect) || formConfig.voiceSelect }}
+                  {{
+                    getChineseName(formConfig.voiceSelect) ||
+                    formConfig.voiceSelect
+                  }}
                 </div>
               </template>
               <el-option
@@ -201,15 +256,17 @@
                 :value="item.ShortName"
               >
                 <div class="voice-option">
-                  <span>{{ getChineseName(item.ShortName) || item.DisplayName }}</span>
+                  <span>{{
+                    getChineseName(item.ShortName) || item.DisplayName
+                  }}</span>
                   <el-tooltip
                     content="试听声音示例"
                     placement="top"
                     effect="light"
                   >
-                    <el-button 
-                      size="small" 
-                      type="primary" 
+                    <el-button
+                      size="small"
+                      type="primary"
                       circle
                       @click.stop="audition(item.ShortName)"
                     >
@@ -221,15 +278,15 @@
             </el-select>
           </el-tooltip>
         </div>
-        
+
         <div class="compact-actions">
           <el-tooltip
             content="选择预设语音主播角色"
             placement="top"
             effect="light"
           >
-            <el-button 
-              size="small" 
+            <el-button
+              size="small"
               @click="openVoiceAnchors"
               class="voice-anchors-button"
             >
@@ -237,14 +294,14 @@
               语音主播
             </el-button>
           </el-tooltip>
-          
+
           <el-tooltip
             content="调整语速、音调等高级设置"
             placement="top"
             effect="light"
           >
-            <el-button 
-              size="small" 
+            <el-button
+              size="small"
               @click="openSettingsPanel"
               class="settings-button"
             >
@@ -252,16 +309,16 @@
               高级设置
             </el-button>
           </el-tooltip>
-          
+
           <div class="action-buttons-group">
             <el-tooltip
               content="使用AI生成文本内容"
               placement="top"
               effect="light"
             >
-              <el-button 
-                @click="dialogVisible = true" 
-                type="info" 
+              <el-button
+                @click="dialogVisible = true"
+                type="info"
                 size="small"
                 class="ai-button"
               >
@@ -269,15 +326,15 @@
                 AI生成
               </el-button>
             </el-tooltip>
-            
+
             <el-tooltip
               content="开始转换文本为语音"
               placement="top"
               effect="light"
             >
-              <el-button 
-                type="primary" 
-                @click="startBtn" 
+              <el-button
+                type="primary"
+                @click="startBtn"
                 :loading="isLoading"
                 size="small"
                 class="start-button"
@@ -296,7 +353,9 @@
           <div class="player-row">
             <!-- 格式选择区域 -->
             <div class="format-selection">
-              <span class="format-label">{{ t('footer.format') || '格式' }}:</span>
+              <span class="format-label"
+                >{{ t("footer.format") || "格式" }}:</span
+              >
               <el-select
                 v-model="playerConfig.formatType"
                 class="format-select"
@@ -316,7 +375,7 @@
                 </el-option>
               </el-select>
             </div>
-            
+
             <!-- 音频播放器 -->
             <div class="audio-player">
               <audio
@@ -331,11 +390,11 @@
                 @canplay="handleAudioCanPlay"
               ></audio>
             </div>
-            
+
             <!-- 下载按钮 -->
             <div class="download-button">
-              <el-tooltip 
-                :content="t('footer.downloadAudio') || '下载音频'" 
+              <el-tooltip
+                :content="t('footer.downloadAudio') || '下载音频'"
                 placement="top"
                 effect="light"
               >
@@ -359,8 +418,13 @@
     <div class="site-footer" v-show="page.asideIndex === '1'">
       <div class="footer-info">
         <div class="copyright">
-          © 2023-{{ new Date().getFullYear() }} TTS语音合成 | 
-          <a href="https://beian.miit.gov.cn/" target="_blank" class="beian-link">沪ICP备15001572号-1</a>
+          © 2023-{{ new Date().getFullYear() }} TTS语音合成 |
+          <a
+            href="https://beian.miit.gov.cn/"
+            target="_blank"
+            class="beian-link"
+            >沪ICP备15001572号-1</a
+          >
         </div>
         <div class="footer-links">
           <a href="/about" class="footer-link">关于我们</a>
@@ -370,9 +434,18 @@
         </div>
         <div class="friendly-links">
           <span class="links-label">友情链接：</span>
-          <a href="https://api.tts88.top" target="_blank" class="friendly-link">TTS API</a>
-          <a href="https://docs.tts88.top" target="_blank" class="friendly-link">开发文档</a>
-          <a href="https://github.com/henryhu55/tts-web-vue" target="_blank" class="friendly-link">GitHub</a>
+          <a href="https://api.tts88.top" target="_blank" class="friendly-link"
+            >TTS API</a
+          >
+          <a href="https://docs.tts88.top" target="_blank" class="friendly-link"
+            >开发文档</a
+          >
+          <a
+            href="https://github.com/henryhu55/tts-web-vue"
+            target="_blank"
+            class="friendly-link"
+            >GitHub</a
+          >
         </div>
       </div>
     </div>
@@ -394,12 +467,28 @@
       @close="onDrawerClose"
     >
       <template #header>
-        <div class="drawer-header" style="padding: 20px;">
-          <h3 style="display: flex; align-items: center; gap: 8px; margin: 0 0 8px 0;">
-            <el-icon style="font-size: 20px; color: var(--primary-color);"><Setting /></el-icon>
+        <div class="drawer-header" style="padding: 20px">
+          <h3
+            style="
+              display: flex;
+              align-items: center;
+              gap: 8px;
+              margin: 0 0 8px 0;
+            "
+          >
+            <el-icon style="font-size: 20px; color: var(--primary-color)"
+              ><Setting
+            /></el-icon>
             <span>语音高级设置</span>
           </h3>
-          <p style="margin: 0; color: var(--text-secondary); font-size: 14px; line-height: 1.5;">
+          <p
+            style="
+              margin: 0;
+              color: var(--text-secondary);
+              font-size: 14px;
+              line-height: 1.5;
+            "
+          >
             在这里可以调整语音的语速、音调和情感等高级参数,让语音更符合您的需求
           </p>
         </div>
@@ -410,10 +499,27 @@
             <!-- 标题区域 -->
             <div class="section-header">
               <div class="title-row">
-                <el-icon style="font-size: 20px; color: var(--primary-color);"><Microphone /></el-icon>
-                <span style="font-size: 16px; font-weight: 600; color: var(--text-primary);">语音参数调整</span>
+                <el-icon style="font-size: 20px; color: var(--primary-color)"
+                  ><Microphone
+                /></el-icon>
+                <span
+                  style="
+                    font-size: 16px;
+                    font-weight: 600;
+                    color: var(--text-primary);
+                  "
+                  >语音参数调整</span
+                >
               </div>
-              <p style="color: var(--text-secondary); font-size: 14px; margin: 4px 0 0 0;">调整这些参数可以改变语音的表现效果</p>
+              <p
+                style="
+                  color: var(--text-secondary);
+                  font-size: 14px;
+                  margin: 4px 0 0 0;
+                "
+              >
+                调整这些参数可以改变语音的表现效果
+              </p>
             </div>
             <MainOptions 
               v-if="openSettingsDrawer" 
@@ -423,14 +529,9 @@
               @open-voice-selector="openVoiceAnchors" 
             />
           </div>
-          
+
           <div class="settings-tips">
-            <el-alert
-              title="使用技巧"
-              type="info"
-              :closable="false"
-              show-icon
-            >
+            <el-alert title="使用技巧" type="info" :closable="false" show-icon>
               <template #default>
                 <p>1. 语速建议保持在0.8-1.2之间,过快或过慢可能影响效果</p>
                 <p>2. 音调调整范围建议在0.8-1.2之间,过高或过低可能不自然</p>
@@ -443,24 +544,26 @@
     </el-drawer>
 
     <!-- AI 生成对话框 -->
-    <el-dialog 
-      v-model="dialogVisible" 
-      :title="t('main.titleGenerateTextGPT')" 
-      width="500px" 
-      draggable 
+    <el-dialog
+      v-model="dialogVisible"
+      :title="t('main.titleGenerateTextGPT')"
+      width="500px"
+      draggable
       class="modern-dialog"
     >
-      <p class="dialog-description">{{ t('main.descriptionGenerateTextGPT') }}</p>
+      <p class="dialog-description">
+        {{ t("main.descriptionGenerateTextGPT") }}
+      </p>
       <div class="dialog-input">
-        <el-input 
-          v-model="modalInput" 
-          :placeholder="t('main.placeholderGPT')" 
+        <el-input
+          v-model="modalInput"
+          :placeholder="t('main.placeholderGPT')"
           :disabled="dialogLoading"
           class="dialog-prompt-input"
         ></el-input>
-        <el-button 
-          type="primary" 
-          @click="sendToChatGPT" 
+        <el-button
+          type="primary"
+          @click="sendToChatGPT"
           :loading="dialogLoading"
           class="dialog-submit-button"
         >
@@ -473,7 +576,7 @@
     <!-- 批量处理区域 -->
     <div class="batch-area-card" v-show="page.asideIndex === '2'">
       <div class="card-header batch-card-header">
-        <h2>{{ t('aside.batch') }}</h2>
+        <h2>{{ t("aside.batch") }}</h2>
         <div class="batch-actions">
           <el-upload
             ref="uploadRef"
@@ -487,17 +590,17 @@
             <template #trigger>
               <el-button type="primary">
                 <el-icon><Upload /></el-icon>
-                {{ t('main.selectFiles') }}
+                {{ t("main.selectFiles") }}
               </el-button>
             </template>
           </el-upload>
           <el-button @click="clearAll" class="clear-button">
             <el-icon><DeleteFilled /></el-icon>
-            {{ t('main.clearAll') }}
+            {{ t("main.clearAll") }}
           </el-button>
         </div>
       </div>
-      
+
       <div class="card-body">
         <el-table
           :data="tableData"
@@ -521,8 +624,7 @@
             width="80"
             :show-overflow-tooltip="true"
           />
-          <el-table-column prop="status" :label="t('main.status')"
-          width="100">
+          <el-table-column prop="status" :label="t('main.status')" width="100">
             <template #default="scope">
               <div>
                 <el-tag
@@ -540,7 +642,7 @@
                   size="small"
                   type="danger"
                   @click="handleDelete(scope.$index, scope.row)"
-                  >{{t('main.remove')}}</el-button
+                  >{{ t("main.remove") }}</el-button
                 >
               </template>
               <template v-else>
@@ -552,7 +654,10 @@
                     circle
                     ><el-icon><CaretRight /></el-icon
                   ></el-button>
-                  <el-button size="small" @click="openInFolder(scope.row)" circle
+                  <el-button
+                    size="small"
+                    @click="openInFolder(scope.row)"
+                    circle
                     ><el-icon><FolderOpened /></el-icon
                   ></el-button>
                 </div>
@@ -561,7 +666,7 @@
           </el-table-column>
         </el-table>
       </div>
-      
+
       <!-- 批量处理的控制条 -->
       <div class="compact-controls-bar">
         <div class="compact-selects">
@@ -583,19 +688,29 @@
               <el-option
                 v-for="item in apiOptions"
                 :key="item.value"
-                :label="item.value === 5 ? `${item.label} (推荐免费)` : item.value === 4 ? `${item.label} (无限制使用)` : item.label"
+                :label="
+                  item.value === 5
+                    ? `${item.label} (推荐免费)`
+                    : item.value === 4
+                    ? `${item.label} (无限制使用)`
+                    : item.label
+                "
                 :value="item.value"
               >
                 <template v-if="item.value === 5">
                   <div class="free-api-option">
                     <span>{{ item.label }}</span>
-                    <el-tag size="small" type="success" effect="dark">推荐免费</el-tag>
+                    <el-tag size="small" type="success" effect="dark"
+                      >推荐免费</el-tag
+                    >
                   </div>
                 </template>
                 <template v-else-if="item.value === 4">
                   <div class="free-api-option">
                     <span>{{ item.label }}</span>
-                    <el-tag size="small" type="info" effect="plain">无限制使用</el-tag>
+                    <el-tag size="small" type="info" effect="plain"
+                      >无限制使用</el-tag
+                    >
                   </div>
                 </template>
                 <template v-else>
@@ -604,7 +719,7 @@
               </el-option>
             </el-select>
           </el-tooltip>
-          
+
           <el-tooltip
             content="选择语音合成的语言"
             placement="top"
@@ -629,12 +744,29 @@
               />
             </el-select>
           </el-tooltip>
-          
-          <el-tooltip
-            content="选择语音角色"
-            placement="top"
-            effect="light"
-          >
+
+          <el-tooltip content="选择语音风格" placement="top" effect="light">
+            <el-select
+              v-model="formConfig.voiceStyleSelect"
+              size="small"
+              placeholder="语气"
+              class="compact-select"
+              @change="voiceStyleSelectChange"
+              filterable
+            >
+              <template #prefix>
+                <el-icon><ChatDotRound /></el-icon>
+              </template>
+              <el-option
+                v-for="style in voiceStyleSelectList"
+                :key="style"
+                :label="getVoiceStyleName(style)"
+                :value="style"
+              />
+            </el-select>
+          </el-tooltip>
+
+          <el-tooltip content="选择语音角色" placement="top" effect="light">
             <el-select
               v-model="formConfig.voiceSelect"
               size="small"
@@ -648,7 +780,10 @@
               </template>
               <template v-if="formConfig.voiceSelect" #trigger>
                 <div class="el-select__selection">
-                  {{ getChineseName(formConfig.voiceSelect) || formConfig.voiceSelect }}
+                  {{
+                    getChineseName(formConfig.voiceSelect) ||
+                    formConfig.voiceSelect
+                  }}
                 </div>
               </template>
               <el-option
@@ -658,15 +793,17 @@
                 :value="item.ShortName"
               >
                 <div class="voice-option">
-                  <span>{{ getChineseName(item.ShortName) || item.DisplayName }}</span>
+                  <span>{{
+                    getChineseName(item.ShortName) || item.DisplayName
+                  }}</span>
                   <el-tooltip
                     content="试听声音示例"
                     placement="top"
                     effect="light"
                   >
-                    <el-button 
-                      size="small" 
-                      type="primary" 
+                    <el-button
+                      size="small"
+                      type="primary"
                       circle
                       @click.stop="audition(item.ShortName)"
                     >
@@ -678,15 +815,15 @@
             </el-select>
           </el-tooltip>
         </div>
-        
+
         <div class="compact-actions">
           <el-tooltip
             content="选择预设语音主播角色"
             placement="top"
             effect="light"
           >
-            <el-button 
-              size="small" 
+            <el-button
+              size="small"
               @click="openVoiceAnchors"
               class="voice-anchors-button"
             >
@@ -694,14 +831,14 @@
               语音主播
             </el-button>
           </el-tooltip>
-          
+
           <el-tooltip
             content="调整语速、音调等高级设置"
             placement="top"
             effect="light"
           >
-            <el-button 
-              size="small" 
+            <el-button
+              size="small"
               @click="openSettingsPanel"
               class="settings-button"
             >
@@ -709,16 +846,16 @@
               高级设置
             </el-button>
           </el-tooltip>
-          
+
           <div class="action-buttons-group">
             <el-tooltip
               content="使用AI生成文本内容"
               placement="top"
               effect="light"
             >
-              <el-button 
-                @click="dialogVisible = true" 
-                type="info" 
+              <el-button
+                @click="dialogVisible = true"
+                type="info"
                 size="small"
                 class="ai-button"
               >
@@ -726,15 +863,15 @@
                 AI生成
               </el-button>
             </el-tooltip>
-            
+
             <el-tooltip
               content="开始转换文本为语音"
               placement="top"
               effect="light"
             >
-              <el-button 
-                type="primary" 
-                @click="startBtn" 
+              <el-button
+                type="primary"
+                @click="startBtn"
                 :loading="isLoading"
                 size="small"
                 class="start-button"
@@ -747,18 +884,26 @@
         </div>
       </div>
     </div>
-    
+
     <!-- 配置页显示 -->
-    <div v-if="page.asideIndex === '3'" class="config-page-container" :key="'config-page'">
+    <div
+      v-if="page.asideIndex === '3'"
+      class="config-page-container"
+      :key="'config-page'"
+    >
       <ConfigPage></ConfigPage>
     </div>
-    
-    <div v-if="page.asideIndex === '4'" class="doc-page-container" :key="'doc-page'">
+
+    <div
+      v-if="page.asideIndex === '4'"
+      class="doc-page-container"
+      :key="'doc-page'"
+    >
       <div v-if="!iframeLoaded && !iframeError" class="iframe-loading">
         <div class="loading-spinner"></div>
         <p>正在加载文档<span class="loading-dots"></span></p>
       </div>
-      <iframe 
+      <iframe
         ref="docIframe"
         class="doc-frame" 
         src="https://docs.tts88.top"
@@ -794,51 +939,70 @@
     >
       <div class="ssml-help-content">
         <h3>什么是SSML？</h3>
-        <p>语音合成标记语言(SSML)是一种用于控制语音合成的标准化标记语言，可以精确控制语音的语调、停顿、重音等。</p>
-        
+        <p>
+          语音合成标记语言(SSML)是一种用于控制语音合成的标准化标记语言，可以精确控制语音的语调、停顿、重音等。
+        </p>
+
         <div class="ssml-examples">
           <h3>常用SSML标签</h3>
-          
+
           <div class="ssml-example-item">
             <h4>调整语速</h4>
-            <pre>&lt;prosody rate="slow"&gt;这段文字会以较慢的速度播放&lt;/prosody&gt;</pre>
-            <p>rate属性可以为: x-slow, slow, medium, fast, x-fast，或者是相对值如 +10% 或 -20%</p>
+            <pre>
+&lt;prosody rate="slow"&gt;这段文字会以较慢的速度播放&lt;/prosody&gt;</pre
+            >
+            <p>
+              rate属性可以为: x-slow, slow, medium, fast, x-fast，或者是相对值如
+              +10% 或 -20%
+            </p>
           </div>
-          
+
           <div class="ssml-example-item">
             <h4>调整音调</h4>
-            <pre>&lt;prosody pitch="high"&gt;这段文字会以较高的音调播放&lt;/prosody&gt;</pre>
-            <p>pitch属性可以为: x-low, low, medium, high, x-high，或者是相对值如 +10% 或 -20%</p>
+            <pre>
+&lt;prosody pitch="high"&gt;这段文字会以较高的音调播放&lt;/prosody&gt;</pre
+            >
+            <p>
+              pitch属性可以为: x-low, low, medium, high, x-high，或者是相对值如
+              +10% 或 -20%
+            </p>
           </div>
-          
+
           <div class="ssml-example-item">
             <h4>添加停顿</h4>
             <pre>&lt;break time="2s"/&gt;</pre>
-            <p>time属性可以使用具体时间如 1s, 500ms，或者使用预定义值如 none, x-weak, weak, medium, strong, x-strong</p>
+            <p>
+              time属性可以使用具体时间如 1s, 500ms，或者使用预定义值如 none,
+              x-weak, weak, medium, strong, x-strong
+            </p>
           </div>
-          
+
           <div class="ssml-example-item">
             <h4>强调某个词</h4>
-            <pre>&lt;emphasis level="strong"&gt;特别强调&lt;/emphasis&gt;这个词</pre>
+            <pre>
+&lt;emphasis level="strong"&gt;特别强调&lt;/emphasis&gt;这个词</pre
+            >
             <p>level属性可以为: strong, moderate, none</p>
           </div>
         </div>
-        
+
         <div class="ssml-template">
           <h3>完整SSML示例</h3>
-          <pre>&lt;speak version="1.0" xmlns="http://www.w3.org/2001/10/synthesis" xml:lang="zh-CN"&gt;
+          <pre>
+&lt;speak version="1.0" xmlns="http://www.w3.org/2001/10/synthesis" xml:lang="zh-CN"&gt;
 今天天气&lt;emphasis level="strong"&gt;非常好&lt;/emphasis&gt;，
 &lt;break time="300ms"/&gt;
 我们可以&lt;prosody rate="+20%"&gt;一起出去玩&lt;/prosody&gt;。
-&lt;/speak&gt;</pre>
+&lt;/speak&gt;</pre
+          >
         </div>
       </div>
     </el-dialog>
 
     <!-- Loading组件 -->
-    <Loading 
-      :visible="isLoading" 
-      :progress="convertProgress" 
+    <Loading
+      :visible="isLoading"
+      :progress="convertProgress"
       :title="loadingTitle"
       :message="loadingMessage"
       @cancel="cancelConversion"
@@ -893,12 +1057,12 @@ import {
   // 图标
   MagicStick, 
   ChatLineSquare,
-  Upload, 
-  DeleteFilled, 
-  CaretRight, 
-  FolderOpened, 
-  WarningFilled, 
-  RefreshRight, 
+  Upload,
+  DeleteFilled,
+  CaretRight,
+  FolderOpened,
+  WarningFilled,
+  RefreshRight,
   SwitchButton,
   Connection,
   ChatDotRound,
@@ -1203,15 +1367,7 @@ watch(isSSMLMode, (newValue) => {
 });
 </script>
 
-<style>
-/* 全局样式导入 */
-@import './MainStyles.css';
-</style>
-
 <style scoped>
-/* 组件作用域样式导入 */
-@import './MainScopedStyles.css';
-
 /* 主界面容器 */
 .modern-main {
   padding: 20px;
@@ -1266,7 +1422,7 @@ watch(isSSMLMode, (newValue) => {
   .player-card,
   .site-footer {
     max-width: 95%;
-}
+  }
 }
 
 @media (max-width: 768px) {
@@ -1314,38 +1470,38 @@ watch(isSSMLMode, (newValue) => {
     border-radius: 0;
     box-shadow: none;
   }
-  
+
   .compact-selects {
     width: 100%;
     display: grid;
     grid-template-columns: 1fr 1fr;
     gap: 10px;
   }
-  
+
   .voice-select {
     grid-column: span 2;
   }
-  
+
   .compact-actions {
     width: 100%;
     justify-content: space-between;
   }
-  
+
   .player-row {
     flex-direction: column;
     gap: 10px;
   }
-  
+
   .format-selection {
     width: 100%;
     justify-content: space-between;
   }
-  
+
   .download-button {
     align-self: flex-end;
     margin-top: 8px;
   }
-  
+
   .audio-player {
     width: 100%;
   }

@@ -1,5 +1,5 @@
 <template>
-  <div class="fixed-header" :class="{ 'scrolled': isScrolled }">
+  <div class="fixed-header" :class="{ scrolled: isScrolled }">
     <div class="fixed-header-content">
       <!-- PC端布局 -->
       <template v-if="!isMobile">
@@ -13,15 +13,29 @@
         <!-- 中间区域：功能导航 -->
         <div class="header-center">
           <div class="nav-menu">
-            <div class="nav-item" :class="{ 'active': activeNav === 'tts' }" @click="changeNav('tts')">
+            <div
+              class="nav-item"
+              :class="{ active: activeNav === 'tts' }"
+              @click="changeNav('tts')"
+            >
               文字转语音
             </div>
-            <div class="nav-item" :class="{ 'active': activeNav === 'docs' }" @click="changeNav('docs')">
+            <div
+              class="nav-item"
+              :class="{ active: activeNav === 'docs' }"
+              @click="changeNav('docs')"
+            >
               文档
             </div>
-            <div class="nav-item" :class="{ 'active': activeNav === 'subtitle' }" @click="changeNav('subtitle')">
+            <div
+              class="nav-item"
+              :class="{ active: activeNav === 'subtitle' }"
+              @click="changeNav('subtitle')"
+            >
               在线生成字幕
-              <el-tag size="small" type="info" class="coming-soon-tag">即将上线</el-tag>
+              <el-tag size="small" type="info" class="coming-soon-tag"
+                >即将上线</el-tag
+              >
             </div>
           </div>
         </div>
@@ -32,14 +46,14 @@
             <span>TTS88</span>
             <span class="api-tag">API</span>
           </div>
-          
+
           <div class="control-buttons">
             <el-tooltip content="切换主题" placement="bottom" effect="light">
               <el-button circle @click="handleThemeClick">
                 <el-icon><MoonNight /></el-icon>
               </el-button>
             </el-tooltip>
-            
+
             <el-dropdown trigger="click">
               <el-button circle>
                 <el-icon><More /></el-icon>
@@ -71,7 +85,11 @@
           <!-- 中间区域：功能导航 -->
           <div class="header-center">
             <div class="nav-menu">
-              <div class="nav-item" :class="{ 'active': activeNav === 'tts' }" @click="changeNav('tts')">
+              <div
+                class="nav-item"
+                :class="{ active: activeNav === 'tts' }"
+                @click="changeNav('tts')"
+              >
                 文字转语音
               </div>
             </div>
@@ -83,14 +101,14 @@
               <span>TTS88</span>
               <span class="api-tag">API</span>
             </div>
-            
+
             <div class="control-buttons">
               <el-tooltip content="切换主题" placement="bottom" effect="light">
                 <el-button circle @click="handleThemeClick">
                   <el-icon><MoonNight /></el-icon>
                 </el-button>
               </el-tooltip>
-              
+
               <el-dropdown trigger="click">
                 <el-button circle>
                   <el-icon><More /></el-icon>
@@ -134,14 +152,14 @@ import { useTtsStore } from "@/store/store";
 import { storeToRefs } from "pinia";
 
 export default {
-  name: 'FixedHeader',
+  name: "FixedHeader",
   components: {
-    QuestionFilled, 
-    InfoFilled, 
-    Menu, 
-    MoonNight, 
-    More, 
-    Link
+    QuestionFilled,
+    InfoFilled,
+    Menu,
+    MoonNight,
+    More,
+    Link,
   },
   emits: ['toggle-theme', 'toggle-sidebar', 'update:isSSMLMode', 'nav-change'],
   props: {
@@ -153,13 +171,18 @@ export default {
   },
   setup(props, { emit }) {
     // 添加调试日志
-    console.log('FixedHeader setup 被调用');
+    console.log("FixedHeader setup 被调用");
 
     // 响应式状态
     const isScrolled = ref(false);
-    const isSSMLMode = ref(false);
-    const activeNav = ref('tts');
+    const activeNav = ref("tts");
     const isMobile = ref(window.innerWidth <= 768);
+
+    // 用于 v-model:isSSMLMode 的双向绑定
+    const isSSMLMode = computed({
+      get: () => props.isSSMLMode,
+      set: (val) => emit("update:isSSMLMode", val),
+    });
 
     // 方法
     const handleScroll = () => {
@@ -167,7 +190,10 @@ export default {
     };
 
     const openSSMLHelp = () => {
-      window.open('https://learn.microsoft.com/zh-cn/azure/cognitive-services/speech-service/speech-synthesis-markup', '_blank');
+      window.open(
+        "https://learn.microsoft.com/zh-cn/azure/cognitive-services/speech-service/speech-synthesis-markup",
+        "_blank"
+      );
     };
 
     const openApiSite = () => {
@@ -178,8 +204,8 @@ export default {
       if (window.__startGuide) {
         window.__startGuide();
       } else {
-        console.warn('引导功能未找到');
-        alert('无法启动引导功能，请刷新页面后重试');
+        console.warn("引导功能未找到");
+        alert("无法启动引导功能，请刷新页面后重试");
       }
     };
 
@@ -224,9 +250,9 @@ export default {
     // 添加一个直接触发主题切换的方法
     const handleThemeClick = () => {
       // 使用 emit 触发事件
-      emit('toggle-theme');
+      emit("toggle-theme");
       // 同时用全局事件作为备份方案
-      window.dispatchEvent(new CustomEvent('toggle-theme-event'));
+      window.dispatchEvent(new CustomEvent("toggle-theme-event"));
     };
 
     // 检查移动端状态
@@ -244,13 +270,13 @@ export default {
     });
 
     onBeforeUnmount(() => {
-      window.removeEventListener('scroll', handleScroll);
-      window.removeEventListener('resize', checkMobile);
+      window.removeEventListener("scroll", handleScroll);
+      window.removeEventListener("resize", checkMobile);
     });
 
     // 监听器
     watch(isSSMLMode, (newValue) => {
-      emit('update:isSSMLMode', newValue);
+      emit("update:isSSMLMode", newValue);
     });
 
     const ttsStore = useTtsStore();
@@ -269,8 +295,8 @@ export default {
       isMobile,
       page
     };
-  }
-}
+  },
+};
 </script>
 
 <style scoped>
@@ -375,7 +401,7 @@ export default {
 }
 
 .nav-item.active::after {
-  content: '';
+  content: "";
   position: absolute;
   bottom: -2px;
   left: 50%;
@@ -403,7 +429,11 @@ export default {
 .api-badge {
   display: flex;
   align-items: center;
-  background: linear-gradient(90deg, rgba(74, 108, 247, 0.1), rgba(74, 108, 247, 0.05));
+  background: linear-gradient(
+    90deg,
+    rgba(74, 108, 247, 0.1),
+    rgba(74, 108, 247, 0.05)
+  );
   border-radius: 20px;
   padding: 6px 12px;
   font-weight: 600;
@@ -414,7 +444,11 @@ export default {
 }
 
 .api-badge:hover {
-  background: linear-gradient(90deg, rgba(74, 108, 247, 0.15), rgba(74, 108, 247, 0.1));
+  background: linear-gradient(
+    90deg,
+    rgba(74, 108, 247, 0.15),
+    rgba(74, 108, 247, 0.1)
+  );
   transform: translateY(-1px);
 }
 
@@ -438,7 +472,7 @@ export default {
     height: 50px;
     padding: 0 15px;
   }
-  
+
   .fixed-header-content {
     flex-direction: row;
     padding: 0;
@@ -452,7 +486,7 @@ export default {
     width: 100%;
     height: 100%;
   }
-  
+
   .header-center {
     width: auto;
   }
@@ -465,7 +499,7 @@ export default {
     font-size: 15px;
     padding: 6px 12px;
   }
-  
+
   .header-right {
     width: auto;
     padding: 0;
@@ -498,4 +532,4 @@ export default {
     font-size: 16px;
   }
 }
-</style> 
+</style>

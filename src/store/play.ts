@@ -1,4 +1,4 @@
-import axios from 'axios';
+import axios from "axios";
 import { PromptGPT } from "@/types/prompGPT";
 import { createBatchTask, getBatchTaskStatus, deleteBatchTask, callTTSApi } from '@/api/tts';
 import * as Pinia from 'pinia';
@@ -489,54 +489,74 @@ async function getTTSData(params: TTSParams): Promise<TTSResponse> {
 
 // Sleep函数，用于重试间隔
 function sleep(ms: number) {
-  return new Promise(resolve => setTimeout(resolve, ms));
+  return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
 // GPT API调用
 async function getDataGPT(options: PromptGPT): Promise<string> {
-  const { promptGPT, model = 'gpt-3.5-turbo', key, retryCount = 3, retryInterval = 1, baseUrl } = options;
-  
+  const {
+    promptGPT,
+    model = "gpt-3.5-turbo",
+    key,
+    retryCount = 3,
+    retryInterval = 1,
+    baseUrl,
+  } = options;
+
   if (!key) {
     throw new Error("OpenAI API密钥未配置");
   }
-  
+
   let retry = 0;
   let lastError;
-  
+
   while (retry < retryCount) {
     try {
-      console.log(`尝试调用 OpenAI API (尝试 ${retry + 1}/${retryCount})`)
-      
-      const apiUrl = baseUrl || 'https://api.openai.com/v1/chat/completions';
-      
+      console.log(`尝试调用 OpenAI API (尝试 ${retry + 1}/${retryCount})`);
+
+      const apiUrl = baseUrl || "https://api.openai.com/v1/chat/completions";
+
       const response = await axios.post(
         apiUrl,
         {
           model: model,
-          messages: [{ role: 'user', content: promptGPT }]
+          messages: [{ role: "user", content: promptGPT }],
         },
         {
           headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${key}`
-          }
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${key}`,
+          },
         }
       );
-      
-      if (response.data && response.data.choices && response.data.choices.length > 0) {
+
+      if (
+        response.data &&
+        response.data.choices &&
+        response.data.choices.length > 0
+      ) {
         return response.data.choices[0].message.content.trim();
       } else {
         throw new Error("API返回的响应格式不正确");
       }
     } catch (error) {
-      console.error(`OpenAI API调用失败 (尝试 ${retry + 1}/${retryCount}):`, error);
+      console.error(
+        `OpenAI API调用失败 (尝试 ${retry + 1}/${retryCount}):`,
+        error
+      );
       lastError = error;
       await sleep(retryInterval * 1000);
       retry++;
     }
   }
-  
+
   throw lastError || new Error("未知错误");
 }
 
-export { getTTSData, getDataGPT, createBatchTask, getBatchTaskStatus, deleteBatchTask };
+export {
+  getTTSData,
+  getDataGPT,
+  createBatchTask,
+  getBatchTaskStatus,
+  deleteBatchTask,
+};
