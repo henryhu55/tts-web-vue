@@ -880,6 +880,21 @@ export const useTtsStore = defineStore("ttsStore", {
         return false;
       }
     },
+    // 强制更新 - 用于刷新表格数据
+    forceUpdate() {
+      // 如果表格数据是数组，则创建新数组引用以触发响应式更新
+      if (Array.isArray(this.tableData)) {
+        this.tableData = [...this.tableData];
+        console.log('forceUpdate: 表格数据是数组，已创建新引用');
+      } 
+      // 如果表格数据是ref对象，触发其值的更新
+      else if (this.tableData && typeof this.tableData === 'object' && 'value' in this.tableData) {
+        if (Array.isArray(this.tableData.value)) {
+          this.tableData.value = [...this.tableData.value];
+          console.log('forceUpdate: 表格数据是ref对象，已更新value');
+        }
+      }
+    },
   },
 });
 

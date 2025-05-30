@@ -106,192 +106,192 @@
       </div>
       
       <!-- 简洁控制栏 - 取代原来的浮动控制条 -->
-      <div class="compact-controls-bar">
-        <div class="compact-selects">
-          <el-tooltip
-            content="选择语音合成服务提供商"
-            placement="top"
-            effect="light"
-          >
-            <el-select
-              v-model="formConfig.api"
-              size="small"
-              placeholder="API"
-              class="compact-select"
-              @change="apiChange"
-            >
-              <template #prefix>
-                <el-icon><Connection /></el-icon>
-              </template>
-              <el-option
-                v-for="item in apiOptions"
-                :key="item.value"
-                :label="item.value === 5 ? `${item.label} (推荐免费)` : item.value === 4 ? `${item.label} (无限制使用)` : item.label"
-                :value="item.value"
-              >
-                <template v-if="item.value === 5">
-                  <div class="free-api-option">
-                    <span>{{ item.label }}</span>
-                    <el-tag size="small" type="success" effect="dark">推荐免费</el-tag>
-                  </div>
-                </template>
-                <template v-else-if="item.value === 4">
-                  <div class="free-api-option">
-                    <span>{{ item.label }}</span>
-                    <el-tag size="small" type="info" effect="plain">无限制使用</el-tag>
-                  </div>
-                </template>
-                <template v-else>
-                  <span>{{ item.label }}</span>
-                </template>
-              </el-option>
-            </el-select>
-          </el-tooltip>
-          
-          <el-tooltip
-            content="选择语音合成的语言"
-            placement="top"
-            effect="light"
-          >
-            <el-select
-              v-model="formConfig.languageSelect"
-              size="small"
-              placeholder="语言"
-              class="compact-select"
-              @change="languageSelectChange"
-              filterable
-            >
-              <template #prefix>
-                <el-icon><ChatDotRound /></el-icon>
-              </template>
-              <el-option
-                v-for="item in languageOptions"
-                :key="item.value"
-                :label="item.label"
-                :value="item.value"
-              />
-            </el-select>
-          </el-tooltip>
-          
-          <el-tooltip
-            content="选择语音角色"
-            placement="top"
-            effect="light"
-          >
-            <el-select
-              v-model="formConfig.voiceSelect"
-              size="small"
-              placeholder="声音"
-              class="voice-select"
-              @change="voiceSelectChange"
-              filterable
-            >
-              <template #prefix>
-                <el-icon><Microphone /></el-icon>
-              </template>
-              <template v-if="formConfig.voiceSelect" #trigger>
-                <div class="el-select__selection">
-                  {{ getChineseName(formConfig.voiceSelect) || formConfig.voiceSelect }}
-                </div>
-              </template>
-              <el-option
-                v-for="item in voiceSelectList"
-                :key="item.ShortName"
-                :label="getChineseName(item.ShortName) || item.DisplayName"
-                :value="item.ShortName"
-              >
-                <div class="voice-option">
-                  <span>{{ getChineseName(item.ShortName) || item.DisplayName }}</span>
-                  <el-tooltip
-                    content="试听声音示例"
-                    placement="top"
-                    effect="light"
-                  >
-                    <el-button 
-                      size="small" 
-                      type="primary" 
-                      circle
-                      @click.stop="audition(item.ShortName)"
-                    >
-                      <el-icon><CaretRight /></el-icon>
-                    </el-button>
-                  </el-tooltip>
-                </div>
-              </el-option>
-            </el-select>
-          </el-tooltip>
-        </div>
-        
-        <div class="compact-actions">
-          <el-tooltip
-            content="选择预设语音主播角色"
-            placement="top"
-            effect="light"
-          >
-            <el-button 
-              size="small" 
-              @click="openVoiceAnchors"
-              class="voice-anchors-button"
-            >
-              <el-icon><Avatar /></el-icon>
-              语音主播
-            </el-button>
-          </el-tooltip>
-          
-          <el-tooltip
-            content="调整语速、音调等高级设置"
-            placement="top"
-            effect="light"
-          >
-            <el-button 
-              size="small" 
-              @click="openSettingsPanel"
-              class="settings-button"
-            >
-              <el-icon><Setting /></el-icon>
-              高级设置
-            </el-button>
-          </el-tooltip>
-          
-          <div class="action-buttons-group">
+      <div class="controls-wrapper">
+        <div class="compact-controls-bar">
+          <div class="compact-selects">
             <el-tooltip
-              content="使用AI生成文本内容"
+              content="选择语音合成服务提供商"
+              placement="top"
+              effect="light"
+            >
+              <el-select
+                v-model="formConfig.api"
+                size="small"
+                placeholder="API"
+                class="compact-select"
+                @change="apiChange"
+              >
+                <template #prefix>
+                  <el-icon><Connection /></el-icon>
+                </template>
+                <el-option
+                  v-for="item in apiOptions"
+                  :key="item.value"
+                  :label="item.value === 5 ? `${item.label} (推荐免费)` : item.value === 4 ? `${item.label} (无限制使用)` : item.label"
+                  :value="item.value"
+                >
+                  <template v-if="item.value === 5">
+                    <div class="free-api-option">
+                      <span>{{ item.label }}</span>
+                      <el-tag size="small" type="success" effect="dark">推荐免费</el-tag>
+                    </div>
+                  </template>
+                  <template v-else-if="item.value === 4">
+                    <div class="free-api-option">
+                      <span>{{ item.label }}</span>
+                      <el-tag size="small" type="info" effect="plain">无限制使用</el-tag>
+                    </div>
+                  </template>
+                  <template v-else>
+                    <span>{{ item.label }}</span>
+                  </template>
+                </el-option>
+              </el-select>
+            </el-tooltip>
+            
+            <el-tooltip
+              content="选择语音合成的语言"
+              placement="top"
+              effect="light"
+            >
+              <el-select
+                v-model="formConfig.languageSelect"
+                size="small"
+                placeholder="语言"
+                class="compact-select"
+                @change="languageSelectChange"
+                filterable
+              >
+                <template #prefix>
+                  <el-icon><ChatDotRound /></el-icon>
+                </template>
+                <el-option
+                  v-for="item in languageOptions"
+                  :key="item.value"
+                  :label="item.label"
+                  :value="item.value"
+                />
+              </el-select>
+            </el-tooltip>
+            
+            <el-tooltip
+              content="选择语音角色"
+              placement="top"
+              effect="light"
+            >
+              <el-select
+                v-model="formConfig.voiceSelect"
+                size="small"
+                placeholder="声音"
+                class="voice-select"
+                @change="voiceSelectChange"
+                filterable
+              >
+                <template #prefix>
+                  <el-icon><Microphone /></el-icon>
+                </template>
+                <template v-if="formConfig.voiceSelect" #trigger>
+                  <div class="el-select__selection">
+                    {{ getChineseName(formConfig.voiceSelect) || formConfig.voiceSelect }}
+                  </div>
+                </template>
+                <el-option
+                  v-for="item in voiceSelectList"
+                  :key="item.ShortName"
+                  :label="getChineseName(item.ShortName) || item.DisplayName"
+                  :value="item.ShortName"
+                >
+                  <div class="voice-option">
+                    <span>{{ getChineseName(item.ShortName) || item.DisplayName }}</span>
+                    <el-tooltip
+                      content="试听声音示例"
+                      placement="top"
+                      effect="light"
+                    >
+                      <el-button 
+                        size="small" 
+                        type="primary" 
+                        circle
+                        @click.stop="audition(item.ShortName)"
+                      >
+                        <el-icon><CaretRight /></el-icon>
+                      </el-button>
+                    </el-tooltip>
+                  </div>
+                </el-option>
+              </el-select>
+            </el-tooltip>
+          </div>
+          
+          <div class="compact-actions">
+            <el-tooltip
+              content="选择预设语音主播角色"
               placement="top"
               effect="light"
             >
               <el-button 
-                @click="dialogVisible = true" 
-                type="info" 
-                size="small"
-                class="ai-button"
+                size="small" 
+                @click="openVoiceAnchors"
+                class="voice-anchors-button"
               >
-                <el-icon><MagicStick /></el-icon>
-                AI生成
+                <el-icon><Avatar /></el-icon>
+                语音主播
               </el-button>
             </el-tooltip>
             
             <el-tooltip
-              content="开始转换文本为语音"
+              content="调整语速、音调等高级设置"
               placement="top"
               effect="light"
             >
               <el-button 
-                type="primary" 
-                @click="startBtn" 
-                :loading="isLoading"
-                size="small"
-                class="start-button"
+                size="small" 
+                @click="openSettingsPanel"
+                class="settings-button"
               >
-                <el-icon><CaretRight /></el-icon>
-                转换
+                <el-icon><Setting /></el-icon>
+                高级设置
               </el-button>
             </el-tooltip>
+            
+            <div class="action-buttons-group">
+              <el-tooltip
+                content="使用AI生成文本内容"
+                placement="top"
+                effect="light"
+              >
+                <el-button 
+                  @click="dialogVisible = true" 
+                  type="info" 
+                  size="small"
+                  class="ai-button"
+                >
+                  <el-icon><MagicStick /></el-icon>
+                  AI生成
+                </el-button>
+              </el-tooltip>
+              
+              <el-tooltip
+                content="开始转换文本为语音"
+                placement="top"
+                effect="light"
+              >
+                <el-button 
+                  type="primary" 
+                  @click="startBtn" 
+                  :loading="isLoading"
+                  size="small"
+                  class="start-button"
+                >
+                  <el-icon><CaretRight /></el-icon>
+                  转换
+                </el-button>
+              </el-tooltip>
+            </div>
           </div>
         </div>
-      </div>
-
-      <!-- 集成播放器卡片到主界面 -->
-      <div class="player-card">
+        
+        <!-- 集成播放器到控制栏 -->
         <div class="player-container">
           <div class="player-row">
             <!-- 格式选择区域 -->
@@ -321,7 +321,7 @@
             <div class="audio-player">
               <audio
                 ref="audioPlayerRef"
-                :src="isAudioAvailable() ? (typeof currMp3Url === 'object' ? currMp3Url.value : currMp3Url) : null"
+                :src="typeof currMp3Url === 'object' && 'value' in currMp3Url ? currMp3Url.value : (currMp3Url || null)"
                 :autoplay="playerConfig.autoplay"
                 controls
                 controlslist="nodownload"
@@ -473,8 +473,17 @@
     <!-- 批量处理区域 -->
     <div class="batch-area-card" v-show="page.asideIndex === '2'">
       <div class="card-header batch-card-header">
-        <h2>{{ t('aside.batch') }}</h2>
+        <h2>批量处理</h2>
         <div class="batch-actions">
+          <!-- 添加隐藏的文件输入框，用于直接触发文件选择 -->
+          <input 
+            type="file" 
+            ref="uploadInput" 
+            @change="handleFileInputChange" 
+            accept=".txt" 
+            multiple 
+            style="display: none"
+          />
           <el-upload
             ref="uploadRef"
             :auto-upload="false"
@@ -485,264 +494,320 @@
             multiple
           >
             <template #trigger>
-              <el-button type="primary">
+              <el-button type="primary" class="upload-btn">
                 <el-icon><Upload /></el-icon>
-                {{ t('main.selectFiles') }}
+                选择文件
               </el-button>
             </template>
           </el-upload>
-          <el-button @click="clearAll" class="clear-button">
+          <el-button @click="clearAll" class="clear-button" type="danger" plain>
             <el-icon><DeleteFilled /></el-icon>
-            {{ t('main.clearAll') }}
+            清空所有
           </el-button>
         </div>
       </div>
       
       <div class="card-body">
-        <el-table
-          :data="tableData"
-          style="width: 100%"
-          class="modern-table"
-          height="calc(100vh - 300px)"
-        >
-          <el-table-column
-            prop="fileName"
-            :label="t('main.fileName')"
-            :show-overflow-tooltip="true"
-          />
-          <el-table-column
-            prop="filePath"
-            :label="t('main.filePath')"
-            :show-overflow-tooltip="true"
-          />
-          <el-table-column
-            prop="fileSize"
-            :label="t('main.fileSize')"
-            width="80"
-            :show-overflow-tooltip="true"
-          />
-          <el-table-column prop="status" :label="t('main.status')"
-          width="100">
-            <template #default="scope">
-              <div>
-                <el-tag
-                  class="status-tag"
-                  :type="scope.row.status == 'ready' ? 'info' : 'success'"
-                  >{{ scope.row.status }}</el-tag
-                >
-              </div>
-            </template>
-          </el-table-column>
-          <el-table-column :label="t('main.action')" width="120">
-            <template #default="scope">
-              <template v-if="scope.row.status == 'ready'">
-                <el-button
-                  size="small"
-                  type="danger"
-                  @click="handleDelete(scope.$index, scope.row)"
-                  >{{t('main.remove')}}</el-button
-                >
-              </template>
-              <template v-else>
-                <div class="action-buttons">
-                  <el-button
-                    size="small"
-                    type="primary"
-                    @click="play(scope.row)"
-                    circle
-                    ><el-icon><CaretRight /></el-icon
-                  ></el-button>
-                  <el-button size="small" @click="openInFolder(scope.row)" circle
-                    ><el-icon><FolderOpened /></el-icon
-                  ></el-button>
-                </div>
-              </template>
-            </template>
-          </el-table-column>
-        </el-table>
+        <!-- 简化版表格 -->
+        <div v-if="Array.isArray(ttsStore.tableData) && ttsStore.tableData.length > 0" class="simple-table">
+          <div class="table-header">
+            <span>文件列表</span>
+            <span class="file-count">共 {{ ttsStore.tableData.length }} 个文件</span>
+          </div>
+          <table>
+            <thead>
+              <tr>
+                <th width="40%">文件名</th>
+                <th width="20%">文件大小</th>
+                <th width="20%">状态</th>
+                <th width="20%">操作</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr v-for="(item, index) in ttsStore.tableData" :key="index" :class="{'table-row-hover': true}">
+                <td>
+                  <el-tooltip :content="item.filePath || item.fileName" placement="top" effect="light">
+                    <span class="file-name-text">{{ item.fileName }}</span>
+                  </el-tooltip>
+                </td>
+                <td>{{ item.fileSize }}</td>
+                <td>
+                  <span class="status-tag" :class="item.status === 'ready' ? 'status-pending' : 'status-done'">
+                    {{ item.status === 'ready' ? '待转换' : '已完成' }}
+                  </span>
+                </td>
+                <td>
+                  <div class="action-buttons">
+                    <template v-if="item.status === 'ready'">
+                      <button class="delete-btn" @click="handleDelete(index, item)">
+                        删除
+                      </button>
+                    </template>
+                    <div v-else class="play-buttons">
+                      <button class="play-btn" @click="play(item)">
+                        播放
+                      </button>
+                      <button class="download-btn" @click="downloadFile(item)">
+                        下载
+                      </button>
+                    </div>
+                  </div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        
+        <!-- 空状态 -->
+        <div v-else class="empty-table-hint">
+          <el-empty description="暂无文件，请先上传文件" :image-size="100">
+            <el-button type="primary" @click="$refs.uploadInput && $refs.uploadInput.click()">
+              <el-icon><Upload /></el-icon>
+              选择文件
+            </el-button>
+          </el-empty>
+        </div>
+        
+        <!-- 调试信息，只在开发环境显示 -->
+        <div v-if="false" class="debug-info">
+          <p>ttsStore.tableData 类型: {{ typeof ttsStore.tableData }}</p>
+          <p>ttsStore.tableData 长度: {{ Array.isArray(ttsStore.tableData) ? ttsStore.tableData.length : '非数组' }}</p>
+          <details>
+            <summary>ttsStore.tableData 内容</summary>
+            <pre>{{ JSON.stringify(ttsStore.tableData, null, 2) }}</pre>
+          </details>
+          <button @click="addTestFile">添加测试文件</button>
+        </div>
       </div>
       
       <!-- 批量处理的控制条 -->
-      <div class="compact-controls-bar">
-        <div class="compact-selects">
-          <el-tooltip
-            content="选择语音合成服务提供商"
-            placement="top"
-            effect="light"
-          >
-            <el-select
-              v-model="formConfig.api"
-              size="small"
-              placeholder="API"
-              class="compact-select"
-              @change="apiChange"
-            >
-              <template #prefix>
-                <el-icon><Connection /></el-icon>
-              </template>
-              <el-option
-                v-for="item in apiOptions"
-                :key="item.value"
-                :label="item.value === 5 ? `${item.label} (推荐免费)` : item.value === 4 ? `${item.label} (无限制使用)` : item.label"
-                :value="item.value"
-              >
-                <template v-if="item.value === 5">
-                  <div class="free-api-option">
-                    <span>{{ item.label }}</span>
-                    <el-tag size="small" type="success" effect="dark">推荐免费</el-tag>
-                  </div>
-                </template>
-                <template v-else-if="item.value === 4">
-                  <div class="free-api-option">
-                    <span>{{ item.label }}</span>
-                    <el-tag size="small" type="info" effect="plain">无限制使用</el-tag>
-                  </div>
-                </template>
-                <template v-else>
-                  <span>{{ item.label }}</span>
-                </template>
-              </el-option>
-            </el-select>
-          </el-tooltip>
-          
-          <el-tooltip
-            content="选择语音合成的语言"
-            placement="top"
-            effect="light"
-          >
-            <el-select
-              v-model="formConfig.languageSelect"
-              size="small"
-              placeholder="语言"
-              class="compact-select"
-              @change="languageSelectChange"
-              filterable
-            >
-              <template #prefix>
-                <el-icon><ChatDotRound /></el-icon>
-              </template>
-              <el-option
-                v-for="item in languageOptions"
-                :key="item.value"
-                :label="item.label"
-                :value="item.value"
-              />
-            </el-select>
-          </el-tooltip>
-          
-          <el-tooltip
-            content="选择语音角色"
-            placement="top"
-            effect="light"
-          >
-            <el-select
-              v-model="formConfig.voiceSelect"
-              size="small"
-              placeholder="声音"
-              class="voice-select"
-              @change="voiceSelectChange"
-              filterable
-            >
-              <template #prefix>
-                <el-icon><Microphone /></el-icon>
-              </template>
-              <template v-if="formConfig.voiceSelect" #trigger>
-                <div class="el-select__selection">
-                  {{ getChineseName(formConfig.voiceSelect) || formConfig.voiceSelect }}
-                </div>
-              </template>
-              <el-option
-                v-for="item in voiceSelectList"
-                :key="item.ShortName"
-                :label="getChineseName(item.ShortName) || item.DisplayName"
-                :value="item.ShortName"
-              >
-                <div class="voice-option">
-                  <span>{{ getChineseName(item.ShortName) || item.DisplayName }}</span>
-                  <el-tooltip
-                    content="试听声音示例"
-                    placement="top"
-                    effect="light"
-                  >
-                    <el-button 
-                      size="small" 
-                      type="primary" 
-                      circle
-                      @click.stop="audition(item.ShortName)"
-                    >
-                      <el-icon><CaretRight /></el-icon>
-                    </el-button>
-                  </el-tooltip>
-                </div>
-              </el-option>
-            </el-select>
-          </el-tooltip>
-        </div>
-        
-        <div class="compact-actions">
-          <el-tooltip
-            content="选择预设语音主播角色"
-            placement="top"
-            effect="light"
-          >
-            <el-button 
-              size="small" 
-              @click="openVoiceAnchors"
-              class="voice-anchors-button"
-            >
-              <el-icon><Avatar /></el-icon>
-              语音主播
-            </el-button>
-          </el-tooltip>
-          
-          <el-tooltip
-            content="调整语速、音调等高级设置"
-            placement="top"
-            effect="light"
-          >
-            <el-button 
-              size="small" 
-              @click="openSettingsPanel"
-              class="settings-button"
-            >
-              <el-icon><Setting /></el-icon>
-              高级设置
-            </el-button>
-          </el-tooltip>
-          
-          <div class="action-buttons-group">
+      <div class="controls-wrapper">
+        <div class="compact-controls-bar">
+          <div class="compact-selects">
             <el-tooltip
-              content="使用AI生成文本内容"
+              content="选择语音合成服务提供商"
+              placement="top"
+              effect="light"
+            >
+              <el-select
+                v-model="formConfig.api"
+                size="small"
+                placeholder="API"
+                class="compact-select"
+                @change="apiChange"
+              >
+                <template #prefix>
+                  <el-icon><Connection /></el-icon>
+                </template>
+                <el-option
+                  v-for="item in apiOptions"
+                  :key="item.value"
+                  :label="item.value === 5 ? `${item.label} (推荐免费)` : item.value === 4 ? `${item.label} (无限制使用)` : item.label"
+                  :value="item.value"
+                >
+                  <template v-if="item.value === 5">
+                    <div class="free-api-option">
+                      <span>{{ item.label }}</span>
+                      <el-tag size="small" type="success" effect="dark">推荐免费</el-tag>
+                    </div>
+                  </template>
+                  <template v-else-if="item.value === 4">
+                    <div class="free-api-option">
+                      <span>{{ item.label }}</span>
+                      <el-tag size="small" type="info" effect="plain">无限制使用</el-tag>
+                    </div>
+                  </template>
+                  <template v-else>
+                    <span>{{ item.label }}</span>
+                  </template>
+                </el-option>
+              </el-select>
+            </el-tooltip>
+            
+            <el-tooltip
+              content="选择语音合成的语言"
+              placement="top"
+              effect="light"
+            >
+              <el-select
+                v-model="formConfig.languageSelect"
+                size="small"
+                placeholder="语言"
+                class="compact-select"
+                @change="languageSelectChange"
+                filterable
+              >
+                <template #prefix>
+                  <el-icon><ChatDotRound /></el-icon>
+                </template>
+                <el-option
+                  v-for="item in languageOptions"
+                  :key="item.value"
+                  :label="item.label"
+                  :value="item.value"
+                />
+              </el-select>
+            </el-tooltip>
+            
+            <el-tooltip
+              content="选择语音角色"
+              placement="top"
+              effect="light"
+            >
+              <el-select
+                v-model="formConfig.voiceSelect"
+                size="small"
+                placeholder="声音"
+                class="voice-select"
+                @change="voiceSelectChange"
+                filterable
+              >
+                <template #prefix>
+                  <el-icon><Microphone /></el-icon>
+                </template>
+                <template v-if="formConfig.voiceSelect" #trigger>
+                  <div class="el-select__selection">
+                    {{ getChineseName(formConfig.voiceSelect) || formConfig.voiceSelect }}
+                  </div>
+                </template>
+                <el-option
+                  v-for="item in voiceSelectList"
+                  :key="item.ShortName"
+                  :label="getChineseName(item.ShortName) || item.DisplayName"
+                  :value="item.ShortName"
+                >
+                  <div class="voice-option">
+                    <span>{{ getChineseName(item.ShortName) || item.DisplayName }}</span>
+                    <el-tooltip
+                      content="试听声音示例"
+                      placement="top"
+                      effect="light"
+                    >
+                      <el-button 
+                        size="small" 
+                        type="primary" 
+                        circle
+                        @click.stop="audition(item.ShortName)"
+                      >
+                        <el-icon><CaretRight /></el-icon>
+                      </el-button>
+                    </el-tooltip>
+                  </div>
+                </el-option>
+              </el-select>
+            </el-tooltip>
+          </div>
+          
+          <div class="compact-actions">
+            <el-tooltip
+              content="选择预设语音主播角色"
               placement="top"
               effect="light"
             >
               <el-button 
-                @click="dialogVisible = true" 
-                type="info" 
-                size="small"
-                class="ai-button"
+                size="small" 
+                @click="openVoiceAnchors"
+                class="voice-anchors-button"
               >
-                <el-icon><MagicStick /></el-icon>
-                AI生成
+                <el-icon><Avatar /></el-icon>
+                语音主播
               </el-button>
             </el-tooltip>
             
             <el-tooltip
-              content="开始转换文本为语音"
+              content="调整语速、音调等高级设置"
+              placement="top"
+              effect="light"
+            >
+              <el-button 
+                size="small" 
+                @click="openSettingsPanel"
+                class="settings-button"
+              >
+                <el-icon><Setting /></el-icon>
+                高级设置
+              </el-button>
+            </el-tooltip>
+            
+            <el-tooltip
+              content="将所有文件批量转换为语音"
               placement="top"
               effect="light"
             >
               <el-button 
                 type="primary" 
-                @click="startBtn" 
-                :loading="isLoading"
                 size="small"
-                class="start-button"
+                @click="batchConvert"
+                :loading="isLoading"
+                :disabled="Array.isArray(ttsStore.tableData) ? ttsStore.tableData.length === 0 : true"
+                class="batch-convert-btn"
               >
                 <el-icon><CaretRight /></el-icon>
-                转换
+                批量转换
               </el-button>
             </el-tooltip>
+          </div>
+        </div>
+        
+        <!-- 集成播放器到批量处理控制栏 -->
+        <div class="player-container">
+          <div class="player-row">
+            <!-- 格式选择区域 -->
+            <div class="format-selection">
+              <span class="format-label">{{ t('footer.format') || '格式' }}:</span>
+              <el-select
+                v-model="playerConfig.formatType"
+                class="format-select"
+                @change="setFormatType"
+                size="small"
+              >
+                <el-option
+                  v-for="format in formatOptions"
+                  :key="format.value"
+                  :label="format.label"
+                  :value="format.value"
+                >
+                  <div class="format-option">
+                    <el-icon><DocumentChecked /></el-icon>
+                    <span>{{ format.label }}</span>
+                  </div>
+                </el-option>
+              </el-select>
+            </div>
+            
+            <!-- 音频播放器 -->
+            <div class="audio-player">
+              <audio
+                ref="audioPlayerRef"
+                :src="typeof currMp3Url === 'object' && 'value' in currMp3Url ? currMp3Url.value : (currMp3Url || null)"
+                :autoplay="playerConfig.autoplay"
+                controls
+                controlslist="nodownload"
+                class="modern-audio-player"
+                @error="handleAudioError"
+                @play="handleAudioPlay"
+                @canplay="handleAudioCanPlay"
+              ></audio>
+            </div>
+            
+            <!-- 下载按钮 -->
+            <div class="download-button">
+              <el-tooltip 
+                :content="t('footer.downloadAudio') || '下载音频'" 
+                placement="top"
+                effect="light"
+              >
+                <el-button
+                  type="primary"
+                  circle
+                  @click="download"
+                  :disabled="!isAudioAvailable()"
+                  :loading="isDownloading"
+                >
+                  <el-icon><Download /></el-icon>
+                </el-button>
+              </el-tooltip>
+            </div>
           </div>
         </div>
       </div>
@@ -951,6 +1016,9 @@ import {
   handleNavChange,
   handleErrorAction,
   handleRefreshConnection,
+  batchConvert,
+  play,
+  downloadFile,  // 添加downloadFile函数
   
   // 其他状态
   isSSMLMode,
@@ -984,11 +1052,14 @@ import HistoryRecord from "@/components/history/HistoryRecord.vue";
 // 在组件setup中初始化i18n和store
 const { t, ttsStore, localTTSStore, inputs, page, tableData, currMp3Url, config, formConfig, audioPlayer } = useMainSetup();
 
+// 确保从composables/main导入uploadRef
+const { uploadRef } = useMainSetup();
+
 // 确保tableData存在且有值
 if (!ttsStore.tableData) {
   ttsStore.tableData = ref([]);
   console.log('已初始化ttsStore.tableData');
-} else if (!ttsStore.tableData.value) {
+} else if (typeof ttsStore.tableData === 'object' && 'value' in ttsStore.tableData && !ttsStore.tableData.value) {
   ttsStore.tableData.value = [];
   console.log('已初始化ttsStore.tableData.value');
 }
@@ -1003,6 +1074,13 @@ if (!ttsStore.currMp3Url) {
   ttsStore.currMp3Url = ref(oldValue);
   console.log('将ttsStore.currMp3Url从字符串转换为ref对象');
 }
+
+// 用于调试表格数据
+const getTableDataInfo = () => {
+  console.log('表格数据类型:', typeof tableData.value);
+  console.log('表格数据长度:', Array.isArray(tableData.value) ? tableData.value.length : 0);
+  console.log('表格数据内容:', tableData.value);
+};
 
 // 初始化全局引用，确保在setup函数外部的函数也能访问到store数据
 onMounted(() => {
@@ -1124,6 +1202,9 @@ onMounted(() => {
   
   // 确保audioPlayerRef已经挂载
   nextTick(updateAudioSrc);
+  
+  // 检查表格数据
+  getTableDataInfo();
 });
 
 // 当语言选择变化时，更新语音列表
@@ -1201,6 +1282,150 @@ watch(isSSMLMode, (newValue) => {
     console.log('切换到纯文本模式，重置SSML编辑状态');
   }
 });
+
+// 获取表格数据
+const getTableData = () => {
+  // 直接从 ttsStore 获取最新的表格数据
+  if (!ttsStore) {
+    console.warn('getTableData: ttsStore 未定义');
+    return [];
+  }
+
+  try {
+    // 检查 tableData 类型并返回正确的数据
+    if (ttsStore.tableData === null || ttsStore.tableData === undefined) {
+      console.warn('getTableData: tableData 不存在，返回空数组');
+      return [];
+    }
+    
+    if (Array.isArray(ttsStore.tableData)) {
+      console.log('getTableData: tableData 是数组，长度:', ttsStore.tableData.length);
+      return ttsStore.tableData;
+    } 
+    
+    if (typeof ttsStore.tableData === 'object') {
+      if ('value' in ttsStore.tableData && Array.isArray(ttsStore.tableData.value)) {
+        console.log('getTableData: tableData 是 ref 对象，长度:', ttsStore.tableData.value.length);
+        return ttsStore.tableData.value;
+      }
+    }
+    
+    console.warn('getTableData: tableData 类型未知，返回空数组');
+    return [];
+  } catch (error) {
+    console.error('getTableData 错误:', error);
+    return [];
+  }
+};
+
+// 监听表格数据变化
+watch(() => ttsStore.tableData, (newValue) => {
+  console.log('监听到表格数据变化:', Array.isArray(newValue) 
+    ? newValue.length + ' 个文件' 
+    : (typeof newValue === 'object' && 'value' in newValue && Array.isArray(newValue.value)) 
+      ? newValue.value.length + ' 个文件'
+      : '无数据');
+});
+
+// 处理直接文件输入变化
+const handleFileInputChange = (event) => {
+  const files = event.target.files;
+  if (!files || files.length === 0) {
+    return;
+  }
+  
+  console.log(`选择了 ${files.length} 个文件`);
+  
+  // 处理每个文件
+  for (let i = 0; i < files.length; i++) {
+    const file = files[i];
+    
+    // 获取文件路径（如果可能）
+    let filePath = file.name;
+    
+    // 如果是File System Access API（现代浏览器）
+    if (file.webkitRelativePath) {
+      filePath = file.webkitRelativePath;
+    } else if (file.path) {
+      // Electron环境
+      filePath = file.path;
+    }
+    
+    // 创建一个模拟的上传文件对象，适配el-upload的fileChange接口
+    const uploadFile = {
+      name: file.name,
+      size: file.size,
+      raw: file,
+      path: filePath // 添加路径属性
+    };
+    
+    // 调用fileChange函数处理文件
+    fileChange(uploadFile, [uploadFile]);
+  }
+  
+  // 重置文件输入，允许再次选择相同的文件
+  event.target.value = '';
+};
+
+// 在批量处理页面加载时检查表格数据
+watch(() => page.asideIndex, (newValue) => {
+  if (newValue === '2') {
+    console.log('进入批量处理页面，检查表格数据:');
+    console.log('tableData类型:', typeof ttsStore.tableData);
+    console.log('tableData长度:', Array.isArray(ttsStore.tableData) ? ttsStore.tableData.length : '非数组');
+    console.log('tableData内容:', ttsStore.tableData);
+  }
+});
+
+// 添加测试文件函数
+const addTestFile = () => {
+  try {
+    console.log('添加测试文件');
+    
+    // 检查ttsStore
+    if (!ttsStore) {
+      console.error('ttsStore不存在');
+      ElMessage.error('存储实例不可用');
+      return;
+    }
+    
+    // 创建测试文件
+    const testFile = {
+      fileName: `测试文件_${new Date().getTime()}`,
+      filePath: `测试路径_${new Date().getTime()}`,
+      fileSize: '1 KB',
+      status: 'ready',
+      content: '这是测试内容',
+      file: null
+    };
+    
+    // 确保tableData是数组
+    if (!ttsStore.tableData) {
+      ttsStore.tableData = [];
+    }
+    
+    // 添加文件
+    if (Array.isArray(ttsStore.tableData)) {
+      // 创建新数组
+      ttsStore.tableData = [...ttsStore.tableData, testFile];
+    } else {
+      ttsStore.tableData = [testFile];
+    }
+    
+    console.log('已添加测试文件', testFile.fileName);
+    console.log('当前tableData:', ttsStore.tableData);
+    
+    // 尝试调用forceUpdate
+    if (typeof ttsStore.forceUpdate === 'function') {
+      ttsStore.forceUpdate();
+    }
+    
+    ElMessage.success('已添加测试文件');
+  } catch (error) {
+    console.error('添加测试文件失败:', error);
+    ElMessage.error('添加测试文件失败');
+  }
+};
 </script>
 
 <style>
@@ -1224,6 +1449,17 @@ watch(isSSMLMode, (newValue) => {
   overflow-x: hidden;
 }
 
+/* 控制区包装器 */
+.controls-wrapper {
+  width: 100%;
+  max-width: 1000px;
+  background-color: var(--card-background);
+  box-shadow: var(--shadow-medium);
+  border-left: 1px solid var(--border-color);
+  border-right: 1px solid var(--border-color);
+  overflow: hidden;
+}
+
 /* 控制栏 */
 .compact-controls-bar {
   display: flex;
@@ -1232,41 +1468,61 @@ watch(isSSMLMode, (newValue) => {
   padding: 16px;
   border-top: 1px solid var(--border-color);
   gap: 20px;
+  border-bottom: none; /* 移除底部边框 */
 }
 
-/* 确保播放器卡片与侧边栏不冲突 */
-.player-card {
-  margin-top: 20px;
+/* 集成播放器容器样式 */
+.player-container {
   width: 100%;
-  max-width: 1000px;
+  padding: 0 16px 16px 16px;
   background-color: var(--card-background);
-  border-radius: var(--border-radius-large);
+  border-bottom: 1px solid var(--border-color);
   box-shadow: var(--shadow-medium);
-  border: 1px solid var(--border-color);
-  overflow: hidden;
-  z-index: 1;
+  border-left: 1px solid var(--border-color);
+  border-right: 1px solid var(--border-color);
+  max-width: 1000px;
 }
 
-/* 确保页脚与侧边栏不冲突 */
+/* 播放器行 */
+.player-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+/* 音频播放器 */
+.audio-player {
+  flex-grow: 1;
+}
+
+.modern-audio-player {
+  width: 100%;
+  height: 40px;
+  border-radius: var(--border-radius);
+}
+
+/* 页脚样式 - 应该在播放器之后显示 */
 .site-footer {
-  margin-top: 20px;
+  margin-top: 0; /* 移除顶部边距 */
   width: 100%;
   max-width: 1000px;
   padding: 20px;
   background-color: var(--card-background);
-  border-radius: var(--border-radius-large);
+  border-radius: 0 0 var(--border-radius-large) var(--border-radius-large); /* 只有底部有圆角 */
   box-shadow: var(--shadow-medium);
   border: 1px solid var(--border-color);
+  border-top: none; /* 移除顶部边框 */
   z-index: 1;
 }
 
 /* 响应式布局 */
 @media (max-width: 1200px) {
   .input-area-card,
-  .player-card,
+  .player-container,
   .site-footer {
     max-width: 95%;
-}
+  }
 }
 
 @media (max-width: 768px) {
@@ -1280,7 +1536,9 @@ watch(isSSMLMode, (newValue) => {
   .modern-main .config-page-container,
   .modern-main .doc-page-container,
   .modern-main .content-area,
-  .modern-main .history-record-container {
+  .modern-main .history-record-container,
+  .modern-main .controls-wrapper,
+  .modern-main .player-container {
     padding: 10px;
     width: 100%;
     border-radius: 0;
@@ -1296,21 +1554,22 @@ watch(isSSMLMode, (newValue) => {
 
   .modern-main .compact-controls-bar {
     padding: 16px;
-    margin-top: 10px;
+    margin-top: 0;
     background-color: var(--card-background);
     border-top: 1px solid var(--border-color);
   }
 
-  .modern-main .player-card {
-    margin-top: 10px;
+  .modern-main .player-container {
+    margin-top: 0;
     border-radius: 0;
     box-shadow: none;
-    border-top: 1px solid var(--border-color);
+    border-top: none;
     border-bottom: 1px solid var(--border-color);
+    padding-bottom: 16px;
   }
 
   .modern-main .site-footer {
-    margin-top: 10px;
+    margin-top: 0;
     border-radius: 0;
     box-shadow: none;
   }
@@ -1407,5 +1666,393 @@ watch(isSSMLMode, (newValue) => {
   box-shadow: var(--shadow-medium);
   border: 1px solid var(--border-color);
   overflow: hidden;
+}
+
+/* 输入区域卡片样式 */
+.input-area-card, .batch-area-card {
+  width: 100%;
+  max-width: 1000px;
+  margin-bottom: 0; /* 移除底部边距 */
+  background-color: var(--card-background);
+  border-radius: var(--border-radius-large) var(--border-radius-large) 0 0; /* 只有顶部有圆角 */
+  box-shadow: var(--shadow-medium);
+  border: 1px solid var(--border-color);
+  border-bottom: none; /* 移除底部边框 */
+  overflow: hidden;
+  z-index: 1;
+}
+
+/* 批量处理卡片样式 */
+.batch-area-card .card-body {
+  padding: 16px;
+  min-height: 300px;
+}
+
+/* 表格样式 */
+.modern-table {
+  width: 100%;
+  border-radius: 8px;
+  overflow: hidden;
+  background-color: var(--card-background, #ffffff);
+  border: 1px solid var(--border-color, #e4e7ed);
+}
+
+.modern-table .el-table__header-wrapper th {
+  background-color: var(--background-color-light, #f5f7fa);
+  color: var(--text-primary, #303133);
+  font-weight: 600;
+}
+
+.modern-table .el-table__row {
+  background-color: var(--card-background, #ffffff);
+}
+
+.modern-table .el-table__row:hover {
+  background-color: var(--background-color-hover, #f5f7fa);
+}
+
+.status-tag {
+  display: inline-block;
+  padding: 4px 10px;
+  border-radius: 12px;
+  font-size: 12px;
+  line-height: 1;
+  text-align: center;
+}
+
+.status-pending {
+  background-color: #e6f7ff;
+  color: #1890ff;
+  border: 1px solid #91d5ff;
+}
+
+.status-done {
+  background-color: #f6ffed;
+  color: #52c41a;
+  border: 1px solid #b7eb8f;
+}
+
+.action-buttons {
+  display: flex;
+  gap: 8px;
+  justify-content: center;
+}
+
+.play-buttons {
+  display: flex;
+  gap: 8px;
+  justify-content: center;
+}
+
+.delete-btn {
+  background-color: #f56c6c;
+  color: white;
+  border: none;
+  padding: 6px 12px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 12px;
+  transition: all 0.3s;
+}
+
+.delete-btn:hover {
+  background-color: #e64242;
+}
+
+.play-btn, .download-btn {
+  padding: 6px 12px;
+  border-radius: 4px;
+  border: none;
+  cursor: pointer;
+  transition: all 0.3s;
+  font-size: 12px;
+}
+
+.play-btn {
+  background-color: #409eff;
+  color: white;
+  margin-right: 8px;
+}
+
+.play-btn:hover {
+  background-color: #66b1ff;
+}
+
+.download-btn {
+  background-color: #909399;
+  color: white;
+}
+
+.download-btn:hover {
+  background-color: #a6a9ad;
+}
+
+/* 格式选择区域 */
+.format-selection {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 120px;
+}
+
+.format-label {
+  font-size: 14px;
+  color: var(--text-secondary);
+  white-space: nowrap;
+}
+
+.format-select {
+  width: 80px;
+}
+
+.format-option {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+/* 下载按钮 */
+.download-button {
+  display: flex;
+  align-items: center;
+}
+
+/* 批量处理卡片标题栏 */
+.batch-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px;
+  border-bottom: 1px solid var(--border-color, #e4e7ed);
+  background-color: var(--card-background, #ffffff);
+}
+
+.batch-card-header h2 {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--text-primary, #303133);
+  display: flex;
+  align-items: center;
+}
+
+.batch-card-header h2::before {
+  content: '';
+  display: inline-block;
+  width: 4px;
+  height: 18px;
+  background-color: var(--primary-color, #409eff);
+  border-radius: 2px;
+  margin-right: 8px;
+}
+
+.table-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 16px;
+  background-color: #f8f9fa;
+  border-bottom: 1px solid #ebeef5;
+  font-size: 14px;
+  color: #606266;
+}
+
+.table-header span {
+  font-weight: 600;
+  color: #303133;
+  display: flex;
+  align-items: center;
+}
+
+.table-header span::before {
+  content: '';
+  display: inline-block;
+  width: 3px;
+  height: 14px;
+  background-color: var(--primary-color, #409eff);
+  border-radius: 2px;
+  margin-right: 8px;
+}
+
+.batch-actions {
+  display: flex;
+  gap: 12px;
+}
+
+.upload-btn {
+  font-weight: 500;
+}
+
+.clear-button {
+  font-weight: 500;
+}
+
+/* 批量转换按钮 */
+.batch-convert-btn {
+  background-color: var(--primary-color, #409eff);
+  border-color: var(--primary-color, #409eff);
+  font-weight: 600;
+  min-width: 100px;
+}
+
+.empty-table-hint {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 300px;
+  background-color: #ffffff;
+  border-radius: 0;
+  border: 1px solid #ebeef5;
+  margin: 0;
+  width: 100%;
+}
+
+.card-body {
+  padding: 0;
+  background-color: var(--card-background, #ffffff);
+  border-radius: 0;
+  width: 100%;
+  overflow: hidden;
+  min-height: 300px;
+}
+
+.batch-area-card {
+  background-color: var(--card-background, #ffffff);
+  border-radius: var(--border-radius-large, 8px) var(--border-radius-large, 8px) 0 0;
+  border: 1px solid var(--border-color, #e4e7ed);
+  overflow: hidden;
+  width: 100%;
+  max-width: 1000px;
+  margin: 0 auto;
+  box-shadow: var(--shadow-medium, 0 2px 12px rgba(0, 0, 0, 0.05));
+}
+
+.debug-info {
+  margin-top: 16px;
+  padding: 12px;
+  background-color: #f9f9fa;
+  border-radius: 8px;
+  border: 1px dashed #d3d3d3;
+  font-size: 12px;
+  color: #666;
+  white-space: pre-wrap;
+}
+
+.simple-table {
+  width: 100%;
+  margin: 0 0 20px 0;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.05);
+}
+
+.simple-table table {
+  width: 100%;
+  border-collapse: collapse;
+  background-color: #ffffff;
+  border: 1px solid #ebeef5;
+}
+
+.simple-table th {
+  background-color: #f5f7fa;
+  color: #606266;
+  font-weight: 500;
+  padding: 12px 16px;
+  text-align: center;
+  border-bottom: 1px solid #e4e7ed;
+  font-size: 14px;
+}
+
+.simple-table td {
+  padding: 12px 16px;
+  border-bottom: 1px solid #ebeef5;
+  color: #606266;
+  font-size: 14px;
+  text-align: center;
+}
+
+.simple-table td:first-child {
+  text-align: left;
+}
+
+.simple-table tr:last-child td {
+  border-bottom: none;
+}
+
+.simple-table tr:hover {
+  background-color: #f5f7fa;
+}
+
+.simple-table button {
+  background-color: #409eff;
+  color: white;
+  border: none;
+  padding: 6px 12px;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.simple-table button:hover {
+  background-color: #66b1ff;
+}
+
+.simple-table button:active {
+  background-color: #3a8ee6;
+}
+
+.table-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 16px;
+  background-color: #f8f9fa;
+  border-bottom: 1px solid #ebeef5;
+  font-size: 14px;
+  color: #606266;
+}
+
+.table-header span {
+  font-weight: 600;
+  color: #303133;
+}
+
+.file-count {
+  color: #909399;
+  font-size: 12px;
+  font-weight: normal;
+}
+
+.table-row-hover {
+  transition: all 0.3s;
+}
+
+.table-row-hover:hover {
+  background-color: #ecf5ff !important;
+  transform: translateY(-1px);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+}
+
+.edit-btn {
+  background-color: #67c23a;
+  color: white;
+  border: none;
+  padding: 6px 12px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 12px;
+  transition: all 0.3s;
+  margin-right: 8px;
+}
+
+.edit-btn:hover {
+  background-color: #85ce61;
+}
+
+.file-name-text {
+  max-width: 250px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  display: inline-block;
 }
 </style>

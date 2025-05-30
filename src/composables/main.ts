@@ -250,32 +250,23 @@ function useMainSetup() {
       ttsStore.currMp3Url = currMp3Url;
       globalCurrMp3Url = currMp3Url;
     }
-  } catch (err) {
-    console.error('useMainSetup: 处理currMp3Url时出错:', err);
-    // 确保我们至少有一个可用的currMp3Url ref
+  } catch (error) {
+    console.error('初始化currMp3Url时出错:', error);
     currMp3Url = ref('');
+    // 尝试同步回store和全局引用
     try {
       ttsStore.currMp3Url = currMp3Url;
       globalCurrMp3Url = currMp3Url;
-      console.log('useMainSetup: 重置了currMp3Url引用');
-    } catch (storeErr) {
-      console.error('useMainSetup: 无法同步currMp3Url:', storeErr);
+    } catch (err) {
+      console.error('同步currMp3Url回store时出错:', err);
     }
   }
   
-  const config = ttsStore.config ? ref(ttsStore.config) : ref({});
+  // 获取配置对象
+  const config = ref(ttsStore.config || {});
+  // 获取表单配置
+  const formConfig = ref(ttsStore.formConfig || {});
   
-  const formConfig = ttsStore.formConfig ? ref(ttsStore.formConfig) : ref({});
-  
-  const audioPlayer = ttsStore.audioPlayer;
-
-  // 初始化语音列表
-  onMounted(() => {
-    // 确保初始化语音列表
-    initVoiceList();
-  });
-
-  // 返回需要在组件中使用的内容
   return {
     t,
     ttsStore,
@@ -284,9 +275,10 @@ function useMainSetup() {
     page,
     tableData,
     currMp3Url,
-    config, 
+    config,
     formConfig,
-    audioPlayer
+    uploadRef,
+    audioPlayerRef,
   };
 }
 
@@ -594,24 +586,262 @@ const handleTabClick = (tab) => {
 
 // 处理删除
 const handleDelete = (index, row) => {
-  console.log("处理删除:", index, row);
-  uploadRef.value?.handleRemove(row.file);
+  if (!row || !row.fileName) {
+    console.warn("无效的行数据:", row);
+    return;
+  }
+  
+  try {
+    // 获取新的store实例
+    const ttsStore = useTtsStore();
+    if (!ttsStore) {
+      throw new Error("无法获取ttsStore实例");
+    }
+    
+    console.log(`正在删除文件 ${row.fileName}`);
+    
+    // 找到文件索引
+    const fileIndex = ttsStore.tableData.findIndex(item => 
+      item.fileName === row.fileName);
+    
+    if (fileIndex === -1) {
+      console.warn(`找不到文件 ${row.fileName}`);
+      return;
+    }
+    
+    // 创建新数组并删除文件
+    const updatedTableData = [...ttsStore.tableData];
+    updatedTableData.splice(fileIndex, 1);
+    ttsStore.tableData = updatedTableData;
+    
+    // 如果uploadRef存在，从上传组件中移除文件
+    if (uploadRef.value) {
+      try {
+        const uploadFiles = uploadRef.value.uploadFiles || [];
+        const fileToRemove = uploadFiles.find(file => file.name === row.fileName);
+        
+        if (fileToRemove) {
+          uploadRef.value.handleRemove(fileToRemove);
+        }
+      } catch (error) {
+        console.warn("从上传组件移除文件失败:", error);
+      }
+    }
+    
+    console.log(`已删除文件 ${row.fileName}, 当前剩余 ${ttsStore.tableData.length} 个文件`);
+    
+    ElMessage({
+      message: `已删除文件: ${row.fileName}`,
+      type: "success",
+      duration: 2000,
+    });
+  } catch (error) {
+    console.error("删除文件时出错:", error);
+    ElMessage({
+      message: "删除文件时出错: " + (error instanceof Error ? error.message : String(error)),
+      type: "error",
+      duration: 2000,
+    });
+  }
 };
 
 // 文件更改处理
 const fileChange = (uploadFile, uploadFiles) => {
-  console.log("文件已更改:", uploadFiles.length, "个文件");
+  if (!uploadFile || !uploadFile.raw) {
+    console.warn("文件无效:", uploadFile);
+    ElMessage({
+      message: "文件无效或格式不支持",
+      type: "error",
+      duration: 2000,
+    });
+    return;
+  }
+  
+  console.log("处理文件:", uploadFile.name, uploadFile.size);
+  
+  // 读取文件内容
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    try {
+      // 直接获取新的ttsStore实例，避免使用可能过期的globalTtsStore
+      const ttsStore = useTtsStore();
+      if (!ttsStore) {
+        throw new Error("无法获取ttsStore实例");
+      }
+      
+      // 检查ttsStore.tableData的状态
+      console.log("添加文件前，检查ttsStore.tableData:");
+      console.log(" - 类型:", typeof ttsStore.tableData);
+      console.log(" - 是否为数组:", Array.isArray(ttsStore.tableData));
+      console.log(" - 长度:", Array.isArray(ttsStore.tableData) ? ttsStore.tableData.length : "N/A");
+      
+      // 尝试获取完整的文件路径（如果可能）
+      let filePath = uploadFile.name;
+      
+      // 按优先级检查不同的路径来源
+      if (uploadFile.path) {
+        // 首先使用显式提供的path属性
+        filePath = uploadFile.path;
+        console.log(`使用显式提供的路径: ${filePath}`);
+      } else if (uploadFile.raw && uploadFile.raw.path) {
+        // 然后检查raw文件是否有path
+        filePath = uploadFile.raw.path;
+        console.log(`使用raw文件的路径: ${filePath}`);
+      } else if (window.electronAPI && typeof window.electronAPI.getSelectedFilePath === 'function') {
+        // 最后尝试使用Electron API
+        try {
+          const electronPath = window.electronAPI.getSelectedFilePath(uploadFile.name);
+          if (electronPath) {
+            filePath = electronPath;
+            console.log(`使用Electron API获取的路径: ${filePath}`);
+          }
+        } catch (pathError) {
+          console.warn("获取Electron文件路径失败:", pathError);
+        }
+      }
+      
+      // 准备文件数据
+      const newFile = {
+        fileName: uploadFile.name,
+        filePath: filePath,
+        fileSize: (uploadFile.size / 1024).toFixed(2) + " KB",
+        status: "ready",
+        content: e.target.result,
+        file: uploadFile.raw
+      };
+      
+      // 确保tableData是数组
+      if (!ttsStore.tableData) {
+        console.log("tableData不存在，初始化为空数组");
+        ttsStore.tableData = [];
+      }
+      
+      // 为了确保是响应式更新，创建一个新数组
+      const newTableData = Array.isArray(ttsStore.tableData) 
+        ? [...ttsStore.tableData, newFile] 
+        : [newFile];
+      
+      // 直接替换整个数组
+      ttsStore.tableData = newTableData;
+      
+      console.log(`已添加文件 ${uploadFile.name}, 当前共有 ${ttsStore.tableData.length} 个文件`);
+      
+      // 为安全起见，尝试调用forceUpdate
+      try {
+        if (typeof ttsStore.forceUpdate === 'function') {
+          ttsStore.forceUpdate();
+          console.log("已执行forceUpdate");
+          
+          // 验证更新后的状态
+          console.log("forceUpdate后检查tableData:");
+          console.log(" - 长度:", ttsStore.tableData.length);
+          console.log(" - 内容:", ttsStore.tableData[0]?.fileName);
+        }
+      } catch (error) {
+        console.warn("调用forceUpdate失败", error);
+      }
+      
+      ElMessage({
+        message: `成功添加文件: ${uploadFile.name}`,
+        type: "success",
+        duration: 2000,
+      });
+    } catch (error) {
+      console.error("处理文件时出错:", error);
+      ElMessage({
+        message: "处理文件时出错: " + (error instanceof Error ? error.message : String(error)),
+        type: "error",
+        duration: 2000,
+      });
+    }
+  };
+  
+  reader.onerror = (error) => {
+    console.error("读取文件内容失败:", error);
+    ElMessage({
+      message: "读取文件内容失败",
+      type: "error",
+      duration: 2000,
+    });
+  };
+  
+  // 开始读取文件内容
+  reader.readAsText(uploadFile.raw);
 };
 
 // 文件移除处理
 const fileRemove = (uploadFile, uploadFiles) => {
   console.log("文件已移除:", uploadFiles.length, "个剩余文件");
+  
+  // 如果没有提供文件名，无法继续
+  if (!uploadFile || !uploadFile.name) {
+    console.warn("文件移除: 没有提供文件名");
+    return;
+  }
+  
+  try {
+    // 从表格数据中移除文件
+    if (globalTtsStore && globalTtsStore.tableData) {
+      // 检查是否为ref对象
+      if (Array.isArray(globalTtsStore.tableData)) {
+        const index = globalTtsStore.tableData.findIndex(item => item.fileName === uploadFile.name);
+        if (index !== -1) {
+          globalTtsStore.tableData.splice(index, 1);
+          console.log("文件已从表格中移除:", uploadFile.name);
+        }
+      } else if (globalTtsStore.tableData.value) {
+        const index = globalTtsStore.tableData.value.findIndex(item => item.fileName === uploadFile.name);
+        if (index !== -1) {
+          globalTtsStore.tableData.value.splice(index, 1);
+          console.log("文件已从表格中移除:", uploadFile.name);
+        }
+      }
+    } else {
+      console.error("无法访问tableData，无法移除文件");
+    }
+  } catch (error) {
+    console.error("移除文件时出错:", error);
+  }
 };
 
 // 清除所有
 const clearAll = () => {
-  console.log("清除所有文件");
-  uploadRef.value?.clearFiles();
+  console.log("正在清空所有文件");
+  
+  try {
+    // 获取新的store实例
+    const ttsStore = useTtsStore();
+    if (!ttsStore) {
+      throw new Error("无法获取ttsStore实例");
+    }
+    
+    // 设置为空数组（直接替换，而不是修改length）
+    ttsStore.tableData = [];
+    
+    // 清除上传组件中的文件
+    if (uploadRef.value) {
+      try {
+        uploadRef.value.clearFiles();
+      } catch (error) {
+        console.warn("清除上传组件文件失败:", error);
+      }
+    }
+    
+    console.log("已清空所有文件");
+    
+    ElMessage({
+      message: "已清空所有文件",
+      type: "success",
+      duration: 2000,
+    });
+  } catch (error) {
+    console.error("清空文件时出错:", error);
+    ElMessage({
+      message: "清空文件时出错: " + (error instanceof Error ? error.message : String(error)),
+      type: "error",
+      duration: 2000,
+    });
+  }
 };
 
 // 播放
@@ -755,8 +985,40 @@ const tryAlternativePlayback = (url: string) => {
 };
 
 // 在文件夹中打开
-const openInFolder = (val) => {
-  console.log("在文件夹中打开:", val);
+const openInFolder = (file) => {
+  console.log("在文件夹中打开:", file.fileName);
+  
+  if (!file || !file.filePath) {
+    ElMessage({
+      message: "找不到文件路径",
+      type: "warning",
+      duration: 2000,
+    });
+    return;
+  }
+  
+  try {
+    // 使用ElectronAPI打开文件所在的文件夹（如果在Electron环境中）
+    if (window.electronAPI && typeof window.electronAPI.showItemInFolder === 'function') {
+      window.electronAPI.showItemInFolder(file.filePath);
+      console.log(`通过Electron打开文件夹: ${file.filePath}`);
+    } 
+    // 降级方案：提示用户
+    else {
+      ElMessage({
+        message: "在网页版无法直接打开本地文件夹，请使用桌面版",
+        type: "info",
+        duration: 3000,
+      });
+    }
+  } catch (error) {
+    console.error("打开文件夹失败:", error);
+    ElMessage({
+      message: "打开文件夹失败: " + (error instanceof Error ? error.message : String(error)),
+      type: "error",
+      duration: 2000,
+    });
+  }
 };
 
 // 修改现有的audition函数，使用新的统一播放逻辑
@@ -1201,75 +1463,56 @@ const openApiSite = () => {
 
 // 检查是否有可用的音频
 const isAudioAvailable = () => {
-  let audioUrl = '';
-  
-  // 尝试来源1: 全局store中的currMp3Url
-  if (globalTtsStore && globalTtsStore.currMp3Url) {
-    // 处理ref对象或字符串
-    if (typeof globalTtsStore.currMp3Url === 'object' && 'value' in globalTtsStore.currMp3Url) {
-      audioUrl = globalTtsStore.currMp3Url.value;
-    } else if (typeof globalTtsStore.currMp3Url === 'string') {
-      audioUrl = globalTtsStore.currMp3Url;
-    }
-  }
-  
-  // 尝试来源2: 全局globalCurrMp3Url变量
-  if ((!audioUrl || audioUrl === '') && globalCurrMp3Url) {
-    if (typeof globalCurrMp3Url === 'object' && 'value' in globalCurrMp3Url) {
-      audioUrl = globalCurrMp3Url.value;
-    }
-  }
-  
-  // 尝试来源3: audio元素的src属性
-  if ((!audioUrl || audioUrl === '') && audioPlayerRef && audioPlayerRef.value) {
-    const playerSrc = audioPlayerRef.value.src;
-    if (playerSrc && playerSrc !== '' && playerSrc !== 'null' && playerSrc !== window.location.href) {
-      // 确保不是本地服务器地址
-      if (!playerSrc.includes('127.0.0.1:3344') && !playerSrc.includes('localhost:3344')) {
-        audioUrl = playerSrc;
+  try {
+    let audioUrl = '';
+    
+    // 尝试来源1: 全局store中的currMp3Url
+    if (globalTtsStore && globalTtsStore.currMp3Url) {
+      // 处理ref对象或字符串
+      if (typeof globalTtsStore.currMp3Url === 'object' && 'value' in globalTtsStore.currMp3Url) {
+        audioUrl = globalTtsStore.currMp3Url.value;
+      } else if (typeof globalTtsStore.currMp3Url === 'string') {
+        audioUrl = globalTtsStore.currMp3Url;
       }
     }
-  }
-
-  // 尝试来源4: 全局audioPlayer
-  if ((!audioUrl || audioUrl === '') && globalTtsStore && globalTtsStore.audioPlayer) {
-    const globalPlayerSrc = globalTtsStore.audioPlayer.src;
-    if (globalPlayerSrc && globalPlayerSrc !== '' && globalPlayerSrc !== 'null' && globalPlayerSrc !== window.location.href) {
-      // 确保不是本地服务器地址
-      if (!globalPlayerSrc.includes('127.0.0.1:3344') && !globalPlayerSrc.includes('localhost:3344')) {
-        audioUrl = globalPlayerSrc;
+    
+    // 尝试来源2: 全局globalCurrMp3Url变量
+    if ((!audioUrl || audioUrl === '') && globalCurrMp3Url) {
+      if (typeof globalCurrMp3Url === 'object' && 'value' in globalCurrMp3Url) {
+        audioUrl = globalCurrMp3Url.value;
       }
     }
-  }
-  
-  // 检查URL是否有效
-  // 1. 必须存在且不为空
-  // 2. 不能是默认的服务器地址 (例如http://127.0.0.1:3344/)
-  // 3. 不能是空值或浏览器默认值
-  if (!audioUrl || audioUrl === '') {
-    return false;
-  }
-  
-  // 过滤掉本地服务器地址
-  if (audioUrl.endsWith('127.0.0.1:3344') || 
-      audioUrl.endsWith('localhost:3344') ||
-      audioUrl === window.location.href ||
-      audioUrl === 'null' ||
-      audioUrl === 'undefined') {
-    return false;
-  }
-  
-  // 如果是blob类型的URL或基于data:的URL，几乎肯定是有效的
-  if (audioUrl.startsWith('blob:') || audioUrl.startsWith('data:')) {
+    
+    // 检查URL是否有效
+    // 1. 必须存在且不为空
+    if (!audioUrl || audioUrl === '') {
+      return false;
+    }
+    
+    // 2. 不能是默认的服务器地址或空值
+    if (audioUrl.endsWith('127.0.0.1:3344') || 
+        audioUrl.endsWith('localhost:3344') ||
+        audioUrl === window.location.href ||
+        audioUrl === 'null' ||
+        audioUrl === 'undefined') {
+      return false;
+    }
+    
+    // 如果是blob类型的URL或基于data:的URL，几乎肯定是有效的
+    if (audioUrl.startsWith('blob:') || audioUrl.startsWith('data:')) {
+      return true;
+    }
+    
+    // 附加检查：确保URL至少长于8个字符（http://a）
+    if (audioUrl.length < 8) {
+      return false;
+    }
+    
     return true;
-  }
-  
-  // 附加检查：确保URL至少长于8个字符（http://a）
-  if (audioUrl.length < 8) {
+  } catch (e) {
+    console.error('检查音频可用性时出错:', e);
     return false;
   }
-  
-  return true;
 };
 
 // 下载
@@ -1588,6 +1831,185 @@ const trimUrl = (field) => {
   }
 };
 
+// 批量转换
+const batchConvert = async () => {
+  console.log("开始批量转换");
+  
+  try {
+    // 确保获取当前的formConfig配置
+    if (!globalFormConfig || !globalFormConfig.value) {
+      console.error("无法获取表单配置");
+      ElMessage.error("无法获取表单配置，请刷新页面重试");
+      return;
+    }
+    
+    // 获取当前formConfig的本地引用，避免后续直接使用全局变量
+    const currentFormConfig = globalFormConfig.value;
+    
+    // 获取待处理文件列表
+    const tableData = Array.isArray(globalTtsStore.tableData) 
+      ? globalTtsStore.tableData 
+      : (globalTtsStore.tableData.value || []);
+    
+    // 检查是否有文件需要处理
+    const filesToProcess = tableData.filter(file => file.status === "ready");
+    if (filesToProcess.length === 0) {
+      ElMessage({
+        message: "没有可转换的文件",
+        type: "warning",
+        duration: 2000,
+      });
+      return;
+    }
+    
+    // 显示加载状态
+    isLoading.value = true;
+    loadingTitle.value = "批量转换中";
+    loadingMessage.value = "正在处理文件...";
+    
+    // 总文件数
+    const totalFiles = filesToProcess.length;
+    let processedFiles = 0;
+    
+    // 开始处理文件
+    for (const file of filesToProcess) {
+      try {
+        // 更新加载消息
+        loadingMessage.value = `正在处理 ${file.fileName} (${processedFiles + 1}/${totalFiles})`;
+        
+        // 更新进度
+        convertProgress.value = Math.floor((processedFiles / totalFiles) * 100);
+        
+        // 获取文件内容
+        const content = file.content || "";
+        
+        if (!content) {
+          console.warn(`文件 ${file.fileName} 没有内容，跳过`);
+          processedFiles++;
+          continue;
+        }
+        
+        // 调用TTS API
+        const result = await getTTSData({
+          api: currentFormConfig.api || 5,
+          voiceData: {
+            activeIndex: "0", // 使用普通文本模式
+            ssmlContent: "", // 批量处理不使用SSML
+            inputContent: content,
+            retryCount: 3,
+            retryInterval: 1000
+          },
+          speechKey: globalConfig.value?.speechKey || "",
+          region: globalConfig.value?.serviceRegion || "",
+          thirdPartyApi: globalConfig.value?.thirdPartyApi || "",
+          tts88Key: globalConfig.value?.tts88Key || ""
+        });
+        
+        if (result && result.audibleUrl) {
+          // 更新文件状态
+          file.status = "done";
+          file.audioUrl = result.audibleUrl;
+          
+          console.log(`文件 ${file.fileName} 转换成功`);
+          
+          // 添加到历史记录
+          addToHistory(file, result.audibleUrl);
+        } else if (result && result.buffer) {
+          // 如果有buffer而没有URL，创建blob URL
+          const audioBlob = new Blob([result.buffer], { type: 'audio/mpeg' });
+          const audioUrl = URL.createObjectURL(audioBlob);
+          
+          // 更新文件状态
+          file.status = "done";
+          file.audioUrl = audioUrl;
+          
+          console.log(`文件 ${file.fileName} 转换成功，创建了本地Blob URL`);
+          
+          // 添加到历史记录
+          addToHistory(file, audioUrl);
+        } else {
+          console.error(`文件 ${file.fileName} 转换失败: 没有返回音频数据`);
+          // 不修改状态，保持为ready以便重试
+        }
+      } catch (error) {
+        console.error(`文件 ${file.fileName} 转换出错:`, error);
+        // 不修改状态，保持为ready以便重试
+      } finally {
+        // 更新已处理文件数
+        processedFiles++;
+      }
+      
+      // 添加短暂延迟，避免API请求过于频繁
+      await new Promise(resolve => setTimeout(resolve, 300));
+    }
+    
+    // 更新表格数据
+    if (Array.isArray(globalTtsStore.tableData)) {
+      // 直接修改了引用，不需要额外操作
+    } else if (globalTtsStore.tableData.value) {
+      // 触发响应式更新
+      globalTtsStore.tableData.value = [...globalTtsStore.tableData.value];
+    }
+    
+    // 隐藏加载状态
+    isLoading.value = false;
+    convertProgress.value = 0;
+    
+    // 显示完成消息
+    const successCount = tableData.filter(file => file.status === "done").length;
+    ElMessage({
+      message: `批量转换完成，成功转换 ${successCount}/${totalFiles} 个文件`,
+      type: successCount > 0 ? "success" : "warning",
+      duration: 3000,
+    });
+    
+  } catch (error) {
+    console.error("批量转换出错:", error);
+    
+    // 隐藏加载状态
+    isLoading.value = false;
+    convertProgress.value = 0;
+    
+    // 显示错误消息
+    ElMessage({
+      message: "批量转换失败: " + (error instanceof Error ? error.message : String(error)),
+      type: "error",
+      duration: 3000,
+    });
+  }
+};
+
+// 播放已转换的文件
+const play = async (file) => {
+  console.log("播放文件:", file.fileName);
+  
+  if (!file.audioUrl) {
+    ElMessage({
+      message: "该文件尚未转换或转换失败",
+      type: "warning",
+      duration: 2000,
+    });
+    return;
+  }
+  
+  try {
+    // 播放音频
+    await playAudio(file.audioUrl);
+    
+    // 更新当前播放的URL
+    if (globalCurrMp3Url && 'value' in globalCurrMp3Url) {
+      globalCurrMp3Url.value = file.audioUrl;
+    }
+  } catch (error) {
+    console.error("播放失败:", error);
+    ElMessage({
+      message: "播放失败: " + (error instanceof Error ? error.message : String(error)),
+      type: "error",
+      duration: 2000,
+    });
+  }
+};
+
 // 主要的事件钩子需要在组件内部调用，这里只提供函数定义
 // 组件内调用useMainSetup()获取数据和store
 
@@ -1694,5 +2116,156 @@ export {
   initGlobalRefs,
   audioPlayerRef, // 导出audioPlayerRef以便组件可以绑定
   trimUrl,
-  isAudioAvailable
+  isAudioAvailable,
+  batchConvert,
+  play,
+  downloadFile,  // 添加下载单个文件的函数
+  editLocalFile,  // 添加编辑本地文件函数
+  addToHistory  // 添加到历史记录的辅助函数
+};
+
+// 编辑本地文件
+const editLocalFile = (file) => {
+  console.log("编辑本地文件:", file.fileName);
+  
+  if (!file || !file.filePath) {
+    ElMessage({
+      message: "找不到文件路径",
+      type: "warning",
+      duration: 2000,
+    });
+    return;
+  }
+  
+  try {
+    // 使用ElectronAPI打开文件（如果在Electron环境中）
+    if (window.electronAPI && typeof window.electronAPI.openLocalFile === 'function') {
+      window.electronAPI.openLocalFile(file.filePath);
+      console.log(`通过Electron打开文件: ${file.filePath}`);
+    } 
+    // 尝试使用File System Access API（现代浏览器）
+    else if (window.showOpenFilePicker) {
+      ElMessage({
+        message: "在网页版无法直接编辑本地文件，请使用桌面版",
+        type: "info",
+        duration: 3000,
+      });
+    } 
+    // 降级方案：提示用户
+    else {
+      ElMessage({
+        message: "您的浏览器不支持直接编辑本地文件，请使用桌面版",
+        type: "warning",
+        duration: 3000,
+      });
+    }
+  } catch (error) {
+    console.error("打开文件编辑器失败:", error);
+    ElMessage({
+      message: "打开文件编辑器失败: " + (error instanceof Error ? error.message : String(error)),
+      type: "error",
+      duration: 2000,
+    });
+  }
+};
+
+// 下载单个文件
+const downloadFile = (file) => {
+  console.log("下载文件:", file.fileName);
+  
+  if (!file.audioUrl) {
+    ElMessage({
+      message: "该文件尚未转换或转换失败",
+      type: "warning",
+      duration: 2000,
+    });
+    return;
+  }
+  
+  try {
+    // 获取文件名（去掉扩展名）
+    const fileName = file.fileName.replace(/\.[^/.]+$/, "");
+    // 创建下载链接
+    const a = document.createElement('a');
+    a.href = file.audioUrl;
+    a.download = `${fileName}.${playerConfig.formatType || 'mp3'}`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    
+    ElMessage({
+      message: `开始下载文件: ${fileName}.${playerConfig.formatType || 'mp3'}`,
+      type: "success",
+      duration: 2000,
+    });
+  } catch (error) {
+    console.error("下载文件失败:", error);
+    ElMessage({
+      message: "下载失败: " + (error instanceof Error ? error.message : String(error)),
+      type: "error",
+      duration: 2000,
+    });
+  }
+};
+
+// 添加文件到历史记录的辅助函数
+const addToHistory = async (file, audioUrl) => {
+  if (!globalTtsStore || !globalTtsStore.addHistoryRecord) {
+    console.warn('globalTtsStore.addHistoryRecord未定义，无法添加到历史记录');
+    return false;
+  }
+  
+  try {
+    // 获取文件内容（作为文本记录）
+    const textContent = file.content || file.fileName;
+    
+    // 获取当前语音配置
+    const currentVoice = globalFormConfig.value?.voiceSelect || 'zh-CN-XiaoxiaoNeural';
+    
+    // 如果有临时blob URL，尝试获取其音频数据
+    let audioData = null;
+    if (audioUrl && audioUrl.startsWith('blob:')) {
+      try {
+        console.log('正在将blob URL转换为base64数据...');
+        // 获取blob数据
+        const response = await fetch(audioUrl);
+        const blob = await response.blob();
+        
+        // 转换为base64
+        const reader = new FileReader();
+        audioData = await new Promise((resolve) => {
+          reader.onloadend = () => {
+            if (reader.result) {
+              // 获取base64数据（去掉前缀）
+              const base64Data = reader.result.toString().split(',')[1];
+              console.log('已将blob转换为base64数据，长度:', base64Data.length);
+              resolve(base64Data);
+            } else {
+              resolve(null);
+            }
+          };
+          reader.readAsDataURL(blob);
+        });
+      } catch (err) {
+        console.error('获取音频blob数据失败:', err);
+      }
+    }
+    
+    // 创建历史记录对象
+    const historyRecord = {
+      text: textContent.length > 100 ? textContent.substring(0, 100) + '...' : textContent,
+      url: audioUrl,
+      voiceName: currentVoice,
+      audioData: audioData,  // 添加音频数据
+      fileName: file.fileName // 保存原始文件名
+    };
+    
+    console.log('保存历史记录:', historyRecord.text.substring(0, 30) + '...');
+    const success = globalTtsStore.addHistoryRecord(historyRecord);
+    console.log('历史记录保存' + (success ? '成功' : '失败'));
+    return success;
+  } catch (err) {
+    console.error('添加到历史记录失败:', err);
+    return false;
+  }
 };
