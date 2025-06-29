@@ -4,7 +4,7 @@ import { defineStore } from "pinia";
 import { getTTSData, getDataGPT, createBatchTask, getBatchTaskStatus } from "./play";
 import { ElMessage } from "element-plus";
 import WebStore from "./web-store";
-import { ref } from 'vue';
+// import { ref } from 'vue'; // 在 Pinia store 中不需要 ref
 
 // 使用Web版本的Store
 const store = new WebStore();
@@ -68,7 +68,7 @@ export const useTtsStore = defineStore("ttsStore", {
       },
       isLoading: false,
       currMp3Buffer: null,
-      currMp3Url: ref(""),
+      currMp3Url: "",
       audioPlayer: null,
       batchTaskId: "",
       batchTaskStatus: "",
@@ -280,11 +280,11 @@ export const useTtsStore = defineStore("ttsStore", {
       console.log("清空缓存中");
       let resFlag = true;
       this.currMp3Buffer = null;
-      this.currMp3Url = ref("");
+      this.currMp3Url = "";
       
       // 单文本转换
       if (this.page.asideIndex == "1") {
-        this.currMp3Url = ref("");
+        this.currMp3Url = "";
         const value = {
           activeIndex: this.page.tabIndex,
           ssmlContent: this.inputs.ssmlValue,
@@ -307,15 +307,15 @@ export const useTtsStore = defineStore("ttsStore", {
           if (res) {
             // 成功获取到数据
             if (res.audibleUrl) {
-              this.currMp3Url = ref(res.audibleUrl);
+              this.currMp3Url = res.audibleUrl;
               if (this.config.autoplay) {
-                this.audition(this.currMp3Url.value);
+                this.audition(this.currMp3Url);
               }
             } else if (res.buffer) {
               const audioBlob = new Blob([res.buffer], { type: 'audio/mpeg' });
-              this.currMp3Url = ref(URL.createObjectURL(audioBlob));
+              this.currMp3Url = URL.createObjectURL(audioBlob);
               if (this.config.autoplay) {
-                this.audition(this.currMp3Url.value);
+                this.audition(this.currMp3Url);
               }
             }
             ElMessage({
@@ -715,14 +715,14 @@ export const useTtsStore = defineStore("ttsStore", {
         if (res) {
           if (res.audibleUrl) {
             console.log('收到audibleUrl:', res.audibleUrl);
-            this.currMp3Url = ref(res.audibleUrl);
-            this.audition(this.currMp3Url.value);
+            this.currMp3Url = res.audibleUrl;
+            this.audition(this.currMp3Url);
           } else if (res.buffer) {
             console.log('收到buffer数据，长度:', res.buffer.byteLength);
             const audioBlob = new Blob([res.buffer], { type: 'audio/mpeg' });
-            this.currMp3Url = ref(URL.createObjectURL(audioBlob));
-            console.log('生成的音频URL:', this.currMp3Url.value);
-            this.audition(this.currMp3Url.value);
+            this.currMp3Url = URL.createObjectURL(audioBlob);
+            console.log('生成的音频URL:', this.currMp3Url);
+            this.audition(this.currMp3Url);
           } else {
             console.error('收到的响应中没有可用的音频数据');
             throw new Error('收到的响应中没有可用的音频数据');

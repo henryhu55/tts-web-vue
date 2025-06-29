@@ -1242,8 +1242,8 @@ const i18n = createI18n({
   locale: defaultLanguage,
   fallbackLocale: 'zh', // 如果当前语言没有对应的翻译，则使用中文
   messages,
-  silentTranslationWarn: process.env.NODE_ENV === 'production', // 在生产环境中关闭翻译警告
-  missingWarn: process.env.NODE_ENV !== 'production', // 在开发环境中启用缺失翻译警告
+  silentTranslationWarn: import.meta.env.PROD, // 在生产环境中关闭翻译警告
+  missingWarn: import.meta.env.DEV, // 在开发环境中启用缺失翻译警告
 });
 
 // 确保语言设置被正确应用

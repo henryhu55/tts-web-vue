@@ -15,7 +15,7 @@
     "node": ">=14.17.0"
   },
   "devDependencies": {
-    "@types/vue": "^1.0.31",
+    "@types/node": "^24.0.7",
     "@vitejs/plugin-vue": "4.5.2",
     "@vue/runtime-core": "3.5.11",
     "typescript": "5.0.4",
