@@ -9,6 +9,7 @@
     "esModuleInterop": true,
     "lib": ["esnext", "dom"],
     "types": ["vite/client", "node"],
+    "isolatedModules": true,
     "baseUrl": ".",
     "paths": {
       "@/*": ["./src/*"]
@@ -17,6 +18,7 @@
     "skipLibCheck": true,
     "allowSyntheticDefaultImports": true,
     "skipDefaultLibCheck": true,
+    "forceConsistentCasingInFileNames": true,
     "verbatimModuleSyntax": false,
     
     // 完全关闭严格类型检查

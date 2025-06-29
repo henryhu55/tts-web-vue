@@ -28,8 +28,4 @@ declare module '@vue/runtime-core' {
   }
 }
 
-// 声明模块
-declare module 'element-plus/icons-vue'
-declare module '@element-plus/icons-vue'
-declare module 'vue-i18n'
-declare module 'pinia' 
+// 这些模块声明已移动到 module-shims.d.ts

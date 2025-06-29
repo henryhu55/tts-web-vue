@@ -223,6 +223,7 @@
 </template>
 
 <script setup lang="ts">
+// @ts-ignore
 import { reactive, ref, onMounted, watch } from "vue";
 import { ElMessage, ElMessageBox } from "element-plus";
 import { useTtsStore } from "@/store/store";
