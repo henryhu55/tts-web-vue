@@ -11,7 +11,7 @@ import WebStore from "@/store/web-store";
 import router from '@/router/router';
 
 import { ref, watch, onMounted, nextTick, onUnmounted, reactive, computed } from "vue";
-import { useTtsStore } from "@/store/store";
+import { useTtsStore, INPUT_MODE } from "@/store/store";
 import { useFreeTTSstore, FreeTTSErrorType } from "@/store/play";
 import { storeToRefs } from "pinia";
 // 从store/play导入getTTSData
@@ -356,19 +356,27 @@ const uploadRef = ref();
 // 添加对isSSMLMode的监听
 watch(isSSMLMode, (newValue, oldValue) => {
   console.log(`输入模式切换: ${oldValue ? 'SSML' : '纯文本'} -> ${newValue ? 'SSML' : '纯文本'}`);
-  
+
+  const ttsStore = useTtsStore();
+  if (!ttsStore) {
+    console.error('ttsStore未找到');
+    return;
+  }
+
   if (newValue && !oldValue) {
     // 从纯文本切换到SSML模式
     console.log('将纯文本转换为SSML');
-    const ttsStore = useTtsStore();
-    if (ttsStore) {
-      ttsStore.setSSMLValue("", true); // 强制更新SSML
-      ttsStore.setInputValue(); // 使用store中的方法生成纯文本
-    }
+    // 🔧 修复：同步更新store中的tabIndex状态
+    ttsStore.page.tabIndex = INPUT_MODE.SSML;
+    ttsStore.setSSMLValue("", true); // 强制更新SSML
+    ttsStore.setInputValue(); // 使用store中的方法生成纯文本
+    console.log('已设置tabIndex为SSML模式:', ttsStore.page.tabIndex);
   } else if (!newValue && oldValue) {
     // 从SSML切换到纯文本模式
-    // 不需要处理，因为纯文本内容已经存在
     console.log('已切换到纯文本模式，保持现有纯文本内容');
+    // 🔧 修复：同步更新store中的tabIndex状态
+    ttsStore.page.tabIndex = INPUT_MODE.TEXT;
+    console.log('已设置tabIndex为纯文本模式:', ttsStore.page.tabIndex);
   }
 });
 

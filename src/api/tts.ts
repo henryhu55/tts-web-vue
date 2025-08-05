@@ -57,31 +57,16 @@ export async function callTTSApi(params: TTSParams): Promise<TTSResponse> {
         // 获取本地TTS所需的参数
       const isSSML = voiceData.activeIndex === "1"; // 判断是否为SSML内容
         
-        // 对于免费服务，优先使用纯文本，因为SSML可能导致错误
-        // 即使activeIndex为1，也尝试提取纯文本内容
+        // 🔧 修复：根据模式使用正确的内容
         let content = "";
         if (isSSML) {
-          // 从SSML中尝试提取纯文本内容
-          try {
-            // 尝试简单提取SSML中的文本
-            content = voiceData.ssmlContent
-              .replace(/<[^>]*>/g, '') // 移除所有XML标签
-              .replace(/\s+/g, ' ')    // 将多个空格合并为单个空格
-              .trim();                 // 移除前后空格
-            
-            console.log('从SSML中提取的纯文本:', content);
-            
-            // 如果提取失败或内容为空，则使用原始SSML
-      if (!content) {
-              content = voiceData.ssmlContent;
-              console.log('提取纯文本失败，使用原始SSML');
-            }
-          } catch (e) {
-            console.error('提取纯文本时出错:', e);
-            content = voiceData.ssmlContent;
-          }
+          // SSML模式：直接使用完整的SSML内容
+          content = voiceData.ssmlContent;
+          console.log('使用SSML模式，完整SSML内容:', content);
         } else {
+          // 纯文本模式：使用输入的文本内容
           content = voiceData.inputContent;
+          console.log('使用纯文本模式，文本内容:', content);
         }
         
         const { useTtsStore } = await import('@/store/store');
@@ -102,16 +87,22 @@ export async function callTTSApi(params: TTSParams): Promise<TTSResponse> {
         console.log('发送请求到免费TTS服务，使用的声音:', selectedVoice);
         
         // 使用正确的参数格式
-        // 对于免费服务，尝试使用纯文本模式，避免SSML解析错误
+        // 🔧 修复：根据SSML模式使用正确的字段名和参数
         const requestBody = {
-          text: content,
-          is_ssml: false, // 强制设置为false，使用纯文本模式
+          is_ssml: isSSML,
           voice: selectedVoice || 'zh-CN-XiaoxiaoNeural',
           language: ttsStore.formConfig.languageSelect || 'zh-CN',
           format: 'mp3',
           speed: speed || 1.0,
           pitch: pitch || 1.0
         };
+
+        // 根据模式设置正确的内容字段
+        if (isSSML) {
+          requestBody.ssml = content; // SSML模式使用ssml字段
+        } else {
+          requestBody.text = content; // 纯文本模式使用text字段
+        }
         
         console.log('发送到免费TTS服务的请求参数:', requestBody);
         
