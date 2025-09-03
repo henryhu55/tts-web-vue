@@ -161,20 +161,6 @@ const loadHistory = () => {
       history = [];
     }
     
-    // 显示每条记录的关键信息
-    if (history.length > 0) {
-      console.log('历史记录详情:');
-      history.forEach((item, index) => {
-        console.log(`记录 ${index+1}:`, {
-          id: item.id,
-          text: item.text ? item.text.substring(0, 20) + '...' : '[空文本]',
-          timestamp: item.timestamp,
-          hasUrl: !!item.url,
-          hasAudioData: !!item.audioData
-        });
-      });
-    }
-    
     // 清理过期记录
     const oneDayAgo = Date.now() - (1 * 24 * 60 * 60 * 1000);
     const originalLength = history.length;

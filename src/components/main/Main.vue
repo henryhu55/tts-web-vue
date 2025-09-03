@@ -321,14 +321,11 @@
             <div class="audio-player">
               <audio
                 ref="audioPlayerRef"
-                :src="typeof currMp3Url === 'object' && 'value' in currMp3Url ? currMp3Url.value : (currMp3Url || null)"
+                :src="currMp3Url"
                 :autoplay="playerConfig.autoplay"
                 controls
                 controlslist="nodownload"
                 class="modern-audio-player"
-                @error="handleAudioError"
-                @play="handleAudioPlay"
-                @canplay="handleAudioCanPlay"
               ></audio>
             </div>
             
@@ -779,14 +776,11 @@
             <div class="audio-player">
               <audio
                 ref="audioPlayerRef"
-                :src="typeof currMp3Url === 'object' && 'value' in currMp3Url ? currMp3Url.value : (currMp3Url || null)"
+                :src="currMp3Url"
                 :autoplay="playerConfig.autoplay"
                 controls
                 controlslist="nodownload"
                 class="modern-audio-player"
-                @error="handleAudioError"
-                @play="handleAudioPlay"
-                @canplay="handleAudioCanPlay"
               ></audio>
             </div>
             
@@ -1120,89 +1114,172 @@ onMounted(() => {
       });
     }
   }
-  
+
+  // 添加音频播放器事件监听器（只添加一次）
+  nextTick(() => {
+    if (audioPlayerRef.value) {
+      console.log('添加音频播放器事件监听器');
+
+      audioPlayerRef.value.addEventListener('play', () => {
+        console.log('监听到音频开始播放');
+      });
+
+      audioPlayerRef.value.addEventListener('pause', () => {
+        console.log('监听到音频暂停');
+      });
+
+      audioPlayerRef.value.addEventListener('ended', () => {
+        console.log('监听到音频播放结束');
+      });
+
+      audioPlayerRef.value.addEventListener('loadstart', () => {
+        console.log('音频开始加载');
+      });
+
+      audioPlayerRef.value.addEventListener('loadeddata', () => {
+        console.log('音频数据加载完成');
+      });
+
+      audioPlayerRef.value.addEventListener('canplay', () => {
+        console.log('音频可以播放');
+        if (audioPlayerRef.value && playerConfig.autoplay) {
+          audioPlayerRef.value.play().catch(e => {
+            console.warn('自动播放失败 (可能是浏览器限制):', e);
+          });
+        }
+      });
+
+      audioPlayerRef.value.addEventListener('error', (e) => {
+        // 只在有有效音频源时才报告错误，避免初始化时的无意义错误
+        if (audioPlayerRef.value &&
+            audioPlayerRef.value.src &&
+            audioPlayerRef.value.src !== '' &&
+            audioPlayerRef.value.src !== window.location.href &&
+            !audioPlayerRef.value.src.endsWith('/') &&
+            (audioPlayerRef.value.src.startsWith('blob:') ||
+             audioPlayerRef.value.src.startsWith('http://') ||
+             audioPlayerRef.value.src.startsWith('https://') ||
+             audioPlayerRef.value.src.startsWith('data:'))) {
+          console.error('音频播放器错误:', e);
+          console.error('错误的音频源:', audioPlayerRef.value.src);
+        } else {
+          // 初始化时的错误，不需要报告
+          console.debug('忽略音频初始化错误 - 无有效音频源');
+        }
+      });
+    }
+  });
+
+  // 防止重复调用的标志
+  let isUpdatingAudioSrc = false;
+
   // 使用全局引用更新currMp3Url
   const updateAudioSrc = () => {
+    // 防止重复调用
+    if (isUpdatingAudioSrc) {
+      console.log('updateAudioSrc已在执行中，跳过重复调用');
+      return;
+    }
+
     try {
+      isUpdatingAudioSrc = true;
+
       if (audioPlayerRef.value) {
-        console.log('音频元素已挂载，准备检查音频源');
-        
         // 尝试从全局引用和store中获取音频URL
         let audioUrl = '';
-        
+
         // 尝试来源1: globalCurrMp3Url
         if (globalCurrMp3Url && typeof globalCurrMp3Url === 'object' && 'value' in globalCurrMp3Url) {
           audioUrl = globalCurrMp3Url.value;
+          console.log('从globalCurrMp3Url获取到URL:', audioUrl);
         }
-        
+
         // 尝试来源2: ttsStore.currMp3Url
         if ((!audioUrl || audioUrl === '') && ttsStore.currMp3Url) {
           if (typeof ttsStore.currMp3Url === 'object' && 'value' in ttsStore.currMp3Url) {
             audioUrl = ttsStore.currMp3Url.value;
-            console.log('从ttsStore.currMp3Url获取到URL:', audioUrl);
+            console.log('从ttsStore.currMp3Url ref获取到URL:', audioUrl);
           } else if (typeof ttsStore.currMp3Url === 'string') {
             audioUrl = ttsStore.currMp3Url;
             console.log('从ttsStore.currMp3Url字符串获取到URL:', audioUrl);
           }
         }
-        
-        // 检查URL是否有效
-        if (audioUrl && 
-            audioUrl !== '' && 
-            !audioUrl.includes('127.0.0.1:3344') && 
-            !audioUrl.includes('localhost:3344') && 
+
+        // 尝试来源3: 组件内的currMp3Url
+        if ((!audioUrl || audioUrl === '') && currMp3Url) {
+          if (typeof currMp3Url === 'object' && 'value' in currMp3Url) {
+            audioUrl = currMp3Url.value;
+            console.log('从组件currMp3Url ref获取到URL:', audioUrl);
+          } else if (typeof currMp3Url === 'string') {
+            audioUrl = currMp3Url;
+            console.log('从组件currMp3Url字符串获取到URL:', audioUrl);
+          }
+        }
+
+        // 检查URL是否有效（blob URL和http/https URL都是有效的）
+        if (audioUrl &&
+            audioUrl !== '' &&
+            audioUrl !== 'null' &&
+            audioUrl !== 'undefined' &&
+            (audioUrl.startsWith('blob:') ||
+             audioUrl.startsWith('http://') ||
+             audioUrl.startsWith('https://') ||
+             audioUrl.startsWith('data:')) &&
             audioUrl !== window.location.href) {
           console.log('检测到有效的音频URL:', audioUrl);
-          
-          // 使用统一的播放函数
-          if (playerConfig.autoplay) {
-            console.log('配置为自动播放，调用统一播放函数');
-            // 导入的playAudio函数
-            playAudio(audioUrl, { autoplay: true }).catch(err => {
-              console.warn('自动播放失败:', err);
-            });
-          } else {
-            console.log('不自动播放，仅设置音频源');
-            // 仍然设置src，但不播放
-            playAudio(audioUrl, { autoplay: false });
+          console.log('播放器src是否需要更新:', audioPlayerRef.value.src !== audioUrl);
+
+          // 更新组件内的currMp3Url ref
+          if (currMp3Url && typeof currMp3Url === 'object' && 'value' in currMp3Url) {
+            if (currMp3Url.value !== audioUrl) {
+              currMp3Url.value = audioUrl;
+              // 只有在URL真正改变时才重新加载
+            } else {
+              console.log('组件currMp3Url.value已经是目标URL，无需更新');
+            }
           }
+
+          // 不需要手动设置src，让Vue的响应式系统处理
+          // Vue会自动根据currMp3Url的变化更新:src绑定
         } else {
           console.log('没有有效的音频URL，不设置音频源');
-          // 不设置src避免错误
         }
         
-        // 添加事件监听
-        audioPlayerRef.value.addEventListener('play', () => {
-          console.log('监听到音频开始播放');
-        });
-        
-        audioPlayerRef.value.addEventListener('error', (e) => {
-          // 增强检查条件，避免初始化和空src时的错误日志
-          if (audioPlayerRef.value && 
-              audioPlayerRef.value.src && 
-              audioPlayerRef.value.src !== '' && 
-              audioPlayerRef.value.src !== 'null' && 
-              audioPlayerRef.value.src !== 'undefined' &&
-              audioPlayerRef.value.src !== window.location.href &&
-              !audioPlayerRef.value.src.includes('127.0.0.1:3344') &&
-              !audioPlayerRef.value.src.includes('localhost:3344')) {
-            console.error('音频加载出错:', e);
-          } else {
-            // 可选：记录调试日志
-            // console.debug('忽略音频初始化错误');
-          }
-        });
+        // 事件监听器已在组件挂载时添加，这里不需要重复添加
       } else {
         console.warn('音频元素未找到');
       }
     } catch (err) {
       console.error('更新音频src时出错:', err);
+    } finally {
+      // 重置标志，允许下次调用
+      isUpdatingAudioSrc = false;
     }
   };
   
-  // 确保audioPlayerRef已经挂载
-  nextTick(updateAudioSrc);
-  
+  // 监听组件内的currMp3Url变化
+  watch(currMp3Url, (newValue, oldValue) => {
+    console.log('组件currMp3Url变化，触发updateAudioSrc');
+    nextTick(() => {
+      updateAudioSrc();
+    });
+  }, { immediate: true, deep: true });
+
+  // 监听全局currMp3Url变化，并同步到组件
+  if (globalCurrMp3Url) {
+    watch(globalCurrMp3Url, (newValue, oldValue) => {
+      console.log('全局currMp3Url变化:', oldValue, '->', newValue);
+
+      // 同步到组件内的currMp3Url（这会触发上面的watch）
+      if (currMp3Url && typeof currMp3Url === 'object' && 'value' in currMp3Url) {
+        if (currMp3Url.value !== newValue) {
+          console.log('同步全局URL到组件:', newValue);
+          currMp3Url.value = newValue;
+        }
+      }
+    }, { immediate: false }); // 不需要immediate，避免初始化时重复调用
+  }
+
   // 检查表格数据
   getTableDataInfo();
 });
@@ -1233,36 +1310,7 @@ nextTick(() => {
   }
 });
 
-// 音频事件处理
-const handleAudioError = (e) => {
-  // 增强检查条件，避免初始化和空src时的错误日志
-  if (audioPlayerRef.value && 
-      audioPlayerRef.value.src && 
-      audioPlayerRef.value.src !== '' && 
-      audioPlayerRef.value.src !== 'null' && 
-      audioPlayerRef.value.src !== 'undefined' &&
-      audioPlayerRef.value.src !== window.location.href &&
-      !audioPlayerRef.value.src.includes('127.0.0.1:3344') &&
-      !audioPlayerRef.value.src.includes('localhost:3344')) {
-    console.error('音频加载出错:', e);
-  } else {
-    // 可选：记录调试日志
-    // console.debug('忽略音频初始化错误');
-  }
-};
-
-const handleAudioPlay = () => {
-  console.log('音频开始播放');
-};
-
-const handleAudioCanPlay = () => {
-  console.log('音频可以播放');
-  if (audioPlayerRef.value && playerConfig.autoplay) {
-    audioPlayerRef.value.play().catch(e => {
-      console.warn('自动播放失败 (可能是浏览器限制):', e);
-    });
-  }
-};
+// 音频事件处理已移至onMounted中统一管理
 
 // 使用防抖包装 SSML 输入处理函数
 const handleSSMLInput = debounce(() => {

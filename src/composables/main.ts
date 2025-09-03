@@ -213,53 +213,33 @@ function useMainSetup() {
   
   const tableData = ttsStore.tableData ? ref(ttsStore.tableData) : ref([]);
   
-  // 确保currMp3Url始终是ref对象
+  // 简化currMp3Url的处理，确保类型一致性
   let currMp3Url;
   try {
-    // 优先使用全局的globalCurrMp3Url
-    if (globalCurrMp3Url && typeof globalCurrMp3Url === 'object' && 'value' in globalCurrMp3Url) {
-      currMp3Url = globalCurrMp3Url;
-      console.log('useMainSetup: 使用全局globalCurrMp3Url');
-      
-      // 确保store中的currMp3Url与全局保持一致
-      if (ttsStore && ttsStore.currMp3Url !== globalCurrMp3Url) {
-        ttsStore.currMp3Url = globalCurrMp3Url;
-        console.log('useMainSetup: 已将ttsStore.currMp3Url同步为全局引用');
-      }
-    } 
-    // 如果全局变量无效，则尝试使用store中的变量
-    else if (ttsStore.currMp3Url) {
-      if (typeof ttsStore.currMp3Url === 'object' && 'value' in ttsStore.currMp3Url) {
-        currMp3Url = ttsStore.currMp3Url;
-        console.log('useMainSetup: 使用ttsStore中的currMp3Url ref');
-        // 更新全局引用
-        globalCurrMp3Url = currMp3Url;
-      } else {
-        console.log('useMainSetup: ttsStore.currMp3Url不是ref对象，创建新的ref');
-        currMp3Url = ref(ttsStore.currMp3Url);
-        // 同步回store和全局引用
-        ttsStore.currMp3Url = currMp3Url;
-        globalCurrMp3Url = currMp3Url;
-      }
-    } 
-    // 如果store和全局变量都无效，则创建新变量
-    else {
-      console.log('useMainSetup: 全局和store中都没有currMp3Url，创建空ref');
+
+    // 检查store中是否已有currMp3Url
+    if (ttsStore.currMp3Url && typeof ttsStore.currMp3Url === 'string') {
+      // 如果是字符串，创建ref包装
+      currMp3Url = ref(ttsStore.currMp3Url);
+    } else if (ttsStore.currMp3Url && typeof ttsStore.currMp3Url === 'object' && 'value' in ttsStore.currMp3Url) {
+      // 如果已经是ref，直接使用
+      currMp3Url = ttsStore.currMp3Url;
+    } else {
+      // 创建新的空ref
       currMp3Url = ref('');
-      // 同步回store和全局引用
-      ttsStore.currMp3Url = currMp3Url;
-      globalCurrMp3Url = currMp3Url;
     }
+
+    // 更新全局引用
+    globalCurrMp3Url = currMp3Url;
+
+    // 确保store中的引用是最新的
+    ttsStore.currMp3Url = currMp3Url.value; // store中保存字符串值
+    console.log('useMainSetup: 已同步store.currMp3Url为:', currMp3Url.value);
+
   } catch (error) {
     console.error('初始化currMp3Url时出错:', error);
     currMp3Url = ref('');
-    // 尝试同步回store和全局引用
-    try {
-      ttsStore.currMp3Url = currMp3Url;
-      globalCurrMp3Url = currMp3Url;
-    } catch (err) {
-      console.error('同步currMp3Url回store时出错:', err);
-    }
+    globalCurrMp3Url = currMp3Url;
   }
   
   // 获取配置对象
@@ -856,14 +836,16 @@ const clearAll = () => {
 const playAudio = (url: string, options = { autoplay: true }) => {
   console.log('统一播放函数被调用:', url);
   
-  // 增强URL有效性检查
-  if (!url || url === '' || 
-      url === 'null' || 
+  // 增强URL有效性检查（允许blob URL和有效的http/https URL）
+  if (!url || url === '' ||
+      url === 'null' ||
       url === 'undefined' ||
-      url === window.location.href ||
-      url.endsWith('127.0.0.1:3344') ||
-      url.endsWith('localhost:3344')) {
-    console.warn('播放失败: 无有效的音频URL');
+      (!url.startsWith('blob:') &&
+       !url.startsWith('http://') &&
+       !url.startsWith('https://') &&
+       !url.startsWith('data:')) ||
+      url === window.location.href) {
+    console.warn('playAudio: 无效的音频URL:', url);
     return Promise.reject(new Error('无效的音频URL'));
   }
   
@@ -879,15 +861,22 @@ const playAudio = (url: string, options = { autoplay: true }) => {
       // 设置音频源
       audioPlayerRef.value.src = url;
       
-      // 更新全局状态中的URL
-      if (globalTtsStore && globalTtsStore.currMp3Url) {
-        if (typeof globalTtsStore.currMp3Url === 'object' && 'value' in globalTtsStore.currMp3Url) {
-          globalTtsStore.currMp3Url.value = url;
-        }
-      }
-      
+      // 更新全局ref
       if (globalCurrMp3Url && 'value' in globalCurrMp3Url) {
+        const oldValue = globalCurrMp3Url.value;
         globalCurrMp3Url.value = url;
+        console.log('已更新globalCurrMp3Url.value:', oldValue, '->', url);
+      } else {
+        console.warn('globalCurrMp3Url不可用或不是ref对象');
+      }
+
+      // 更新store中的字符串值
+      if (globalTtsStore) {
+        const oldValue = globalTtsStore.currMp3Url;
+        globalTtsStore.currMp3Url = url;
+        console.log('已更新store.currMp3Url:', oldValue, '->', url);
+      } else {
+        console.warn('globalTtsStore不可用');
       }
       
       // 加载音频
@@ -1214,9 +1203,6 @@ const startBtn = async () => {
           throw new Error('全局TTS Store未初始化');
         }
         
-        // 记录当前类型，用于调试
-        console.log('当前globalTtsStore.currMp3Url类型:', typeof globalTtsStore.currMp3Url);
-        
         // 创建一个新的ref对象，确保类型一致性
         const newUrlRef = ref(audioUrl);
         
@@ -1225,15 +1211,9 @@ const startBtn = async () => {
         
         // 同步到全局变量
         globalCurrMp3Url = newUrlRef;
-        
-        console.log('已创建新的currMp3Url ref并更新到store:', audioUrl);
-        
-        // 使用新的统一播放函数
-        setTimeout(() => {
-          playAudio(audioUrl).catch(error => {
-            console.error('使用统一播放函数播放失败:', error);
-          });
-        }, 200);
+
+        // 不需要手动调用playAudio，Vue的响应式系统会自动处理播放
+        // updateAudioSrc会通过watch监听器自动触发
       } catch (err) {
         console.error('设置currMp3Url或播放时出错:', err);
       }
