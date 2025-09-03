@@ -295,6 +295,7 @@ export const useTtsStore = defineStore("ttsStore", {
         this.isLoading = true;
         try {
           // 获取TTS数据
+          console.log('开始获取TTS数据');
           let res = await getTTSData({
             api: this.formConfig.api,
             voiceData: value,
@@ -305,18 +306,19 @@ export const useTtsStore = defineStore("ttsStore", {
           });
           
           if (res) {
+            console.log('成功获取TTS数据:', res);
             // 成功获取到数据
             if (res.audibleUrl) {
+              console.log('获取到直接可用的URL:', res.audibleUrl);
               this.currMp3Url = res.audibleUrl;
-              if (this.config.autoplay) {
-                this.audition(this.currMp3Url);
-              }
+              console.log('store: 设置currMp3Url为:', this.currMp3Url);
             } else if (res.buffer) {
+              console.log('获取到音频buffer数据，长度:', res.buffer.byteLength);
               const audioBlob = new Blob([res.buffer], { type: 'audio/mpeg' });
               this.currMp3Url = URL.createObjectURL(audioBlob);
-              if (this.config.autoplay) {
-                this.audition(this.currMp3Url);
-              }
+              console.log('store: 创建的Blob URL:', this.currMp3Url);
+            } else {
+              console.warn('TTS数据既没有URL也没有buffer');
             }
             ElMessage({
               message: "转换成功",
@@ -588,7 +590,9 @@ export const useTtsStore = defineStore("ttsStore", {
       return resFlag;
     },
     async audition(val: string) {
+      console.log('进入audition方法，传入的URL:', val);
       if (!val) {
+        console.warn('播放失败：没有有效的音频URL');
         ElMessage({
           message: "播放失败，无有效音频源",
           type: "error",
@@ -599,11 +603,13 @@ export const useTtsStore = defineStore("ttsStore", {
       
       // 停止当前正在播放的音频
       if (this.audioPlayer) {
+        console.log('停止当前正在播放的音频');
         this.audioPlayer.pause();
         this.audioPlayer = null;
       }
       
       // 创建新的音频播放器
+      console.log('创建新的音频播放器，URL:', val);
       const audioPlayer = new Audio(val);
       
       // 添加事件监听
@@ -612,9 +618,18 @@ export const useTtsStore = defineStore("ttsStore", {
         document.dispatchEvent(new CustomEvent('audio-playback-ended'));
       });
       
-      audioPlayer.addEventListener('error', (e) => {
-        console.error('音频播放出错:', e);
+      audioPlayer.addEventListener('error', (e: Event) => {
+        const target = e.target as HTMLAudioElement;
+        console.error('音频播放出错:', e, '错误代码:', target.error?.code);
         document.dispatchEvent(new CustomEvent('audio-playback-error'));
+      });
+      
+      audioPlayer.addEventListener('loadeddata', () => {
+        console.log('音频数据加载完成');
+      });
+      
+      audioPlayer.addEventListener('playing', () => {
+        console.log('音频开始播放');
       });
       
       this.audioPlayer = audioPlayer;

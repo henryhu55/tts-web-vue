@@ -1259,26 +1259,60 @@ onMounted(() => {
   
   // 监听组件内的currMp3Url变化
   watch(currMp3Url, (newValue, oldValue) => {
-    console.log('组件currMp3Url变化，触发updateAudioSrc');
-    nextTick(() => {
-      updateAudioSrc();
-    });
-  }, { immediate: true, deep: true });
+    console.log('组件currMp3Url变化:', oldValue, '->', newValue);
+    if (newValue && newValue !== oldValue) {
+      nextTick(() => {
+        // 更新音频源
+        console.log('更新音频源URL:', newValue);
+        if (audioPlayerRef.value) {
+          audioPlayerRef.value.src = newValue;
+          audioPlayerRef.value.load(); // 强制重新加载音频
+          // 检查是否需要自动播放
+          if (config.autoplay) {
+            console.log('检测到autoplay开启，尝试自动播放新音频');
+            const playPromise = audioPlayerRef.value.play();
+            if (playPromise !== undefined) {
+              playPromise.catch(error => {
+                console.error('自动播放失败:', error);
+              });
+            }
+          } else {
+            console.log('autoplay已关闭，不自动播放');
+          }
+        } else {
+          console.warn('音频元素未找到，无法更新音频源');
+        }
+      });
+    }
+  }, { immediate: true });
 
   // 监听全局currMp3Url变化，并同步到组件
   if (globalCurrMp3Url) {
     watch(globalCurrMp3Url, (newValue, oldValue) => {
       console.log('全局currMp3Url变化:', oldValue, '->', newValue);
 
-      // 同步到组件内的currMp3Url（这会触发上面的watch）
-      if (currMp3Url && typeof currMp3Url === 'object' && 'value' in currMp3Url) {
-        if (currMp3Url.value !== newValue) {
+      if (newValue && newValue !== oldValue) {
+        // 更新组件内的URL（这会触发上面的watch）
+        if (currMp3Url && typeof currMp3Url === 'object' && 'value' in currMp3Url) {
           console.log('同步全局URL到组件:', newValue);
           currMp3Url.value = newValue;
         }
       }
-    }, { immediate: false }); // 不需要immediate，避免初始化时重复调用
+    });
   }
+  
+  // 监听 store 中的 currMp3Url 变化
+  watch(() => ttsStore.currMp3Url, (newValue, oldValue) => {
+    console.log('store currMp3Url变化:', oldValue, '->', newValue);
+    if (newValue && newValue !== oldValue) {
+      // 确保是字符串类型
+      const urlStr = typeof newValue === 'object' && 'value' in newValue ? newValue.value : newValue;
+      if (currMp3Url && typeof currMp3Url === 'object' && 'value' in currMp3Url) {
+        console.log('从store同步URL到组件:', urlStr);
+        currMp3Url.value = urlStr;
+      }
+    }
+  });
 
   // 检查表格数据
   getTableDataInfo();
