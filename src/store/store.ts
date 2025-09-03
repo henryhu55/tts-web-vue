@@ -4,6 +4,7 @@ import { defineStore } from "pinia";
 import { getTTSData, getDataGPT, createBatchTask, getBatchTaskStatus } from "./play";
 import { ElMessage } from "element-plus";
 import WebStore from "./web-store";
+import { playAudio } from "../composables/main";
 // import { ref } from 'vue'; // 在 Pinia store 中不需要 ref
 
 // 使用Web版本的Store
@@ -590,7 +591,7 @@ export const useTtsStore = defineStore("ttsStore", {
       return resFlag;
     },
     async audition(val: string) {
-      console.log('进入audition方法，传入的URL:', val);
+      console.log('store.audition 被调用，使用 playAudio 播放:', val);
       if (!val) {
         console.warn('播放失败：没有有效的音频URL');
         ElMessage({
@@ -600,44 +601,9 @@ export const useTtsStore = defineStore("ttsStore", {
         });
         return false;
       }
-      
-      // 停止当前正在播放的音频
-      if (this.audioPlayer) {
-        console.log('停止当前正在播放的音频');
-        this.audioPlayer.pause();
-        this.audioPlayer = null;
-      }
-      
-      // 创建新的音频播放器
-      console.log('创建新的音频播放器，URL:', val);
-      const audioPlayer = new Audio(val);
-      
-      // 添加事件监听
-      audioPlayer.addEventListener('ended', () => {
-        console.log('音频播放结束');
-        document.dispatchEvent(new CustomEvent('audio-playback-ended'));
-      });
-      
-      audioPlayer.addEventListener('error', (e: Event) => {
-        const target = e.target as HTMLAudioElement;
-        console.error('音频播放出错:', e, '错误代码:', target.error?.code);
-        document.dispatchEvent(new CustomEvent('audio-playback-error'));
-      });
-      
-      audioPlayer.addEventListener('loadeddata', () => {
-        console.log('音频数据加载完成');
-      });
-      
-      audioPlayer.addEventListener('playing', () => {
-        console.log('音频开始播放');
-      });
-      
-      this.audioPlayer = audioPlayer;
-      
+
       try {
-        await audioPlayer.play();
-        // 移除成功消息，由调用方自行处理
-        console.log('音频播放成功');
+        await playAudio(val);
         return true;
       } catch (err) {
         console.error('播放失败:', err);
@@ -646,8 +612,6 @@ export const useTtsStore = defineStore("ttsStore", {
           type: "error",
           duration: 2000,
         });
-        // 触发错误事件
-        document.dispatchEvent(new CustomEvent('audio-playback-error'));
         return false;
       }
     },

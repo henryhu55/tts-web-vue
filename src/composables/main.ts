@@ -833,95 +833,112 @@ const clearAll = () => {
 };
 
 // 播放
-const playAudio = (url: string, options = { autoplay: true }) => {
+const playAudio = (url: string, options = { autoplay: true }): Promise<boolean> => {
   console.log('统一播放函数被调用:', url);
   
-  // 增强URL有效性检查（允许blob URL和有效的http/https URL）
-  if (!url || url === '' ||
-      url === 'null' ||
-      url === 'undefined' ||
-      (!url.startsWith('blob:') &&
-       !url.startsWith('http://') &&
-       !url.startsWith('https://') &&
-       !url.startsWith('data:')) ||
+  if (!url || url === '' || url === 'null' || url === 'undefined' ||
+      (!url.startsWith('blob:') && !url.startsWith('http://') && 
+       !url.startsWith('https://') && !url.startsWith('data:')) ||
       url === window.location.href) {
     console.warn('playAudio: 无效的音频URL:', url);
     return Promise.reject(new Error('无效的音频URL'));
   }
   
   return new Promise((resolve, reject) => {
-    try {
-      // 确保audioPlayerRef存在
-      if (!audioPlayerRef.value) {
-        console.error('audioPlayerRef不存在');
-        reject(new Error('播放器引用不可用'));
-        return;
-      }
-      
-      // 设置音频源
-      audioPlayerRef.value.src = url;
-      
-      // 更新全局ref
-      if (globalCurrMp3Url && 'value' in globalCurrMp3Url) {
-        const oldValue = globalCurrMp3Url.value;
-        globalCurrMp3Url.value = url;
-        console.log('已更新globalCurrMp3Url.value:', oldValue, '->', url);
-      } else {
-        console.warn('globalCurrMp3Url不可用或不是ref对象');
-      }
+    if (!audioPlayerRef.value) {
+      console.error('audioPlayerRef不存在');
+      reject(new Error('播放器引用不可用'));
+      return;
+    }
 
-      // 更新store中的字符串值
-      if (globalTtsStore) {
-        const oldValue = globalTtsStore.currMp3Url;
-        globalTtsStore.currMp3Url = url;
-        console.log('已更新store.currMp3Url:', oldValue, '->', url);
-      } else {
-        console.warn('globalTtsStore不可用');
-      }
+    const player = audioPlayerRef.value;
+    let isCleanedUp = false;
+
+    // 如果当前有音频在播放，先停止
+    if (!player.paused) {
+      player.pause();
+    }
+
+    const cleanup = () => {
+      if (isCleanedUp) return;
+      isCleanedUp = true;
+      player.removeEventListener('canplay', onCanPlay);
+      player.removeEventListener('error', onError);
+      player.removeEventListener('abort', onAbort);
+    };
+
+    const onCanPlay = async () => {
+      cleanup();
+      console.log('音频可以播放');
       
-      // 加载音频
-      audioPlayerRef.value.load();
-      
-      // 只在需要自动播放时播放
       if (options.autoplay) {
-        // 检查是否已经在播放
-        if (audioPlayerRef.value.paused) {
-          let playPromise = audioPlayerRef.value.play();
-          
+        try {
+          const playPromise = player.play();
           if (playPromise !== undefined) {
-            playPromise
-              .then(() => {
-                console.log('音频播放成功');
-                resolve(true);
-              })
-              .catch(error => {
-                console.error('主播放器播放失败:', error);
-                // 尝试备选播放方式
-                tryAlternativePlayback(url)
-                  .then(resolve)
-                  .catch(reject);
-              });
+            try {
+              await playPromise;
+              console.log('音频播放成功');
+              resolve(true);
+            } catch (error: any) {
+              if (error.name === 'AbortError') {
+                console.log('播放被新的加载请求中断，这是正常的');
+                resolve(false);
+              } else {
+                console.error('播放失败:', error);
+                reject(error);
+              }
+            }
           } else {
             console.log('播放已开始，但没有返回Promise');
             resolve(true);
           }
-        } else {
-          console.log('音频已经在播放中');
-          resolve(true);
+        } catch (error: any) {
+          console.error('播放初始化失败:', error);
+          reject(error);
         }
       } else {
         console.log('不自动播放，仅设置音频源');
         resolve(false);
       }
-    } catch (error) {
-      console.error('播放过程发生异常:', error);
-      // 尝试备选播放方式
-      tryAlternativePlayback(url)
-        .then(resolve)
-        .catch(() => {
-          reject(error);
-        });
-    }
+    };
+
+      const onError = (e: Event) => {
+        cleanup();
+        const target = e.target as HTMLAudioElement;
+        const error = target.error || new Error('未知的音频错误');
+        console.error('音频加载错误:', error);
+        reject(error);
+      };
+
+      const onAbort = () => {
+        cleanup();
+        console.log('音频加载被中止');
+        resolve(false);
+      };
+
+      try {
+        // 更新全局ref和store
+        if (globalCurrMp3Url && 'value' in globalCurrMp3Url) {
+          globalCurrMp3Url.value = url;
+        }
+        if (globalTtsStore) {
+          globalTtsStore.currMp3Url = url;
+        }
+
+        // 添加事件监听
+        player.addEventListener('canplay', onCanPlay);
+        player.addEventListener('error', onError);
+        player.addEventListener('abort', onAbort);
+
+        // 设置音频源并加载
+        console.log('开始加载音频:', url);
+        player.src = url;
+        player.load();
+      } catch (error) {
+        cleanup();
+        console.error('播放过程发生异常:', error);
+        reject(error);
+      }
   });
 };
 
@@ -1018,22 +1035,82 @@ const openInFolder = (file) => {
   }
 };
 
-// 修改现有的audition函数，使用新的统一播放逻辑
+// 修改现有的audition函数，使其能够处理声音试听
 const audition = async (value: string) => {
   console.log("试听:", value);
   
   if (!value) {
-    console.warn('试听失败: 无有效的音频URL');
+    console.warn('试听失败: 无效参数');
     ElMessage({
-      message: "试听失败: 无有效音频",
+      message: "试听失败: 无效参数",
       type: "warning",
       duration: 2000,
     });
     return;
   }
-  
+
   try {
-    await playAudio(value);
+    // 如果是URL，直接播放
+    if (value.startsWith('blob:') || value.startsWith('http:') || value.startsWith('https:') || value.startsWith('data:')) {
+      await playAudio(value);
+    }
+    // 如果是声音名称，则需要先生成试听音频
+    else if (value.includes('-')) {  // 简单判断是否是声音名称格式
+      console.log('开始生成声音试听音频:', value);
+      const ttsStore = useTtsStore();
+
+      // 暂存当前配置
+      const originalVoice = ttsStore.formConfig.voiceSelect;
+      const originalText = ttsStore.inputs.inputValue;
+      
+      try {
+        // 设置试听配置
+        ttsStore.formConfig.voiceSelect = value;
+        ttsStore.inputs.inputValue = ttsStore.config.audition || "这是一段试听文本，用来测试语音效果。";
+        
+        // 更新SSML
+        ttsStore.setSSMLValue();
+        
+        // 生成音频
+        const result = await getTTSData({
+          api: ttsStore.formConfig.api,
+          voiceData: {
+            activeIndex: ttsStore.page.tabIndex,
+            ssmlContent: ttsStore.inputs.ssmlValue,
+            inputContent: ttsStore.inputs.inputValue,
+            retryCount: ttsStore.config.retryCount,
+            retryInterval: ttsStore.config.retryInterval,
+          },
+          speechKey: ttsStore.config.speechKey,
+          region: ttsStore.config.serviceRegion,
+          thirdPartyApi: ttsStore.config.thirdPartyApi,
+          tts88Key: ttsStore.config.tts88Key,
+        });
+
+        if (result) {
+          let audioUrl = '';
+          if (result.audibleUrl) {
+            audioUrl = result.audibleUrl;
+          } else if (result.buffer) {
+            const audioBlob = new Blob([result.buffer], { type: 'audio/mpeg' });
+            audioUrl = URL.createObjectURL(audioBlob);
+          }
+
+          if (audioUrl) {
+            await playAudio(audioUrl);
+          } else {
+            throw new Error('未获取到有效的音频数据');
+          }
+        }
+      } finally {
+        // 恢复原始配置
+        ttsStore.formConfig.voiceSelect = originalVoice;
+        ttsStore.inputs.inputValue = originalText;
+        ttsStore.setSSMLValue();
+      }
+    } else {
+      throw new Error('无效的音频源或声音名称');
+    }
   } catch (error) {
     console.error('试听失败:', error);
     ElMessage({
