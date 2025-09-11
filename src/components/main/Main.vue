@@ -756,64 +756,7 @@
           </div>
         </div>
         
-        <!-- 集成播放器到批量处理控制栏 -->
-        <div class="player-container">
-          <div class="player-row">
-            <!-- 格式选择区域 -->
-            <div class="format-selection">
-              <span class="format-label">{{ t('footer.format') || '格式' }}:</span>
-              <el-select
-                v-model="playerConfig.formatType"
-                class="format-select"
-                @change="setFormatType"
-                size="small"
-              >
-                <el-option
-                  v-for="format in formatOptions"
-                  :key="format.value"
-                  :label="format.label"
-                  :value="format.value"
-                >
-                  <div class="format-option">
-                    <el-icon><DocumentChecked /></el-icon>
-                    <span>{{ format.label }}</span>
-                  </div>
-                </el-option>
-              </el-select>
-            </div>
-            
-            <!-- 音频播放器 -->
-            <div class="audio-player">
-              <audio
-                ref="audioPlayerRef"
-                :src="currMp3Url"
-                :autoplay="playerConfig.autoplay"
-                controls
-                controlslist="nodownload"
-                class="modern-audio-player"
-              ></audio>
-            </div>
-            
-            <!-- 下载按钮 -->
-            <div class="download-button">
-              <el-tooltip 
-                :content="t('footer.downloadAudio') || '下载音频'" 
-                placement="top"
-                effect="light"
-              >
-                <el-button
-                  type="primary"
-                  circle
-                  @click="download"
-                  :disabled="!isAudioAvailable()"
-                  :loading="isDownloading"
-                >
-                  <el-icon><Download /></el-icon>
-                </el-button>
-              </el-tooltip>
-            </div>
-          </div>
-        </div>
+
       </div>
     </div>
     
@@ -1150,11 +1093,7 @@ onMounted(() => {
 
       audioPlayerRef.value.addEventListener('canplay', () => {
         console.log('音频可以播放');
-        if (audioPlayerRef.value && playerConfig.autoplay) {
-          audioPlayerRef.value.play().catch(e => {
-            console.warn('自动播放失败 (可能是浏览器限制):', e);
-          });
-        }
+        // 移除手动播放逻辑，让audio元素的autoplay属性处理自动播放
       });
 
       audioPlayerRef.value.addEventListener('error', (e) => {
@@ -1270,23 +1209,13 @@ onMounted(() => {
     console.log('组件currMp3Url变化:', oldValue, '->', newValue);
     if (newValue && newValue !== oldValue) {
       nextTick(() => {
-        // 更新音频源
+        // 只更新音频源，不手动播放
+        // 让HTML audio元素的autoplay属性处理自动播放
         console.log('更新音频源URL:', newValue);
         if (audioPlayerRef.value) {
           audioPlayerRef.value.src = newValue;
           audioPlayerRef.value.load(); // 强制重新加载音频
-          // 检查是否需要自动播放
-          if (config.autoplay) {
-            console.log('检测到autoplay开启，尝试自动播放新音频');
-            const playPromise = audioPlayerRef.value.play();
-            if (playPromise !== undefined) {
-              playPromise.catch(error => {
-                console.error('自动播放失败:', error);
-              });
-            }
-          } else {
-            console.log('autoplay已关闭，不自动播放');
-          }
+          // 移除手动播放逻辑，让audio元素的autoplay属性处理
         } else {
           console.warn('音频元素未找到，无法更新音频源');
         }

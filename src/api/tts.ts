@@ -196,7 +196,6 @@ export async function callTTSApi(params: TTSParams): Promise<TTSResponse> {
           errorMessage = localError.message || '未知错误';
         }
 
-        console.log('最终错误信息:', { errorMessage, errorCode });
         return {
           error: errorMessage,
           errorCode: errorCode

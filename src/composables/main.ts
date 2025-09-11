@@ -240,6 +240,14 @@ function useMainSetup() {
   // 直接使用store的响应式属性
   const config = computed(() => ttsStore.config);
   const formConfig = computed(() => ttsStore.formConfig);
+
+  // 同步playerConfig.autoplay与store中的config.autoplay
+  watch(() => ttsStore.config.autoplay, (newValue) => {
+    if (newValue !== undefined) {
+      playerConfig.autoplay = newValue;
+      console.log('同步autoplay设置:', newValue);
+    }
+  }, { immediate: true });
   
   return {
     t,
@@ -366,7 +374,7 @@ const formatOptions = [
 // 创建一个简单的响应式对象作为playerConfig
 const playerConfig = reactive({
   formatType: 'mp3',
-  autoplay: true
+  autoplay: false // 默认关闭，避免重复播放
 });
 
 // 处理来自iframe的消息
