@@ -426,9 +426,36 @@ async function getTTSData(params: TTSParams): Promise<TTSResponse> {
         console.error(`TTS API调用失败 (尝试 ${retry + 1}/${retryCount}):`, error);
         lastError = error;
         
+        // 检查是否是SSML格式错误
+        if (error.message && (
+          error.message.includes('SSML格式错误') ||
+          error.message.includes('SSML语法') ||
+          error.message.includes('生成音频失败')
+        )) {
+          console.log("检测到SSML格式错误，不再重试");
+          return {
+            error: error.message,
+            errorCode: "SSML_FORMAT_ERROR"
+          };
+        }
+
+        // 检查是否是字符数超限错误
+        if (error.message && (
+          error.message.includes('单次请求字符数不能超过') ||
+          error.message.includes('字符数超过限制') ||
+          error.message.includes('文本长度超出') ||
+          error.message.includes('character limit exceeded')
+        )) {
+          console.log("检测到字符数超限错误，不再重试");
+          return {
+            error: "输入文本超过1000字符限制，请缩短文本后重试",
+            errorCode: "CHARACTER_LIMIT_EXCEEDED"
+          };
+        }
+
         // 检查是否是HTTP 403错误，表示额度不足
-        if (error.message && (error.message.includes('403') || 
-                              error.message.includes('文本长度超出剩余配额') || 
+        if (error.message && (error.message.includes('403') ||
+                              error.message.includes('文本长度超出剩余配额') ||
                               error.message.includes('quota exceeded'))) {
           console.log("检测到HTTP 403或额度不足错误，不再重试");
           return {

@@ -122,9 +122,84 @@ export async function callTTSApi(params: TTSParams): Promise<TTSResponse> {
           buffer: response.data
         };
       } catch (localError: any) {
+        console.error('FreeTTS API错误详情:', localError);
+
+        // 尝试解析后端返回的具体错误信息
+        let errorMessage = 'FreeTTS服务错误';
+        let errorCode = "LOCAL_TTS_ERROR";
+
+        if (localError.response) {
+          // 服务器返回了错误响应
+          const status = localError.response.status;
+          const responseData = localError.response.data;
+
+          if (status === 400 && responseData) {
+            // 尝试解析JSON错误信息
+            try {
+              let errorInfo;
+              if (responseData instanceof ArrayBuffer) {
+                // 如果是ArrayBuffer，先转换为字符串
+                const decoder = new TextDecoder('utf-8');
+                const jsonString = decoder.decode(responseData);
+                errorInfo = JSON.parse(jsonString);
+              } else if (typeof responseData === 'string') {
+                errorInfo = JSON.parse(responseData);
+              } else {
+                errorInfo = responseData;
+              }
+
+              console.log('解析的错误信息:', errorInfo);
+
+              if (errorInfo.message) {
+                errorMessage = errorInfo.message;
+                // 根据错误代码设置不同的错误类型
+                if (errorInfo.code === 2) {
+                  errorCode = "SSML_FORMAT_ERROR";
+                } else if (errorInfo.code === 1) {
+                  errorCode = "CHARACTER_LIMIT_EXCEEDED";
+                } else {
+                  errorCode = "VALIDATION_ERROR";
+                }
+              } else if (errorInfo.error) {
+                errorMessage = errorInfo.error;
+                errorCode = "VALIDATION_ERROR";
+              }
+            } catch (parseError) {
+              console.error('解析错误响应失败:', parseError);
+              // 如果解析失败，尝试直接使用响应数据
+              if (responseData instanceof ArrayBuffer) {
+                const decoder = new TextDecoder('utf-8');
+                errorMessage = decoder.decode(responseData);
+              } else if (typeof responseData === 'string') {
+                errorMessage = responseData;
+              } else {
+                errorMessage = '请求参数错误';
+              }
+            }
+          } else if (status === 500) {
+            errorMessage = '服务器内部错误，请稍后重试';
+            errorCode = "SERVER_ERROR";
+          } else if (status === 429) {
+            errorMessage = '请求过于频繁，请稍后重试';
+            errorCode = "RATE_LIMIT_ERROR";
+          } else {
+            errorMessage = `服务器错误 (${status})`;
+            errorCode = `HTTP_${status}`;
+          }
+        } else if (localError.code === 'ECONNREFUSED') {
+          errorMessage = '无法连接到TTS服务器，请检查服务器是否正常运行';
+          errorCode = "CONNECTION_ERROR";
+        } else if (localError.code === 'ETIMEDOUT') {
+          errorMessage = '请求超时，请检查网络连接或稍后重试';
+          errorCode = "TIMEOUT_ERROR";
+        } else {
+          errorMessage = localError.message || '未知错误';
+        }
+
+        console.log('最终错误信息:', { errorMessage, errorCode });
         return {
-          error: `FreeTTS服务错误: ${localError.message}`,
-          errorCode: "LOCAL_TTS_ERROR"
+          error: errorMessage,
+          errorCode: errorCode
         };
       }
     } else {

@@ -52,10 +52,10 @@ import { optionsConfig } from "../components/main/options-config";
 
 // 全局store实例，用于composables函数中访问
 let globalTtsStore = null;
-let globalInputs = ref({});
-let globalPage = ref({});
-let globalFormConfig = ref({});
-let globalConfig = ref({});
+let globalInputs = computed(() => ({})); // 初始化为computed
+let globalPage = computed(() => ({}));
+let globalFormConfig = computed(() => ({}));
+let globalConfig = computed(() => ({}));
 let globalCurrMp3Url = ref(''); // 添加全局currMp3Url引用
 
 // 创建一个函数初始化全局引用，确保在setup调用后可以使用
@@ -138,11 +138,11 @@ const initGlobalRefs = () => {
       ttsStore.tableData = [];
     }
     
-    // 初始化属性引用
-    globalInputs = ref(ttsStore.inputs);
-    globalPage = ref(ttsStore.page);
-    globalFormConfig = ref(ttsStore.formConfig);
-    globalConfig = ref(ttsStore.config);
+    // 直接使用store的响应式属性，不要重新包装
+    globalInputs = computed(() => ttsStore.inputs);
+    globalPage = computed(() => ttsStore.page);
+    globalFormConfig = computed(() => ttsStore.formConfig);
+    globalConfig = computed(() => ttsStore.config);
     
     // 确保currMp3Url是ref对象并设置到全局变量
     try {
@@ -200,18 +200,12 @@ function useMainSetup() {
   // 确保初始化全局引用
   initGlobalRefs();
   
-  // 安全地解构属性
-  const inputs = ttsStore.inputs ? ref(ttsStore.inputs) : ref({
-    inputValue: "如果你觉得这个项目还不错， 欢迎Star、Fork和PR。你的Star是对作者最好的鼓励。",
-    ssmlValue: "如果你觉得这个项目还不错， 欢迎Star、Fork和PR。你的Star是对作者最好的鼓励。"
-  });
+  // 直接使用store的响应式属性，不要重新包装
+  const inputs = computed(() => ttsStore.inputs);
   
-  const page = ttsStore.page ? ref(ttsStore.page) : ref({
-    asideIndex: "1",
-    tabIndex: "1"
-  });
-  
-  const tableData = ttsStore.tableData ? ref(ttsStore.tableData) : ref([]);
+  // 直接使用store的响应式属性
+  const page = computed(() => ttsStore.page);
+  const tableData = computed(() => ttsStore.tableData);
   
   // 简化currMp3Url的处理，确保类型一致性
   let currMp3Url;
@@ -243,9 +237,9 @@ function useMainSetup() {
   }
   
   // 获取配置对象
-  const config = ref(ttsStore.config || {});
-  // 获取表单配置
-  const formConfig = ref(ttsStore.formConfig || {});
+  // 直接使用store的响应式属性
+  const config = computed(() => ttsStore.config);
+  const formConfig = computed(() => ttsStore.formConfig);
   
   return {
     t,
@@ -1189,7 +1183,40 @@ const startBtn = async () => {
   
   // 获取当前API类型，默认为5(免费服务)
   const currentApi = globalFormConfig.value?.api !== undefined ? globalFormConfig.value.api : 5;
-  
+
+  // 如果是免费TTS服务，检查字符数限制
+  if (currentApi === 5) {
+    const textToCheck = globalInputs.value?.inputValue || '';
+    const ssmlToCheck = globalInputs.value?.ssmlValue || '';
+
+    // 获取当前模式
+    const currentMode = globalPage.value?.tabIndex === INPUT_MODE.SSML;
+
+    // 使用统一的字符统计逻辑
+    const calculateCharCount = (inputValue: string, ssmlValue: string, isSSMLMode: boolean) => {
+      // 根据当前模式决定使用哪个内容计算字符数
+      if (isSSMLMode) {
+        // SSML模式：去除标签后计算字符数
+        const plainText = (ssmlValue || '').replace(/<[^>]*>/g, '');
+        return plainText.length;
+      } else {
+        // 纯文本模式：直接计算inputValue的字符数
+        return (inputValue || '').length;
+      }
+    };
+
+    const charCount = calculateCharCount(textToCheck, ssmlToCheck, currentMode);
+
+    if (charCount > 1000) {
+      ElMessage({
+        message: `输入文本超过1000字符限制（当前${charCount}字符），请缩短文本后重试`,
+        type: "error",
+        duration: 4000,
+      });
+      return;
+    }
+  }
+
   //额度检查放在API层面做，现在显示加载界面并开始转换
   isLoading.value = true;
   convertProgress.value = 0;

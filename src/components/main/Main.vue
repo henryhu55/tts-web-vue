@@ -29,15 +29,24 @@
                   inline-prompt
                   class="mode-switch"
                 />
+                <!-- 字符统计显示 -->
+                <div class="char-counter" v-if="formConfig.api === 5">
+                  <span class="char-count" :class="{ 'char-warning': currentCharCount > 800, 'char-error': currentCharCount > 1000 }">
+                    {{ currentCharCount }}/1000
+                  </span>
+                  <el-tooltip content="免费用户单次请求字符数限制为1000字符" placement="top" effect="light">
+                    <el-icon class="char-info-icon"><InfoFilled /></el-icon>
+                  </el-tooltip>
+                </div>
                 <el-tooltip
                   v-if="isSSMLMode"
                   content="查看SSML使用指南"
                   placement="top"
                   effect="light"
                 >
-                  <el-button 
-                    size="small" 
-                    type="info" 
+                  <el-button
+                    size="small"
+                    type="info"
                     class="ssml-help-button"
                     @click="openSSMLHelp"
                   >
@@ -66,6 +75,7 @@
             class="modern-textarea"
             resize="none"
             :rows="18"
+            @input="handleTextInput"
           />
           <el-input 
             v-else
@@ -927,7 +937,7 @@
 
 <script setup lang="ts">
 // @ts-nocheck  // 暂时忽略类型检查
-import { ref, watch, onMounted, nextTick, reactive } from "vue";
+import { ref, watch, onMounted, nextTick, reactive, computed } from "vue";
 import { useI18n } from 'vue-i18n';
 import i18n from '@/assets/i18n/i18n';
 import { useTtsStore, INPUT_MODE } from "@/store/store";
@@ -1078,8 +1088,6 @@ const getTableDataInfo = () => {
 
 // 初始化全局引用，确保在setup函数外部的函数也能访问到store数据
 onMounted(() => {
-  console.log('Main.vue组件已挂载');
-  
   // 初始化全局引用
   initGlobalRefs();
   
@@ -1346,14 +1354,43 @@ nextTick(() => {
 
 // 音频事件处理已移至onMounted中统一管理
 
+// 统一的字符统计函数
+const calculateCharCount = (inputValue: string, ssmlValue: string, currentMode: boolean) => {
+  // 根据当前模式决定使用哪个内容计算字符数
+  if (currentMode) {
+    // SSML模式：去除标签后计算字符数
+    const plainText = (ssmlValue || '').replace(/<[^>]*>/g, '');
+    return plainText.length;
+  } else {
+    // 纯文本模式：直接计算inputValue的字符数
+    return (inputValue || '').length;
+  }
+};
+
+// 字符统计计算
+const currentCharCount = computed(() => {
+  if (!inputs.value) return 0;
+
+  const inputValue = inputs.value.inputValue || '';
+  const ssmlValue = inputs.value.ssmlValue || '';
+
+  return calculateCharCount(inputValue, ssmlValue, isSSMLMode.value);
+});
+
+// 处理纯文本输入
+const handleTextInput = (value: string) => {
+  // 纯文本输入处理逻辑（如果需要的话）
+};
+
 // 使用防抖包装 SSML 输入处理函数
 const handleSSMLInput = debounce(() => {
   const ttsStore = useTtsStore();
   if (ttsStore.page.tabIndex === INPUT_MODE.SSML && !ttsStore.inputs.isSSMLManuallyEdited) {
     ttsStore.inputs.isSSMLManuallyEdited = true;
-    console.log('SSML已被手动编辑，当前tabIndex:', ttsStore.page.tabIndex);
   }
 }, 300); // 300ms 的防抖延迟
+
+
 
 // 监听SSML模式变化
 watch(isSSMLMode, (newValue) => {
@@ -1361,7 +1398,6 @@ watch(isSSMLMode, (newValue) => {
   if (!newValue) {
     // 切换到纯文本模式时，重置手动编辑状态
     ttsStore.inputs.isSSMLManuallyEdited = false;
-    console.log('切换到纯文本模式，重置SSML编辑状态');
   }
 });
 
@@ -2136,5 +2172,38 @@ const addTestFile = () => {
   text-overflow: ellipsis;
   white-space: nowrap;
   display: inline-block;
+}
+
+/* 字符统计样式 */
+.char-counter {
+  display: flex;
+  align-items: center;
+  margin-left: 12px;
+  font-size: 12px;
+  color: #666;
+}
+
+.char-count {
+  font-weight: 500;
+  transition: color 0.3s ease;
+}
+
+.char-count.char-warning {
+  color: #e6a23c;
+}
+
+.char-count.char-error {
+  color: #f56c6c;
+}
+
+.char-info-icon {
+  margin-left: 4px;
+  font-size: 14px;
+  color: #909399;
+  cursor: help;
+}
+
+.char-info-icon:hover {
+  color: #409eff;
 }
 </style>
