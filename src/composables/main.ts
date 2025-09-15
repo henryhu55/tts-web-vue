@@ -199,6 +199,9 @@ function useMainSetup() {
   
   // 确保初始化全局引用
   initGlobalRefs();
+
+  // 初始化SSML模式状态
+  initSSMLModeState();
   
   // 直接使用store的响应式属性，不要重新包装
   const inputs = computed(() => ttsStore.inputs);
@@ -319,6 +322,16 @@ const docUrls = [
 
 // 定义UI状态
 const isSSMLMode = ref(false);
+
+// 初始化isSSMLMode状态，确保与store中的tabIndex保持同步
+const initSSMLModeState = () => {
+  const ttsStore = useTtsStore();
+  if (ttsStore && ttsStore.page) {
+    const isSSML = ttsStore.page.tabIndex === INPUT_MODE.SSML;
+    isSSMLMode.value = isSSML;
+    console.log('初始化SSML模式状态:', isSSML ? 'SSML模式' : '文本模式');
+  }
+};
 const isLoading = ref(false);
 const convertProgress = ref(0);
 const loadingTitle = ref('正在生成语音');
@@ -1215,6 +1228,15 @@ const startBtn = async () => {
 
     const charCount = calculateCharCount(textToCheck, ssmlToCheck, currentMode);
 
+    // 添加调试信息
+    console.log('字符数检查调试信息:');
+    console.log('- 当前模式 (currentMode):', currentMode);
+    console.log('- tabIndex:', globalPage.value?.tabIndex);
+    console.log('- INPUT_MODE.SSML:', INPUT_MODE.SSML);
+    console.log('- textToCheck长度:', textToCheck.length);
+    console.log('- ssmlToCheck长度:', ssmlToCheck.length);
+    console.log('- 计算出的字符数:', charCount);
+
     if (charCount > 1000) {
       ElMessage({
         message: `输入文本超过1000字符限制（当前${charCount}字符），请缩短文本后重试`,
@@ -1413,21 +1435,36 @@ const startBtn = async () => {
       convertProgress.value = 0;
     }, 400);
     
-    // 检查是否为额度不足错误（HTTP 403 或包含"超出剩余配额"的消息）
+    // 检查错误类型并显示相应的提示
     const errorMessage = error instanceof Error ? error.message : String(error);
-    const isQuotaError = errorMessage.includes('文本长度超出剩余配额') || 
-                          errorMessage.includes('403') || 
+
+    // 检查是否为字符数超限错误
+    const isCharacterLimitError = errorMessage.includes('单次请求字符数不能超过') ||
+                                  errorMessage.includes('字符数超过限制') ||
+                                  errorMessage.includes('CHARACTER_LIMIT_EXCEEDED');
+
+    // 检查是否为额度不足错误
+    const isQuotaError = errorMessage.includes('文本长度超出剩余配额') ||
+                          errorMessage.includes('403') ||
                           errorMessage.includes('quota exceeded') ||
-                          errorMessage.includes('免费额度');
-    
-    if (isQuotaError) {
+                          errorMessage.includes('免费额度') ||
+                          errorMessage.includes('已超过今日');
+
+    if (isCharacterLimitError) {
+      // 显示字符数超限的提示
+      ElMessage({
+        message: errorMessage.includes('单次请求字符数不能超过') ? errorMessage : "输入文本超过1000字符限制，请缩短文本后重试",
+        type: "warning",
+        duration: 5000,
+      });
+    } else if (isQuotaError) {
       // 显示额度不足的提示
       ElMessage({
         message: "免费额度不足，转换失败",
         type: "warning",
         duration: 5000,
       });
-      
+
       // 展示使用TTS88API的提示
       setTimeout(() => {
         ElMessageBox.confirm(
@@ -2214,6 +2251,7 @@ export {
   adjustContentMargins,
   getTTSData,
   initGlobalRefs,
+  initSSMLModeState, // 导出SSML模式状态初始化函数
   audioPlayerRef, // 导出audioPlayerRef以便组件可以绑定
   trimUrl,
   isAudioAvailable,

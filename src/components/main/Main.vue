@@ -986,6 +986,7 @@ import {
   formatOptions,
   isDownloading,
   initGlobalRefs,
+  initSSMLModeState,
   playAudio,
   audioPlayerRef,
   globalCurrMp3Url,
@@ -1033,6 +1034,9 @@ const getTableDataInfo = () => {
 onMounted(() => {
   // 初始化全局引用
   initGlobalRefs();
+
+  // 初始化SSML模式状态，确保UI与store状态同步
+  initSSMLModeState();
   
   // 检查当前API是否为免费TTS服务，如果是则自动获取免费额度信息
   // 使用更安全的方式检查API类型，默认为5(免费服务)

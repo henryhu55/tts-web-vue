@@ -66,7 +66,8 @@ export async function callTTSApi(params: TTSParams): Promise<TTSResponse> {
         } else {
           // 纯文本模式：使用输入的文本内容
           content = voiceData.inputContent;
-          console.log('使用纯文本模式，文本内容:', content);
+          console.log('使用纯文本模式，文本内容长度:', content.length);
+          console.log('使用纯文本模式，文本内容前100字符:', content.substring(0, 100));
         }
         
         const { useTtsStore } = await import('@/store/store');
@@ -152,17 +153,22 @@ export async function callTTSApi(params: TTSParams): Promise<TTSResponse> {
 
               if (errorInfo.message) {
                 errorMessage = errorInfo.message;
-                // 根据错误代码设置不同的错误类型
+                // 根据错误代码和错误信息设置不同的错误类型
                 if (errorInfo.code === 2) {
                   errorCode = "SSML_FORMAT_ERROR";
-                } else if (errorInfo.code === 1) {
+                } else if (errorInfo.code === 1 || errorMessage.includes('单次请求字符数不能超过') || errorMessage.includes('字符数超过限制')) {
                   errorCode = "CHARACTER_LIMIT_EXCEEDED";
                 } else {
                   errorCode = "VALIDATION_ERROR";
                 }
               } else if (errorInfo.error) {
                 errorMessage = errorInfo.error;
-                errorCode = "VALIDATION_ERROR";
+                // 检查错误信息是否包含字符数超限
+                if (errorMessage.includes('单次请求字符数不能超过') || errorMessage.includes('字符数超过限制')) {
+                  errorCode = "CHARACTER_LIMIT_EXCEEDED";
+                } else {
+                  errorCode = "VALIDATION_ERROR";
+                }
               }
             } catch (parseError) {
               console.error('解析错误响应失败:', parseError);

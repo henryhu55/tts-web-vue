@@ -41,7 +41,7 @@ export const useTtsStore = defineStore("ttsStore", {
       formConfig: defaultFormConfig,
       page: {
         asideIndex: "1",
-        tabIndex: "1",
+        tabIndex: "0", // 修复：初始化为文本模式，与UI保持一致
       },
       tableData: [], // 修改为直接初始化为空数组
       currConfigName: "默认", // 当前配置的名字
