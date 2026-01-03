@@ -17,6 +17,17 @@ interface TTSParams {
   tts88Key: string;
 }
 
+interface FreeTTSRequestBody {
+  is_ssml: boolean;
+  voice: string;
+  language: string;
+  format: string;
+  speed: number;
+  pitch: number;
+  ssml?: string;  // SSML模式时使用
+  text?: string;  // 纯文本模式时使用
+}
+
 export interface TTSResponse {
   audioContent?: string;
   audibleUrl?: string;
@@ -89,7 +100,7 @@ export async function callTTSApi(params: TTSParams): Promise<TTSResponse> {
         
         // 使用正确的参数格式
         // 🔧 修复：根据SSML模式使用正确的字段名和参数
-        const requestBody = {
+        const requestBody: FreeTTSRequestBody = {
           is_ssml: isSSML,
           voice: selectedVoice || 'zh-CN-XiaoxiaoNeural',
           language: ttsStore.formConfig.languageSelect || 'zh-CN',
