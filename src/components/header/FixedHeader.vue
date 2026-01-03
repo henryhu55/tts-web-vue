@@ -28,6 +28,11 @@
 
         <!-- 右侧区域：控制按钮 -->
         <div class="header-right">
+          <!-- Promo Link -->
+          <a href="https://xiaoying.work" target="_blank" class="promo-link-badge">
+            🚀 XiaoYing.work
+          </a>
+
           <div class="api-badge" @click="openApiSite">
             <span>TTS88</span>
             <span class="api-tag">API</span>
@@ -46,6 +51,9 @@
               </el-button>
               <template #dropdown>
                 <el-dropdown-menu>
+                  <el-dropdown-item @click="openPromoSite">
+                    <el-icon><Promotion /></el-icon> 官方托管版 / Hosted
+                  </el-dropdown-item>
                   <el-dropdown-item @click="showUserGuide">
                     <el-icon><QuestionFilled /></el-icon> 查看引导
                   </el-dropdown-item>
@@ -97,6 +105,9 @@
                 </el-button>
                 <template #dropdown>
                   <el-dropdown-menu>
+                    <el-dropdown-item @click="openPromoSite">
+                      <el-icon><Rocket /></el-icon> 官方托管版
+                    </el-dropdown-item>
                     <el-dropdown-item @click="showUserGuide">
                       <el-icon><QuestionFilled /></el-icon> 查看引导
                     </el-dropdown-item>
@@ -128,7 +139,8 @@ import {
   Menu, 
   MoonNight, 
   More, 
-  Link 
+  Link,
+  Promotion
 } from '@element-plus/icons-vue';
 import { useTtsStore } from "@/store/store";
 import { storeToRefs } from "pinia";
@@ -141,7 +153,8 @@ export default {
     Menu, 
     MoonNight, 
     More, 
-    Link
+    Link,
+    Promotion
   },
   emits: ['toggle-theme', 'toggle-sidebar', 'update:isSSMLMode', 'nav-change'],
   props: {
@@ -172,6 +185,10 @@ export default {
 
     const openApiSite = () => {
       window.open("https://api.tts88.top", "_blank");
+    };
+    
+    const openPromoSite = () => {
+      window.open("https://xiaoying.work", "_blank");
     };
 
     const showUserGuide = () => {
@@ -262,6 +279,7 @@ export default {
       activeNav,
       openSSMLHelp,
       openApiSite,
+      openPromoSite,
       showUserGuide,
       handleThemeClick,
       changeNav,
@@ -427,6 +445,24 @@ export default {
   margin-left: 6px;
 }
 
+.promo-link-badge {
+  display: flex;
+  align-items: center;
+  background: linear-gradient(90deg, rgba(103, 194, 58, 0.1), rgba(103, 194, 58, 0.05));
+  border-radius: 20px;
+  padding: 6px 12px;
+  font-weight: 600;
+  font-size: 14px;
+  color: #67c23a;
+  text-decoration: none;
+  transition: all 0.3s ease;
+}
+
+.promo-link-badge:hover {
+  background: linear-gradient(90deg, rgba(103, 194, 58, 0.2), rgba(103, 194, 58, 0.1));
+  transform: translateY(-1px);
+}
+
 .control-buttons {
   display: flex;
   gap: 8px;
@@ -482,6 +518,12 @@ export default {
   .api-badge .api-tag {
     font-size: 9px;
     padding: 1px 4px;
+  }
+
+  .promo-link-badge {
+    padding: 4px 10px;
+    font-size: 13px;
+    display: none; /* Hide on mobile to save space, relies on dropdown */
   }
 
   .control-buttons {
