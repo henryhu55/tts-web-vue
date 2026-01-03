@@ -9,6 +9,7 @@ import { onMounted, ref, watch, nextTick, onBeforeUnmount, computed } from "vue"
 import { useI18n } from 'vue-i18n';
 import i18n from './assets/i18n/i18n';
 import FixedHeader from "./components/header/FixedHeader.vue";
+import NotificationBar from "./components/common/NotificationBar.vue";
 
 // 引导步骤
 const ttsStore = useTtsStore();
@@ -829,6 +830,9 @@ watch(isSidebarCollapsed, (newValue) => {
       { 'dark-theme': isDarkTheme, 'app-mobile': isMobileView }
     ]"
   >
+    <!-- 顶部通知条 -->
+    <NotificationBar />
+
     <!-- 导航栏与主容器 -->
     <div class="main-container">
       <!-- 侧边栏 -->
