@@ -1,4 +1,3 @@
-
 <div align="right">
   <details>
     <summary >🌐 Language</summary>
@@ -30,9 +29,9 @@
   </details>
 </div>
 
-# TTS-Vue Web版本
+# [TTS-Vue Web版本](https://openaitx.github.io/view.html?user=henryhu55&project=tts-web-vue&lang=as)
 
-> ✅ **Online Demo（推荐）**: [https://xiaoying.work](https://xiaoying.work)
+> ✅ **Online Demo（推荐）**: [https://xiaoying.work](https://xiaoying.work) (🎁 **每天免费 10,000 字符**)
 >
 > 🚀 **New product**: 专业配音产品 / 更稳定 / 支持套餐 / 支持更多声音 / 有任务队列
 
@@ -42,21 +41,31 @@
 
 这个仓库是开源 Web UI 的参考实现。如果您需要更稳定、功能更强大的服务，推荐使用我们的官方托管版。
 
-| 特性 | 自托管 (此仓库) | [XiaoYing.work (官方托管)](https://xiaoying.work) |
-| :--- | :--- | :--- |
-| **部署难度** | 需要自行部署后端、配置环境 | **开箱即用，无需部署** |
-| **稳定性** | 依赖本地网络环境 | **高可用 SLA，专线加速** |
-| **功能** | 基础语音合成 | **账号体系、任务队列、更多音色、API支持** |
-| **维护** | 社区维护 | **官方持续更新维护** |
-| **适用场景** | 学习、个人折腾 | **生产环境、专业配音、高频使用** |
+| 特性               | 自托管 (此仓库)            | [XiaoYing.work (官方托管)](https://xiaoying.work)  |
+| :----------------- | :------------------------- | :---------------------------------------------- |
+| **部署难度** | 需要自行部署后端、配置环境 | **开箱即用，无需部署**                    |
+| **免费额度** | 依赖后端配置               | **每天免费 10,000 字符**                  |
+| **稳定性**   | 依赖本地网络环境           | **高可用 SLA，专线加速**                  |
+| **功能**     | 基础语音合成               | **账号体系、任务队列、更多音色、API支持** |
+| **维护**     | 社区维护                   | **官方持续更新维护**                      |
+| **适用场景** | 学习、个人折腾             | **生产环境、专业配音、高频使用**          |
 
 ## 网站示例
 
+### 托管网站界面
+
+https://xiaoying.work (🎁 **每天免费 10,000 字符**)
+
+![1767435524286](image/README/1767435524286.png)
+
 https://web.tts88.top
+
 ### 新版本界面
+
 ![image](https://github.com/user-attachments/assets/177c8c0d-33d1-48e7-81e3-778f36d8fedd)
 
 ### 旧版本界面
+
 ![image](https://github.com/user-attachments/assets/67cafd2c-7b0f-4b0d-b14b-bf402aaff0cd)
 
 ## 功能特点
