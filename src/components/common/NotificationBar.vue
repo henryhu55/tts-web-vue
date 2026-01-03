@@ -26,20 +26,17 @@ export default {
   },
   setup() {
     const isVisible = ref(false);
-    const STORAGE_KEY = 'xiaoying_notification_closed';
 
     onMounted(() => {
-      const isClosed = localStorage.getItem(STORAGE_KEY);
-      if (!isClosed) {
-        setTimeout(() => {
-          isVisible.value = true;
-        }, 500);
-      }
+      // 每次刷新进入页面，都会在 500ms 后显示
+      setTimeout(() => {
+        isVisible.value = true;
+      }, 500);
     });
 
     const closeBar = () => {
+      // 仅改变当前组件状态，不存入 localStorage
       isVisible.value = false;
-      localStorage.setItem(STORAGE_KEY, 'true');
     };
 
     return {
