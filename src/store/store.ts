@@ -5,6 +5,7 @@ import { getTTSData, getDataGPT, createBatchTask, getBatchTaskStatus } from "./p
 import { ElMessage } from "element-plus";
 import WebStore from "./web-store";
 import { playAudio } from "../composables/main";
+import { buildSsml, DEFAULT_VOICE } from "../composables/useSsmlBuilder";
 // import { ref } from 'vue'; // 在 Pinia store 中不需要 ref
 
 // 使用Web版本的Store
@@ -108,56 +109,21 @@ export const useTtsStore = defineStore("ttsStore", {
       
       if (!voice) {
         console.error("警告: 没有选择声音，将使用默认声音");
-        this.formConfig.voiceSelect = "zh-CN-XiaoxiaoNeural";
+        this.formConfig.voiceSelect = DEFAULT_VOICE;
         console.log("已设置默认声音:", this.formConfig.voiceSelect);
       }
       
-      const express = this.formConfig.voiceStyleSelect;
-      const role = this.formConfig.role;
-      const rate = (this.formConfig.speed - 1) * 100;
-      const pitch = (this.formConfig.pitch - 1) * 50;
-      
-      // 准备强度和音量属性
-      let intensityAttr = "";
-      if (this.formConfig.intensity && this.formConfig.intensity !== "default") {
-        let intensityValue = "";
-        if (this.formConfig.intensity === "weak") intensityValue = "0.5";
-        else if (this.formConfig.intensity === "strong") intensityValue = "1.5";
-        else if (this.formConfig.intensity === "extraStrong") intensityValue = "2";
-        else intensityValue = this.formConfig.intensity;
-        
-        intensityAttr = ` styledegree="${intensityValue}"`;
-      }
-      
-      // 准备音量属性
-      let volumeAttr = "";
-      if (this.formConfig.volume && this.formConfig.volume !== "default") {
-        let volumeMapping = {
-          "extraWeak": "x-soft",
-          "weak": "soft", 
-          "medium": "medium",
-          "strong": "loud",
-          "extraStrong": "x-loud"
-        };
-        
-        volumeAttr = ` volume="${volumeMapping[this.formConfig.volume] || this.formConfig.volume}"`;
-      }
-
-      // 准备静音配置
-      let silenceConfig = "";
-      if (this.formConfig.silence && this.formConfig.silence !== "default") {
-        silenceConfig = `<break time="${this.formConfig.silence}" />`;
-      }
-      
-      const ssmlContent = `<speak xmlns="http://www.w3.org/2001/10/synthesis" xmlns:mstts="https://www.w3.org/2001/mstts" xmlns:emo="http://www.w3.org/2009/10/emotionml" version="1.0" xml:lang="en-US">
-        <voice name="${voice}">
-            <mstts:express-as ${express != "General" ? 'style="' + express + '"' : ""}${role != "Default" ? ' role="' + role + '"' : ""}${intensityAttr}>
-                <prosody rate="${rate}%" pitch="${pitch}%"${volumeAttr}>
-                ${silenceConfig}${text}
-                </prosody>
-            </mstts:express-as>
-        </voice>
-      </speak>`;
+      const ssmlContent = buildSsml({
+        text,
+        voice: this.formConfig.voiceSelect,
+        style: this.formConfig.voiceStyleSelect,
+        role: this.formConfig.role,
+        speed: this.formConfig.speed,
+        pitch: this.formConfig.pitch,
+        intensity: this.formConfig.intensity,
+        volume: this.formConfig.volume,
+        silence: this.formConfig.silence
+      });
       
       this.inputs.ssmlValue = ssmlContent;
       console.log("生成的SSML使用声音:", voice);
